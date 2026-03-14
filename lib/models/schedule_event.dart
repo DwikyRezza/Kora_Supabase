@@ -1,0 +1,75 @@
+class ScheduleEvent {
+  final int? id;
+  final String title;
+  final String type; // 'workout', 'meal', 'rest', 'reminder'
+  final DateTime dateTime;
+  final String workoutType; // if type == 'workout'
+  final int durationMinutes;
+  final String notes;
+  final bool isCompleted;
+
+  ScheduleEvent({
+    this.id,
+    required this.title,
+    required this.type,
+    required this.dateTime,
+    this.workoutType = '',
+    this.durationMinutes = 60,
+    this.notes = '',
+    this.isCompleted = false,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'type': type,
+      'dateTime': dateTime.toIso8601String(),
+      'workoutType': workoutType,
+      'durationMinutes': durationMinutes,
+      'notes': notes,
+      'isCompleted': isCompleted ? 1 : 0,
+    };
+  }
+
+  factory ScheduleEvent.fromMap(Map<String, dynamic> map) {
+    return ScheduleEvent(
+      id: map['id'],
+      title: map['title'],
+      type: map['type'],
+      dateTime: DateTime.parse(map['dateTime']),
+      workoutType: map['workoutType'] ?? '',
+      durationMinutes: map['durationMinutes'] ?? 60,
+      notes: map['notes'] ?? '',
+      isCompleted: map['isCompleted'] == 1,
+    );
+  }
+
+  ScheduleEvent copyWith({bool? isCompleted}) {
+    return ScheduleEvent(
+      id: id,
+      title: title,
+      type: type,
+      dateTime: dateTime,
+      workoutType: workoutType,
+      durationMinutes: durationMinutes,
+      notes: notes,
+      isCompleted: isCompleted ?? this.isCompleted,
+    );
+  }
+
+  String get typeEmoji {
+    switch (type) {
+      case 'workout':
+        return '💪';
+      case 'meal':
+        return '🍽️';
+      case 'rest':
+        return '😴';
+      case 'reminder':
+        return '🔔';
+      default:
+        return '📌';
+    }
+  }
+}

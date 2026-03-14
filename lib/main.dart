@@ -1,0 +1,185 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'theme/app_theme.dart';
+import 'screens/home_screen.dart';
+import 'screens/workout_screen.dart';
+import 'screens/protein_screen.dart';
+import 'screens/schedule_screen.dart';
+import 'screens/onboarding_screen.dart';
+import 'screens/body_stats_screen.dart';
+import 'services/profile_service.dart';
+import 'services/notification_service.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('id', null);
+  await NotificationService().init();
+  SystemChrome.setSystemUIOverlayStyle(
+    SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+    ),
+  );
+  bool onboarded = await ProfileService.isOnboarded();
+  runApp(AthleteSyncApp(isOnboarded: onboarded));
+}
+
+class AthleteSyncApp extends StatelessWidget {
+  final bool isOnboarded;
+  AthleteSyncApp({super.key, required this.isOnboarded});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppTheme.themeNotifier,
+      builder: (context, currentMode, _) {
+        return MaterialApp(
+          title: 'AthleteSync',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.theme,
+          themeMode: currentMode,
+          home: isOnboarded ? MainNavigation() : OnboardingScreen(),
+        );
+      },
+    );
+  }
+}
+
+class MainNavigation extends StatefulWidget {
+  MainNavigation({super.key});
+
+  @override
+  State<MainNavigation> createState() => _MainNavigationState();
+}
+
+class _MainNavigationState extends State<MainNavigation> {
+  int _currentIndex = 0;
+
+  void _goToTab(int index) {
+    setState(() => _currentIndex = index);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.background,
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          HomeScreen(
+            onGoToWorkout: () => _goToTab(1),
+            onGoToProtein: () => _goToTab(2),
+            onGoToSchedule: () => _goToTab(3),
+            onGoToBodyStats: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => BodyStatsScreen()),
+              );
+            },
+          ),
+          WorkoutScreen(),
+          ProteinScreen(),
+          ScheduleScreen(),
+        ],
+      ),
+      bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    const items = [
+      BottomNavigationBarItem(
+        icon: Icon(Icons.home_rounded),
+        activeIcon: Icon(Icons.home_rounded),
+        label: 'Beranda',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.fitness_center_rounded),
+        activeIcon: Icon(Icons.fitness_center_rounded),
+        label: 'Latihan',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.restaurant_menu_rounded),
+        activeIcon: Icon(Icons.restaurant_menu_rounded),
+        label: 'Nutrisi',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.calendar_month_rounded),
+        activeIcon: Icon(Icons.calendar_month_rounded),
+        label: 'Jadwal',
+      ),
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        border: Border(top: BorderSide(color: AppTheme.border, width: 1)),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.isDarkMode ? Colors.black.withOpacity(0.4) : Colors.black.withOpacity(0.05),
+            blurRadius: 20,
+            offset: Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          height: 60,
+          child: Row(
+            children: List.generate(items.length, (index) {
+              final isActive = _currentIndex == index;
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => _goToTab(index),
+                  behavior: HitTestBehavior.opaque,
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 200),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AnimatedContainer(
+                          duration: Duration(milliseconds: 200),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isActive
+                                ? AppTheme.neonGreen.withOpacity(0.15)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Icon(
+                            isActive
+                                ? (items[index].activeIcon as Icon).icon
+                                : (items[index].icon as Icon).icon,
+                            color: isActive
+                                ? AppTheme.neonGreen
+                                : AppTheme.textMuted,
+                            size: 22,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          items[index].label!,
+                          style: TextStyle(
+                            color: isActive
+                                ? AppTheme.neonGreen
+                                : AppTheme.textMuted,
+                            fontSize: 10,
+                            fontWeight:
+                                isActive ? FontWeight.w700 : FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+      ),
+    );
+  }
+}

@@ -1,0 +1,318 @@
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
+import '../models/workout.dart';
+import '../models/protein_entry.dart';
+import '../models/schedule_event.dart';
+import '../models/body_measurement.dart';
+
+class DatabaseHelper {
+  static final DatabaseHelper _instance = DatabaseHelper._internal();
+  static Database? _database;
+
+  factory DatabaseHelper() => _instance;
+  DatabaseHelper._internal();
+
+  Future<Database> get database async {
+    if (_database != null) return _database!;
+    _database = await _initDatabase();
+    return _database!;
+  }
+
+  Future<Database> _initDatabase() async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, 'athletesync.db');
+    return await openDatabase(
+      path,
+      version: 7,
+      onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
+    );
+  }
+
+  Future<void> _onCreate(Database db, int version) async {
+    await db.execute('''
+      CREATE TABLE workouts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT NOT NULL,
+        duration REAL NOT NULL,
+        distance REAL,
+        sets INTEGER,
+        reps INTEGER,
+        weight REAL,
+        caloriesBurned INTEGER NOT NULL,
+        proteinNeeded REAL NOT NULL,
+        notes TEXT,
+        date TEXT NOT NULL,
+        movingTime REAL,
+        elevationGain REAL,
+        maxElevation REAL,
+        photoPath TEXT,
+        splitsStr TEXT,
+        polyline: TEXT,
+        title TEXT,
+        photosJson TEXT
+      )
+    ''');
+// ... (rest of onCreate same as before)
+    await db.execute('''
+      CREATE TABLE protein_entries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        foodName TEXT NOT NULL,
+        proteinGrams REAL NOT NULL,
+        calories REAL NOT NULL,
+        carbsGrams REAL DEFAULT 0.0,
+        fatGrams REAL DEFAULT 0.0,
+        fiberGrams REAL DEFAULT 0.0,
+        sugarGrams REAL DEFAULT 0.0,
+        saltGrams REAL DEFAULT 0.0,
+        waterMl INTEGER DEFAULT 0,
+        mealType TEXT NOT NULL,
+        emojiStr TEXT,
+        date TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE schedule_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        type TEXT NOT NULL,
+        dateTime TEXT NOT NULL,
+        workoutType TEXT,
+        durationMinutes INTEGER,
+        notes TEXT,
+        isCompleted INTEGER DEFAULT 0
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE body_measurements (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        weight REAL NOT NULL,
+        height REAL NOT NULL,
+        bodyFatPercentage REAL,
+        chest REAL,
+        waist REAL,
+        hips REAL,
+        biceps REAL,
+        date TEXT NOT NULL
+      )
+    ''');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      try { await db.execute('ALTER TABLE protein_entries ADD COLUMN carbsGrams REAL DEFAULT 0.0'); } catch (_) {}
+      try { await db.execute('ALTER TABLE protein_entries ADD COLUMN fatGrams REAL DEFAULT 0.0'); } catch (_) {}
+      try { await db.execute('ALTER TABLE protein_entries ADD COLUMN fiberGrams REAL DEFAULT 0.0'); } catch (_) {}
+      try { await db.execute('ALTER TABLE protein_entries ADD COLUMN sugarGrams REAL DEFAULT 0.0'); } catch (_) {}
+      try { await db.execute('ALTER TABLE protein_entries ADD COLUMN saltGrams REAL DEFAULT 0.0'); } catch (_) {}
+      try { await db.execute('ALTER TABLE protein_entries ADD COLUMN waterMl INTEGER DEFAULT 0'); } catch (_) {}
+    }
+    if (oldVersion < 3) {
+      try {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS body_measurements (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            weight REAL NOT NULL,
+            height REAL NOT NULL,
+            bodyFatPercentage REAL,
+            chest REAL,
+            waist REAL,
+            hips REAL,
+            biceps REAL,
+            date TEXT NOT NULL
+          )
+        ''');
+      } catch (_) {}
+    }
+    if (oldVersion < 4) {
+      try { await db.execute('ALTER TABLE protein_entries ADD COLUMN emojiStr TEXT'); } catch (_) {}
+    }
+    if (oldVersion < 5) {
+      try { await db.execute('ALTER TABLE workouts ADD COLUMN movingTime REAL'); } catch (_) {}
+      try { await db.execute('ALTER TABLE workouts ADD COLUMN elevationGain REAL'); } catch (_) {}
+      try { await db.execute('ALTER TABLE workouts ADD COLUMN maxElevation REAL'); } catch (_) {}
+      try { await db.execute('ALTER TABLE workouts ADD COLUMN photoPath TEXT'); } catch (_) {}
+      try { await db.execute('ALTER TABLE workouts ADD COLUMN splitsStr TEXT'); } catch (_) {}
+    }
+    if (oldVersion < 7) {
+      try { await db.execute('ALTER TABLE workouts ADD COLUMN title TEXT'); } catch (_) {}
+      try { await db.execute('ALTER TABLE workouts ADD COLUMN photosJson TEXT'); } catch (_) {}
+    }
+  }
+
+  // ---- WORKOUT METHODS ----
+  Future<Map<String, double>> getWeeklyWorkoutStats(String type) async {
+    final db = await database;
+    final now = DateTime.now();
+    // Get last 7 days including today
+    Map<String, double> stats = {};
+    for (int i = 6; i >= 0; i--) {
+      final date = now.subtract(Duration(days: i));
+      final dateStr = DateTime(date.year, date.month, date.day).toIso8601String().split('T')[0];
+      
+      final result = await db.rawQuery(
+        'SELECT SUM(distance) as total FROM workouts WHERE type = ? AND date LIKE ?',
+        [type, '$dateStr%']
+      );
+      
+      double total = (result.first['total'] as num?)?.toDouble() ?? 0.0;
+      stats[dateStr] = total;
+    }
+    return stats;
+  }
+  Future<int> insertWorkout(Workout workout) async {
+    final db = await database;
+    return await db.insert('workouts', workout.toMap());
+  }
+
+  Future<List<Workout>> getWorkoutsByDate(DateTime date) async {
+    final db = await database;
+    final start = DateTime(date.year, date.month, date.day).toIso8601String();
+    final end = DateTime(date.year, date.month, date.day, 23, 59, 59).toIso8601String();
+    final maps = await db.query(
+      'workouts',
+      where: 'date BETWEEN ? AND ?',
+      whereArgs: [start, end],
+      orderBy: 'date DESC',
+    );
+    return maps.map((m) => Workout.fromMap(m)).toList();
+  }
+
+  Future<List<Workout>> getAllWorkouts() async {
+    final db = await database;
+    final maps = await db.query('workouts', orderBy: 'date DESC');
+    return maps.map((m) => Workout.fromMap(m)).toList();
+  }
+
+  Future<List<Workout>> getRecentWorkouts({int limit = 7}) async {
+    final db = await database;
+    final maps = await db.query('workouts', orderBy: 'date DESC', limit: limit);
+    return maps.map((m) => Workout.fromMap(m)).toList();
+  }
+
+  Future<int> deleteWorkout(int id) async {
+    final db = await database;
+    return await db.delete('workouts', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> updateWorkout(Workout workout) async {
+    final db = await database;
+    return await db.update(
+      'workouts',
+      workout.toMap(),
+      where: 'id = ?',
+      whereArgs: [workout.id],
+    );
+  }
+
+  // ---- PROTEIN METHODS ----
+  Future<int> insertProteinEntry(ProteinEntry entry) async {
+    final db = await database;
+    return await db.insert('protein_entries', entry.toMap());
+  }
+
+  Future<List<ProteinEntry>> getProteinEntriesByDate(DateTime date) async {
+    final db = await database;
+    final start = DateTime(date.year, date.month, date.day).toIso8601String();
+    final end = DateTime(date.year, date.month, date.day, 23, 59, 59).toIso8601String();
+    final maps = await db.query(
+      'protein_entries',
+      where: 'date BETWEEN ? AND ?',
+      whereArgs: [start, end],
+      orderBy: 'date ASC',
+    );
+    return maps.map((m) => ProteinEntry.fromMap(m)).toList();
+  }
+
+  Future<int> deleteProteinEntry(int id) async {
+    final db = await database;
+    return await db.delete('protein_entries', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // ---- SCHEDULE METHODS ----
+  Future<int> insertScheduleEvent(ScheduleEvent event) async {
+    final db = await database;
+    return await db.insert('schedule_events', event.toMap());
+  }
+
+  Future<List<ScheduleEvent>> getScheduleEventsByDate(DateTime date) async {
+    final db = await database;
+    final start = DateTime(date.year, date.month, date.day).toIso8601String();
+    final end = DateTime(date.year, date.month, date.day, 23, 59, 59).toIso8601String();
+    final maps = await db.query(
+      'schedule_events',
+      where: 'dateTime BETWEEN ? AND ?',
+      whereArgs: [start, end],
+      orderBy: 'dateTime ASC',
+    );
+    return maps.map((m) => ScheduleEvent.fromMap(m)).toList();
+  }
+
+  Future<List<ScheduleEvent>> getUpcomingEvents() async {
+    final db = await database;
+    final now = DateTime.now().toIso8601String();
+    final maps = await db.query(
+      'schedule_events',
+      where: 'dateTime >= ? AND isCompleted = 0',
+      whereArgs: [now],
+      orderBy: 'dateTime ASC',
+      limit: 10,
+    );
+    return maps.map((m) => ScheduleEvent.fromMap(m)).toList();
+  }
+
+  Future<int> updateScheduleEventCompletion(int id, bool isCompleted) async {
+    final db = await database;
+    return await db.update(
+      'schedule_events',
+      {'isCompleted': isCompleted ? 1 : 0},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<int> updateScheduleEvent(ScheduleEvent event) async {
+    final db = await database;
+    return await db.update(
+      'schedule_events',
+      event.toMap(),
+      where: 'id = ?',
+      whereArgs: [event.id],
+    );
+  }
+
+  Future<int> deleteScheduleEvent(int id) async {
+    final db = await database;
+    return await db.delete('schedule_events', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // ---- BODY MEASUREMENTS METHODS ----
+  Future<int> insertBodyMeasurement(BodyMeasurement measurement) async {
+    final db = await database;
+    return await db.insert('body_measurements', measurement.toMap());
+  }
+
+  Future<List<BodyMeasurement>> getAllBodyMeasurements() async {
+    final db = await database;
+    final maps = await db.query('body_measurements', orderBy: 'date DESC');
+    return maps.map((m) => BodyMeasurement.fromMap(m)).toList();
+  }
+
+  Future<BodyMeasurement?> getLatestBodyMeasurement() async {
+    final db = await database;
+    final maps = await db.query(
+      'body_measurements', 
+      orderBy: 'date DESC',
+      limit: 1,
+    );
+    if (maps.isEmpty) return null;
+    return BodyMeasurement.fromMap(maps.first);
+  }
+
+  Future<int> deleteBodyMeasurement(int id) async {
+    final db = await database;
+    return await db.delete('body_measurements', where: 'id = ?', whereArgs: [id]);
+  }
+}
