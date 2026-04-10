@@ -23,7 +23,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'athletesync.db');
     return await openDatabase(
       path,
-      version: 7,
+      version: 8,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -98,6 +98,23 @@ class DatabaseHelper {
         date TEXT NOT NULL
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE user_profiles (
+        uid TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT,
+        photoUrl TEXT,
+        age INTEGER DEFAULT 0,
+        gender TEXT DEFAULT 'Laki-laki',
+        height REAL DEFAULT 0.0,
+        weight REAL DEFAULT 0.0,
+        goal TEXT DEFAULT 'Bulking',
+        targetProtein REAL DEFAULT 0.0,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL
+      )
+    ''');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -139,6 +156,26 @@ class DatabaseHelper {
     if (oldVersion < 7) {
       try { await db.execute('ALTER TABLE workouts ADD COLUMN title TEXT'); } catch (_) {}
       try { await db.execute('ALTER TABLE workouts ADD COLUMN photosJson TEXT'); } catch (_) {}
+    }
+    if (oldVersion < 8) {
+      try {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS user_profiles (
+            uid TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            email TEXT,
+            photoUrl TEXT,
+            age INTEGER DEFAULT 0,
+            gender TEXT DEFAULT 'Laki-laki',
+            height REAL DEFAULT 0.0,
+            weight REAL DEFAULT 0.0,
+            goal TEXT DEFAULT 'Bulking',
+            targetProtein REAL DEFAULT 0.0,
+            createdAt TEXT NOT NULL,
+            updatedAt TEXT NOT NULL
+          )
+        ''');
+      } catch (_) {}
     }
   }
 
@@ -314,5 +351,41 @@ class DatabaseHelper {
   Future<int> deleteBodyMeasurement(int id) async {
     final db = await database;
     return await db.delete('body_measurements', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // ---- USER PROFILE METHODS ----
+  Future<void> upsertUserProfile(Map<String, dynamic> profile) async {
+    final db = await database;
+    final existing = await db.query(
+      'user_profiles',
+      where: 'uid = ?',
+      whereArgs: [profile['uid']],
+    );
+    if (existing.isEmpty) {
+      await db.insert('user_profiles', profile);
+    } else {
+      await db.update(
+        'user_profiles',
+        profile,
+        where: 'uid = ?',
+        whereArgs: [profile['uid']],
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>?> getUserProfile(String uid) async {
+    final db = await database;
+    final maps = await db.query(
+      'user_profiles',
+      where: 'uid = ?',
+      whereArgs: [uid],
+    );
+    if (maps.isEmpty) return null;
+    return maps.first;
+  }
+
+  Future<void> deleteUserProfile(String uid) async {
+    final db = await database;
+    await db.delete('user_profiles', where: 'uid = ?', whereArgs: [uid]);
   }
 }

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:latlong2/latlong.dart';
 
 // ─── Entry point — HARUS top-level function ───────────────────────────────
 // Ini adalah entry point yang dipanggil Android Service saat mulai.
@@ -246,40 +245,40 @@ class RunningTaskHandler extends TaskHandler {
     }
 
     final lastPoint = _routePoints.last;
-    final lastLatLng = LatLng(lastPoint[0], lastPoint[1]);
-    final currentLatLng = LatLng(position.latitude, position.longitude);
 
-    final segmentDistanceKm =
-        const Distance().as(LengthUnit.Kilometer, lastLatLng, currentLatLng);
-    final segmentDistanceM = segmentDistanceKm * 1000;
+    final segmentDistanceM = Geolocator.distanceBetween(
+      lastPoint[0], lastPoint[1],
+      position.latitude, position.longitude,
+    );
+    final segmentDistanceKm = segmentDistanceM / 1000.0;
 
     // Hanya tambah jika 2m – 100m (filter GPS teleport)
     if (segmentDistanceM >= 2.0 && segmentDistanceM < 100.0) {
       _distanceKm += segmentDistanceKm;
       _movingSeconds++;
       print('✅ [SERVICE] +${segmentDistanceM.toStringAsFixed(1)}m, total: ${(_distanceKm * 1000).toStringAsFixed(0)}m');
+
+      // Elevation
+      final altDiff = position.altitude - _lastAltitude;
+      if (altDiff > 0.5) _elevationGain += altDiff;
+      if (position.altitude > _maxElevation) _maxElevation = position.altitude;
+      _lastAltitude = position.altitude;
+
+      // Splits per km
+      final currentKm = _distanceKm.floor();
+      if (currentKm > _lastSplitKm) {
+        final splitTime = _elapsedSeconds - _lastSplitTimeSeconds;
+        final m = (splitTime ~/ 60).toString().padLeft(2, '0');
+        final s = (splitTime % 60).toString().padLeft(2, '0');
+        _splits.add('$m:$s');
+        _lastSplitKm = currentKm;
+        _lastSplitTimeSeconds = _elapsedSeconds;
+      }
+
+      _routePoints.add(latLng);
     } else if (segmentDistanceM >= 100.0) {
       print('⚠️ [SERVICE] GPS teleport: ${segmentDistanceM.toStringAsFixed(0)}m — ignored');
     }
-
-    // Elevation
-    final altDiff = position.altitude - _lastAltitude;
-    if (altDiff > 0.5) _elevationGain += altDiff;
-    if (position.altitude > _maxElevation) _maxElevation = position.altitude;
-    _lastAltitude = position.altitude;
-
-    // Splits per km
-    final currentKm = _distanceKm.floor();
-    if (currentKm > _lastSplitKm) {
-      final splitTime = _elapsedSeconds - _lastSplitTimeSeconds;
-      final m = (splitTime ~/ 60).toString().padLeft(2, '0');
-      final s = (splitTime % 60).toString().padLeft(2, '0');
-      _splits.add('$m:$s');
-      _lastSplitKm = currentKm;
-      _lastSplitTimeSeconds = _elapsedSeconds;
-    }
-
-    _routePoints.add(latLng);
   }
 
   String _formattedTime() {

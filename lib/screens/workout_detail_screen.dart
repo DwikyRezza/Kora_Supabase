@@ -1,8 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -153,7 +152,10 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
     if (_workout.polyline != null && _workout.polyline!.isNotEmpty) {
       try {
         final List<dynamic> decoded = jsonDecode(_workout.polyline!);
-        routePoints = decoded.map((p) => LatLng(p[0], p[1])).toList();
+        routePoints = decoded.map((p) => LatLng(
+          (p[0] as num).toDouble(),
+          (p[1] as num).toDouble(),
+        )).toList();
       } catch (e) {
         // ignore
       }
@@ -251,26 +253,63 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
               Container(
                 height: 300,
                 width: double.infinity,
-                child: FlutterMap(
-                  options: MapOptions(
-                    initialCenter: routePoints.isNotEmpty ? routePoints[routePoints.length ~/ 2] : LatLng(0, 0),
-                    initialZoom: 14.0,
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.example.athletesync',
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(0),
+                  child: GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                      target: routePoints[routePoints.length ~/ 2],
+                      zoom: 14.0,
                     ),
-                    PolylineLayer(
-                      polylines: [
-                        Polyline(
-                          points: routePoints,
-                          strokeWidth: 4.0,
-                          color: Color(0xFFFC5200),
+                    style: '''[
+                      {"elementType":"geometry","stylers":[{"color":"#212121"}]},
+                      {"elementType":"labels.icon","stylers":[{"visibility":"off"}]},
+                      {"elementType":"labels.text.fill","stylers":[{"color":"#757575"}]},
+                      {"elementType":"labels.text.stroke","stylers":[{"color":"#212121"}]},
+                      {"featureType":"road","elementType":"geometry.fill","stylers":[{"color":"#2c2c2c"}]},
+                      {"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#373737"}]},
+                      {"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#3c3c3c"}]},
+                      {"featureType":"water","elementType":"geometry","stylers":[{"color":"#000000"}]},
+                      {"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#181818"}]}
+                    ]''',
+                    myLocationEnabled: false,
+                    myLocationButtonEnabled: false,
+                    zoomControlsEnabled: false,
+                    scrollGesturesEnabled: false,
+                    zoomGesturesEnabled: false,
+                    rotateGesturesEnabled: false,
+                    tiltGesturesEnabled: false,
+                    mapToolbarEnabled: false,
+                    polylines: {
+                      Polyline(
+                        polylineId: const PolylineId('route'),
+                        points: routePoints,
+                        color: const Color(0xFFFC5200),
+                        width: 5,
+                        startCap: Cap.roundCap,
+                        endCap: Cap.roundCap,
+                        jointType: JointType.round,
+                      ),
+                    },
+                    markers: {
+                      if (routePoints.isNotEmpty)
+                        Marker(
+                          markerId: const MarkerId('start'),
+                          position: routePoints.first,
+                          icon: BitmapDescriptor.defaultMarkerWithHue(
+                            BitmapDescriptor.hueGreen,
+                          ),
                         ),
-                      ],
-                    ),
-                  ],
+                      if (routePoints.length > 1)
+                        Marker(
+                          markerId: const MarkerId('end'),
+                          position: routePoints.last,
+                          icon: BitmapDescriptor.defaultMarkerWithHue(
+                            BitmapDescriptor.hueRed,
+                          ),
+                        ),
+                    },
+                    mapType: MapType.normal,
+                  ),
                 ),
               ),
 

@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import '../models/workout.dart';
 import '../services/database_helper.dart';
@@ -19,7 +19,32 @@ class RunningTrackerScreen extends StatefulWidget {
 
 class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     with WidgetsBindingObserver {
-  final MapController _mapController = MapController();
+
+  // ── Google Maps controller ────────────────────────────────────────────
+  final Completer<GoogleMapController> _mapController = Completer();
+  static const String _mapStyleDark = '''[
+    {"elementType":"geometry","stylers":[{"color":"#212121"}]},
+    {"elementType":"labels.icon","stylers":[{"visibility":"off"}]},
+    {"elementType":"labels.text.fill","stylers":[{"color":"#757575"}]},
+    {"elementType":"labels.text.stroke","stylers":[{"color":"#212121"}]},
+    {"featureType":"administrative","elementType":"geometry","stylers":[{"color":"#757575"}]},
+    {"featureType":"administrative.country","elementType":"labels.text.fill","stylers":[{"color":"#9e9e9e"}]},
+    {"featureType":"administrative.land_parcel","stylers":[{"visibility":"off"}]},
+    {"featureType":"administrative.locality","elementType":"labels.text.fill","stylers":[{"color":"#bdbdbd"}]},
+    {"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#757575"}]},
+    {"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#181818"}]},
+    {"featureType":"poi.park","elementType":"labels.text.fill","stylers":[{"color":"#616161"}]},
+    {"featureType":"poi.park","elementType":"labels.text.stroke","stylers":[{"color":"#1b1b1b"}]},
+    {"featureType":"road","elementType":"geometry.fill","stylers":[{"color":"#2c2c2c"}]},
+    {"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#8a8a8a"}]},
+    {"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#373737"}]},
+    {"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#3c3c3c"}]},
+    {"featureType":"road.highway.controlled_access","elementType":"geometry","stylers":[{"color":"#4e4e4e"}]},
+    {"featureType":"road.local","elementType":"labels.text.fill","stylers":[{"color":"#616161"}]},
+    {"featureType":"transit","elementType":"labels.text.fill","stylers":[{"color":"#757575"}]},
+    {"featureType":"water","elementType":"geometry","stylers":[{"color":"#000000"}]},
+    {"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#3d3d3d"}]}
+  ]''';
 
   // ── State UI ──────────────────────────────────────────────────────────
   List<LatLng> _routePoints = [];
@@ -34,10 +59,13 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
   double _maxElevation = 0.0;
   List<String> _splits = [];
 
-  // ── Local UI timer (fallback agar timer jalan meski service belum kirim data)
+  // ── Marker kustom ─────────────────────────────────────────────────────
+  BitmapDescriptor? _locationMarker;
+
+  // ── Local UI timer ────────────────────────────────────────────────────
   Timer? _uiTimer;
-  DateTime? _uiRunStartTime; // waktu mulai lari (dipakai timer lokal UI)
-  int _elapsedBeforePause = 0; // detik yang sudah jalan sebelum pause
+  DateTime? _uiRunStartTime;
+  int _elapsedBeforePause = 0;
 
   // ── Data final untuk disimpan ─────────────────────────────────────────
   String? _finalSplitsJson;
@@ -51,6 +79,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     FlutterForegroundTask.addTaskDataCallback(_onReceiveTaskData);
+    _createLocationMarker();
     _initGps();
   }
 
@@ -63,13 +92,46 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     super.dispose();
   }
 
-  // ── Local UI timer — jalan di main isolate, pasti akurat saat foreground ──
+  // ── Buat marker lingkaran kustom ──────────────────────────────────────
+  Future<void> _createLocationMarker() async {
+    final ui.PictureRecorder recorder = ui.PictureRecorder();
+    final Canvas canvas = Canvas(recorder);
+    const double size = 80;
+
+    // Lingkaran luar (semi-transparan)
+    final Paint outerPaint = Paint()
+      ..color = Colors.blueAccent.withValues(alpha: 0.3)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(const Offset(size / 2, size / 2), size / 2, outerPaint);
+
+    // Border putih
+    final Paint borderPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4;
+    canvas.drawCircle(const Offset(size / 2, size / 2), size / 2 - 2, borderPaint);
+
+    // Titik biru solid di tengah
+    final Paint innerPaint = Paint()
+      ..color = Colors.blueAccent
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(const Offset(size / 2, size / 2), 14, innerPaint);
+
+    final img = await recorder.endRecording().toImage(size.toInt(), size.toInt());
+    final data = await img.toByteData(format: ui.ImageByteFormat.png);
+    if (data != null && mounted) {
+      setState(() {
+        _locationMarker = BitmapDescriptor.bytes(data.buffer.asUint8List());
+      });
+    }
+  }
+
+  // ── Local UI timer ────────────────────────────────────────────────────
   void _startUiTimer() {
     _uiTimer?.cancel();
     _uiTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(() {
-        // Hitung dari _uiRunStartTime agar akurat
         if (_uiRunStartTime != null) {
           _elapsedSeconds =
               _elapsedBeforePause +
@@ -84,7 +146,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     _uiTimer = null;
   }
 
-  // ── Terima data dari TaskHandler (GPS/distance update dari background) ─
+  // ── Terima data dari TaskHandler (GPS/distance dari background) ───────
   void _onReceiveTaskData(Object data) {
     if (!mounted || data is! Map) return;
     final map = Map<String, dynamic>.from(data);
@@ -98,28 +160,21 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
         if (!mounted) return;
         setState(() => _currentLocation = newLoc);
         if (_isRunning) {
-          try { _mapController.move(newLoc, 17.0); } catch (_) {}
+          _animateCameraToLocation(newLoc);
         }
       }
     } else if (type == 'update') {
-      // Ambil data GPS/distance dari service
-      // TIDAK override _elapsedSeconds — pakai UI timer yang lebih real-time
       if (!mounted) return;
       setState(() {
-        _movingSeconds =
-            map['movingSeconds'] as int? ?? _movingSeconds;
-        _distanceKm =
-            (map['distanceKm'] as num?)?.toDouble() ?? _distanceKm;
-        _elevationGain =
-            (map['elevationGain'] as num?)?.toDouble() ?? _elevationGain;
-        _maxElevation =
-            (map['maxElevation'] as num?)?.toDouble() ?? _maxElevation;
+        _movingSeconds  = map['movingSeconds'] as int? ?? _movingSeconds;
+        _distanceKm     = (map['distanceKm'] as num?)?.toDouble() ?? _distanceKm;
+        _elevationGain  = (map['elevationGain'] as num?)?.toDouble() ?? _elevationGain;
+        _maxElevation   = (map['maxElevation'] as num?)?.toDouble() ?? _maxElevation;
 
         final rawPoints = map['routePoints'];
         if (rawPoints is List && rawPoints.isNotEmpty) {
           _routePoints = rawPoints
-              .map((p) =>
-                  LatLng((p[0] as num).toDouble(), (p[1] as num).toDouble()))
+              .map((p) => LatLng((p[0] as num).toDouble(), (p[1] as num).toDouble()))
               .toList();
         }
 
@@ -131,7 +186,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     } else if (type == 'final') {
       _finalSplitsJson = map['splits'] as String?;
       _finalRouteJson  = map['routePoints'] as String?;
-      _distanceKm   = (map['distanceKm']   as num?)?.toDouble() ?? _distanceKm;
+      _distanceKm    = (map['distanceKm']   as num?)?.toDouble() ?? _distanceKm;
       _movingSeconds = map['movingSeconds'] as int?  ?? _movingSeconds;
       _elevationGain = (map['elevationGain'] as num?)?.toDouble() ?? _elevationGain;
       _maxElevation  = (map['maxElevation']  as num?)?.toDouble() ?? _maxElevation;
@@ -141,7 +196,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
       _elapsedBeforePause = _elapsedSeconds;
       setState(() {
         _isRunning = false;
-        _showPauseStopScreen = true; // Munculkan layar pause
+        _showPauseStopScreen = true;
       });
     } else if (type == 'resume_from_notif') {
       _uiRunStartTime = DateTime.now();
@@ -152,6 +207,29 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
       });
     } else if (type == 'stop_from_notif') {
       _stopRun();
+    }
+  }
+
+  // ── Gerak kamera Google Maps ──────────────────────────────────────────
+  Future<void> _animateCameraToLocation(LatLng loc) async {
+    if (_mapController.isCompleted) {
+      final controller = await _mapController.future;
+      controller.animateCamera(CameraUpdate.newLatLng(loc));
+    }
+  }
+
+  Future<void> _centerOnCurrentLocation() async {
+    if (_currentLocation == null) {
+      _showSnackBar('Menunggu posisi GPS...');
+      return;
+    }
+    if (_mapController.isCompleted) {
+      final controller = await _mapController.future;
+      controller.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(target: _currentLocation!, zoom: 17.0),
+        ),
+      );
     }
   }
 
@@ -188,8 +266,9 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     try {
       final lastPos = await Geolocator.getLastKnownPosition();
       if (lastPos != null && mounted) {
-        setState(() => _currentLocation = LatLng(lastPos.latitude, lastPos.longitude));
-        try { _mapController.move(_currentLocation!, 17.0); } catch (_) {}
+        final loc = LatLng(lastPos.latitude, lastPos.longitude);
+        setState(() => _currentLocation = loc);
+        _animateCameraToLocation(loc);
       }
     } catch (_) {}
 
@@ -205,28 +284,20 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
       ),
     ).listen((pos) {
       if (!mounted || _isRunning) return;
-      setState(() => _currentLocation = LatLng(pos.latitude, pos.longitude));
-      try { _mapController.move(_currentLocation!, 17.0); } catch (_) {}
+      final loc = LatLng(pos.latitude, pos.longitude);
+      setState(() => _currentLocation = loc);
+      _animateCameraToLocation(loc);
     }, cancelOnError: false);
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    debugPrint('🔄 [APP] Lifecycle: $state');
-
     if (state == AppLifecycleState.paused && _isRunning) {
-      // Layar mati / app di-background: stop UI timer
       _stopUiTimer();
-      debugPrint('⏸️ [UI] UI timer stopped — service keeps tracking in background');
     } else if (state == AppLifecycleState.resumed && _isRunning) {
-      // Kembali ke foreground: 
-      // JANGAN timpa/hitung ulang _uiRunStartTime karena DateTime.now() akan secara 
-      // otomatis menghitung delta waktu asli sejak run dimulai/sejak resume terakhir, 
-      // termasuk saat berada di background. Cukup jalankan lagi timer UI.
       _startUiTimer();
       _startInitialLocationStream();
-      debugPrint('▶️ [UI] UI timer restarted after resume. Background time included.');
     }
   }
 
@@ -237,7 +308,6 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
       return;
     }
 
-    // Reset semua state
     setState(() {
       _isRunning     = true;
       _hasStarted    = true;
@@ -252,25 +322,16 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
       _elapsedBeforePause = 0;
     });
 
-    // Catat waktu mulai untuk timer lokal UI
     _uiRunStartTime = DateTime.now();
-
-    // Start UI timer LANGSUNG — tampilan waktu langsung berjalan
     _startUiTimer();
-
-    // Stop GPS stream awal — service akan ambil alih GPS
     _initialLocationStream?.cancel();
-
-    // Mulai foreground service
-    // Service akan AUTO-START sendiri dari _handleStart() saat di call
     await LocationService.startService();
   }
 
   // ── Pause Run ─────────────────────────────────────────────────────────
   Future<void> _pauseRun() async {
     _stopUiTimer();
-    _elapsedBeforePause = _elapsedSeconds; // simpan posisi elapsed
-
+    _elapsedBeforePause = _elapsedSeconds;
     await LocationService.sendCommand({'command': 'pause'});
     setState(() {
       _isRunning = false;
@@ -280,10 +341,8 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
 
   // ── Resume Run ────────────────────────────────────────────────────────
   Future<void> _resumeRun() async {
-    // Restart timer lokal dari posisi pause terakhir
     _uiRunStartTime = DateTime.now();
     _startUiTimer();
-
     await LocationService.sendCommand({'command': 'resume'});
     setState(() {
       _isRunning = true;
@@ -294,18 +353,11 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
   // ── Stop Run ──────────────────────────────────────────────────────────
   Future<void> _stopRun() async {
     _stopUiTimer();
-    
-    // Jangan tunggu pesan balasan 'final' dari service
-    // Langsung matikan status lari
     setState(() {
       _isRunning = false;
       _showPauseStopScreen = false;
     });
-
-    // Hentikan service
     await LocationService.sendCommand({'command': 'stop'});
-    
-    // Simpan dari state UI yang sudah tersinkronisasi tiap detiknya
     await _saveRunToDatabase();
   }
 
@@ -313,18 +365,16 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
   Future<void> _saveRunToDatabase() async {
     await LocationService.stopService();
 
-    // Pencegahan jika tidak ada aktivitas (jarak di bawah 10 meter praktis dianggap 0)
     if (_distanceKm < 0.01) {
       if (mounted) {
         _showSnackBar('Aktivitas dibatalkan: Tidak ada rekaman jarak (0 km).');
-        Navigator.pop(context); // Kembali ke halaman sebelumnya
+        Navigator.pop(context);
       }
       return;
     }
 
     final durationMinutes = _elapsedSeconds / 60.0;
-    final calories =
-        Workout.calculateCalories('running', durationMinutes);
+    final calories = Workout.calculateCalories('running', durationMinutes);
     final protein = Workout.calculateProteinNeeded(
       'running', durationMinutes,
       weight: widget.userWeight,
@@ -351,14 +401,6 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     if (mounted) {
       _showSnackBar('Sesi lari berhasil disimpan! 🎉');
       Navigator.pop(context);
-    }
-  }
-
-  Future<void> _centerOnCurrentLocation() async {
-    if (_currentLocation != null) {
-      _mapController.move(_currentLocation!, 17.0);
-    } else {
-      _showSnackBar('Menunggu posisi GPS...');
     }
   }
 
@@ -537,68 +579,68 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
 
   // ─── MAIN RUNNING SCREEN ──────────────────────────────────────────────
   Widget _buildMainScreen() {
+    // Susun polyline route
+    final Set<Polyline> polylines = {};
+    if (_routePoints.length > 1) {
+      polylines.add(Polyline(
+        polylineId: const PolylineId('run_route'),
+        points: _routePoints,
+        color: Colors.blueAccent,
+        width: 6,
+        startCap: Cap.roundCap,
+        endCap: Cap.roundCap,
+        jointType: JointType.round,
+      ));
+    }
+
+    // Marker posisi saat ini
+    final Set<Marker> markers = {};
+    if (_currentLocation != null) {
+      markers.add(Marker(
+        markerId: const MarkerId('current_location'),
+        position: _currentLocation!,
+        icon: _locationMarker ?? BitmapDescriptor.defaultMarkerWithHue(
+          BitmapDescriptor.hueAzure,
+        ),
+        anchor: const Offset(0.5, 0.5),
+        flat: true,
+        zIndexInt: 2,
+      ));
+    }
+
     return Stack(
       children: [
+        // ── Google Map ────────────────────────────────────────────────
         Positioned.fill(
-          child: FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: _currentLocation ?? const LatLng(-6.200000, 106.816666),
-              initialZoom: 17.0,
+          child: GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: _currentLocation ?? const LatLng(-6.200000, 106.816666),
+              zoom: 17.0,
             ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.example.athletesync',
-              ),
-              PolylineLayer(
-                polylines: [
-                  if (_routePoints.length > 1)
-                    Polyline(
-                      points: _routePoints,
-                      strokeWidth: 6.0,
-                      color: const Color(0xFFFC5200),
-                    ),
-                ],
-              ),
-              MarkerLayer(
-                markers: [
-                  if (_currentLocation != null)
-                    Marker(
-                      point: _currentLocation!,
-                      width: 40,
-                      height: 40,
-                      alignment: Alignment.center,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.blueAccent.withValues(alpha: 0.3),
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: Center(
-                          child: Container(
-                            width: 12,
-                            height: 12,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.blueAccent,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ],
+            onMapCreated: (controller) async {
+              _mapController.complete(controller);
+              if (_currentLocation != null) {
+                _animateCameraToLocation(_currentLocation!);
+              }
+            },
+            myLocationEnabled: false,
+            myLocationButtonEnabled: false,
+            zoomControlsEnabled: false,
+            compassEnabled: false,
+            mapToolbarEnabled: false,
+            style: _mapStyleDark,
+            polylines: polylines,
+            markers: markers,
+            mapType: MapType.normal,
           ),
         ),
 
-        // Back button
+        // ── Back button ───────────────────────────────────────────────
         Positioned(
           top: 50,
           left: 16,
           child: CircleAvatar(
-            backgroundColor: Colors.black38,
+            backgroundColor: Colors.black54,
             child: IconButton(
               icon: const Icon(Icons.expand_more, color: Colors.white, size: 30),
               onPressed: _handleBackPress,
@@ -606,7 +648,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
           ),
         ),
 
-        // GPS status badge
+        // ── GPS status badge ──────────────────────────────────────────
         Positioned(
           top: 50,
           right: 16,
@@ -638,20 +680,32 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
           ),
         ),
 
-        // Map tools
+        // ── Map tools (zoom to location) ──────────────────────────────
         Positioned(
           right: 16,
           top: 110,
           child: Column(
             children: [
-              _mapToolIcon(Icons.near_me_outlined),
+              _mapToolIcon(Icons.add, onTap: () async {
+                if (_mapController.isCompleted) {
+                  final ctrl = await _mapController.future;
+                  ctrl.animateCamera(CameraUpdate.zoomIn());
+                }
+              }),
+              const SizedBox(height: 8),
+              _mapToolIcon(Icons.remove, onTap: () async {
+                if (_mapController.isCompleted) {
+                  final ctrl = await _mapController.future;
+                  ctrl.animateCamera(CameraUpdate.zoomOut());
+                }
+              }),
               const SizedBox(height: 12),
               _mapToolIcon(Icons.my_location, onTap: _centerOnCurrentLocation),
             ],
           ),
         ),
 
-        // Bottom panel
+        // ── Bottom panel ──────────────────────────────────────────────
         Align(
           alignment: Alignment.bottomCenter,
           child: Column(
@@ -798,8 +852,11 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 64,
-        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(32)),
+        height: 60,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(30),
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -807,7 +864,9 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
             const SizedBox(width: 8),
             Text(label,
                 style: TextStyle(
-                    color: textColor, fontSize: 20, fontWeight: FontWeight.w900)),
+                    color: textColor,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900)),
           ],
         ),
       ),

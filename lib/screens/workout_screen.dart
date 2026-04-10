@@ -6,8 +6,8 @@ import '../models/workout.dart';
 import '../services/database_helper.dart';
 import '../theme/app_theme.dart';
 import '../services/profile_service.dart';
+import '../services/strava_service.dart';
 import 'running_tracker_screen.dart';
-import 'active_workout_screen.dart';
 import 'weightlifting_screen.dart';
 import 'workout_detail_screen.dart';
 
@@ -65,7 +65,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
             backgroundColor: AppTheme.surfaceVariant,
             child: Text('👤'),
           ),
-          IconButton(icon: Icon(Icons.search, color: AppTheme.textPrimary), onPressed: () {}),
+          IconButton(icon: Icon(Icons.sync, color: AppTheme.textPrimary), tooltip: 'Import Strava', onPressed: () => _importFromStrava(context)),
           IconButton(icon: Icon(Icons.settings_outlined, color: AppTheme.textPrimary), onPressed: () {}),
         ],
         bottom: PreferredSize(
@@ -136,9 +136,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
               children: [
                 _filterChip('🏃 Run', 'running'),
                 _filterChip('🚶 Walk', 'walking'),
-                _filterChip('🏔 Hike', 'hiking'),
                 _filterChip('🏋️ Workout', 'weightlifting'),
-                _filterChip('🏀 Sport', 'basketball'),
               ],
             ),
           ),
@@ -452,6 +450,145 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
     );
   }
 
+  Future<void> _importFromStrava(BuildContext context) async {
+    final hasToken = await StravaService.hasRefreshToken();
+    if (!hasToken) {
+      await _showRefreshTokenSetupDialog(context);
+      return;
+    }
+    await _doStravaSync(context);
+  }
+
+  Future<void> _showRefreshTokenSetupDialog(BuildContext context) async {
+    final tokenController = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Column(children: [
+          Text('🔗', style: TextStyle(fontSize: 36)),
+          SizedBox(height: 8),
+          Text('Hubungkan Strava', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold, fontSize: 18)),
+        ]),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Color(0xFFFC5200).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Color(0xFFFC5200).withOpacity(0.3)),
+              ),
+              child: Text(
+                '1. Buka strava.com/settings/api\n2. Cari "Token Muat Ulang" (bukan Token Akses!)\n3. Salin & tempel di bawah ini',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.6),
+              ),
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: tokenController,
+              style: TextStyle(color: AppTheme.textPrimary, fontSize: 12),
+              maxLines: 2,
+              decoration: InputDecoration(
+                hintText: 'Tempel Refresh Token di sini...',
+                hintStyle: TextStyle(color: AppTheme.textMuted),
+                filled: true,
+                fillColor: AppTheme.background,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                contentPadding: EdgeInsets.all(12),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Batal', style: TextStyle(color: AppTheme.textMuted))),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Color(0xFFFC5200), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+            child: Text('Simpan & Sinkron', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || tokenController.text.trim().isEmpty) return;
+
+    showDialog(context: context, barrierDismissible: false, builder: (_) => AlertDialog(
+      backgroundColor: AppTheme.surface,
+      content: Row(children: [
+        CircularProgressIndicator(color: Color(0xFFFC5200)),
+        SizedBox(width: 16),
+        Text('Memvalidasi token...', style: TextStyle(color: AppTheme.textPrimary)),
+      ]),
+    ));
+
+    try {
+      await StravaService.saveRefreshToken(tokenController.text.trim());
+      if (!mounted) return;
+      Navigator.pop(context);
+      await _doStravaSync(context);
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      await StravaService.clearAllTokens();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Token tidak valid! Salin "Token Muat Ulang", BUKAN "Token Akses" dari strava.com/settings/api'),
+          backgroundColor: AppTheme.accentRed,
+          duration: Duration(seconds: 6),
+        ),
+      );
+    }
+  }
+
+  Future<void> _doStravaSync(BuildContext context) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppTheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(children: [
+          SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Color(0xFFFC5200), strokeWidth: 2.5)),
+          SizedBox(width: 14),
+          Text('Menarik data Strava...', style: TextStyle(color: AppTheme.textPrimary, fontSize: 15)),
+        ]),
+        content: Text('Mengambil aktivitas terbaru dari akun Strava Anda.', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+      ),
+    );
+
+    try {
+      final importedCount = await StravaService.importRecentActivities();
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      if (importedCount == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('⚠️ Semua aktivitas Strava sudah tersinkronkan sebelumnya.'), backgroundColor: AppTheme.accentOrange),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('✅ $importedCount aktivitas Strava baru berhasil disinkronkan!'), backgroundColor: AppTheme.neonGreen, duration: Duration(seconds: 4)),
+        );
+      }
+      _loadData();
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      await StravaService.clearAllTokens();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('🔄 Sesi Strava habis. Coba Import lagi dan masukkan Refresh Token baru dari strava.com/settings/api'),
+          backgroundColor: AppTheme.accentOrange,
+          duration: Duration(seconds: 7),
+        ),
+      );
+    }
+  }
+
   void _showWorkoutSelectionSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -474,19 +611,18 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
                 final weight = profile[ProfileService.keyWeight] ?? 70.0;
                 Navigator.of(context).push(MaterialPageRoute(builder: (context) => RunningTrackerScreen(userWeight: weight))).then((_) => _loadData());
               }),
-              SizedBox(height: 16),
-              _menuItem(context, 'Bola Basket', 'Live Timer tanpa GPS', '🏀', AppTheme.basketballColor, () async {
-                Navigator.pop(context);
-                final profile = await ProfileService.getProfile();
-                final weight = profile[ProfileService.keyWeight] ?? 70.0;
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => ActiveWorkoutScreen(workoutType: 'basketball', userWeight: weight))).then((_) => _loadData());
-              }),
+
               SizedBox(height: 16),
               _menuItem(context, 'Angkat Beban', 'Catat Reps, Sets, Beban', '🏋️', AppTheme.weightliftingColor, () async {
                 Navigator.pop(context);
                 final profile = await ProfileService.getProfile();
                 final weight = profile[ProfileService.keyWeight] ?? 70.0;
                 Navigator.of(context).push(MaterialPageRoute(builder: (context) => WeightliftingScreen(userWeight: weight))).then((_) => _loadData());
+              }),
+              SizedBox(height: 16),
+              _menuItem(context, 'Import dari Strava', 'Sinkronkan data lari/sepeda dari cloud', '🔗', Color(0xFFFC5200), () async {
+                Navigator.pop(context);
+                _importFromStrava(context);
               }),
             ],
           ),

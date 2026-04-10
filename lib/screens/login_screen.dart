@@ -1,0 +1,276 @@
+import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
+import '../services/profile_service.dart';
+import '../theme/app_theme.dart';
+import '../main.dart';
+import 'onboarding_screen.dart';
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
+  bool _isLoading = false;
+  late AnimationController _animController;
+  late Animation<double> _fadeAnim;
+  late Animation<Offset> _slideAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _fadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
+    );
+    _slideAnim =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
+    );
+    _animController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+
+    final user = await AuthService.signInWithGoogle();
+
+    if (!mounted) return;
+
+    if (user != null) {
+      // Check if user has completed onboarding
+      final isOnboarded = await ProfileService.isOnboarded();
+
+      if (isOnboarded) {
+        // Sync existing profile to database
+        await ProfileService.syncToDatabase();
+      }
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) =>
+              isOnboarded ? MainNavigation() : OnboardingScreen(),
+        ),
+      );
+    } else {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Login dibatalkan atau gagal'),
+            backgroundColor: AppTheme.accentRed,
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.background,
+      body: SafeArea(
+        child: FadeTransition(
+          opacity: _fadeAnim,
+          child: SlideTransition(
+            position: _slideAnim,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: Column(
+                children: [
+                  const Spacer(flex: 2),
+
+                  // App Logo / Icon
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.neonGreenGrad,
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.neonGreen.withOpacity(0.3),
+                          blurRadius: 30,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.fitness_center_rounded,
+                      color: Colors.black,
+                      size: 48,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Title
+                  ShaderMask(
+                    shaderCallback: (bounds) =>
+                        AppTheme.neonGreenGrad.createShader(bounds),
+                    child: const Text(
+                      'AthleteSync',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 36,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Subtitle
+                  Text(
+                    'Asisten Digital untuk Atlet\nLacak latihan, nutrisi, dan jadwalmu',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 15,
+                      height: 1.5,
+                    ),
+                  ),
+
+                  const Spacer(flex: 2),
+
+                  // Features list
+                  _buildFeatureRow(Icons.directions_run_rounded,
+                      'Lacak aktivitas lari & angkat beban'),
+                  const SizedBox(height: 12),
+                  _buildFeatureRow(
+                      Icons.restaurant_rounded, 'Monitor asupan nutrisi harian'),
+                  const SizedBox(height: 12),
+                  _buildFeatureRow(
+                      Icons.calendar_month_rounded, 'Atur jadwal latihan'),
+                  const SizedBox(height: 12),
+                  _buildFeatureRow(Icons.insights_rounded,
+                      'Analisis perkembangan tubuh'),
+
+                  const Spacer(flex: 2),
+
+                  // Google Sign-In Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _handleGoogleSignIn,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.surface,
+                        foregroundColor: AppTheme.textPrimary,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(color: AppTheme.border, width: 1.5),
+                        ),
+                      ),
+                      child: _isLoading
+                          ? SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: AppTheme.neonGreen,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                // Google "G" icon
+                                Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      'G',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w800,
+                                        color: Colors.blue[700],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Masuk dengan Google',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Terms
+                  Text(
+                    'Dengan masuk, Anda menyetujui\nKetentuan Layanan & Kebijakan Privasi',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppTheme.textMuted,
+                      fontSize: 11,
+                      height: 1.4,
+                    ),
+                  ),
+
+                  const Spacer(flex: 1),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: AppTheme.neonGreen.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: AppTheme.neonGreen, size: 18),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: AppTheme.textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

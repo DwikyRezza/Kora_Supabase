@@ -1,4 +1,4 @@
-package com.example.tubes
+package com.tubes.apb
 
 import io.flutter.embedding.android.FlutterActivity
 

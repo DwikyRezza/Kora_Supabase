@@ -109,38 +109,43 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Row(
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '$greeting, ${_userName.isNotEmpty ? _userName : "Atlet"}! 👋',
-                                style: TextStyle(
-                                  color: AppTheme.textSecondary,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              ShaderMask(
-                                shaderCallback: (bounds) =>
-                                    AppTheme.neonGreenGrad.createShader(bounds),
-                                child: Text(
-                                  'AthleteSync',
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '$greeting, ${_userName.isNotEmpty ? _userName : "Atlet"}! 👋',
                                   style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.5,
+                                    color: AppTheme.textSecondary,
+                                    fontSize: 14,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                SizedBox(height: 2),
+                                ShaderMask(
+                                  shaderCallback: (bounds) =>
+                                      AppTheme.neonGreenGrad.createShader(bounds),
+                                  child: Text(
+                                    'AthleteSync',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 0.5,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                          Spacer(),
                           IconButton(
                             icon: Icon(
                               AppTheme.isDarkMode ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
                               color: AppTheme.textSecondary,
+                              size: 22,
                             ),
+                            padding: EdgeInsets.zero,
+                            constraints: BoxConstraints(minWidth: 36, minHeight: 36),
                             onPressed: () {
                               setState(() {
                                 AppTheme.toggleTheme();
@@ -152,13 +157,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             onTap: widget.onGoToBodyStats,
                             child: Container(
                               padding: EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
+                                  horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
                                 color: AppTheme.surfaceVariant,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(color: AppTheme.border),
                               ),
                               child: Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(Icons.monitor_weight_rounded, color: AppTheme.electricBlue, size: 14),
                                   SizedBox(width: 4),
@@ -166,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     'Cek Tubuh',
                                     style: TextStyle(
                                       color: AppTheme.textSecondary,
-                                      fontSize: 12,
+                                      fontSize: 11,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
