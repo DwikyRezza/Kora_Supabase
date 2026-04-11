@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/profile_service.dart';
+import '../services/cloud_sync_service.dart';
 import '../theme/app_theme.dart';
 import '../main.dart';
 import 'onboarding_screen.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -63,6 +65,11 @@ class _LoginScreenState extends State<LoginScreen>
         await ProfileService.syncToDatabase();
       }
 
+      // ── Auto-restore semua data dari Firestore (untuk HP baru / pertama login) ──
+      // Dilakukan di background agar tidak blocking navigasi
+      if (!mounted) return;
+      _autoRestoreFromCloud();
+
       if (!mounted) return;
 
       Navigator.of(context).pushReplacement(
@@ -86,6 +93,16 @@ class _LoginScreenState extends State<LoginScreen>
       }
     }
   }
+
+  /// Restore data dari cloud secara silent di background
+  Future<void> _autoRestoreFromCloud() async {
+    try {
+      await CloudSyncService.restoreDataFromCloud();
+    } catch (e) {
+      // Silent fail — tidak ganggu user
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {

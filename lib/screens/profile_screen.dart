@@ -5,12 +5,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../services/auth_service.dart';
 import '../services/profile_service.dart';
-import '../services/cloud_sync_service.dart'; // import
+import '../services/cloud_sync_service.dart';
 import '../theme/app_theme.dart';
 import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final void Function(Future<bool> Function()?)? onRegisterLeaveGuard;
+  const ProfileScreen({super.key, this.onRegisterLeaveGuard});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -19,7 +20,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = true;
   bool _isSaving = false;
-  bool _isSyncing = false; // state loading untuk sinkronisasi
+  bool _hasUnsavedChanges = false;
   Map<String, dynamic> _profile = {};
   String? _localPhotoPath;
 
@@ -37,6 +38,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadProfile();
+    // Pantau perubahan pada semua field teks
+    _nameController.addListener(_markUnsaved);
+    _ageController.addListener(_markUnsaved);
+    _heightController.addListener(_markUnsaved);
+    _weightController.addListener(_markUnsaved);
+    // Daftarkan guard pindah tab ke MainNavigation
+    widget.onRegisterLeaveGuard?.call(checkUnsavedChanges);
+  }
+
+  void _markUnsaved() {
+    if (!_hasUnsavedChanges) setState(() => _hasUnsavedChanges = true);
   }
 
   @override
@@ -45,6 +57,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _ageController.dispose();
     _heightController.dispose();
     _weightController.dispose();
+    // Hapus guard saat screen di-dispose
+    widget.onRegisterLeaveGuard?.call(null);
     super.dispose();
   }
 
@@ -65,6 +79,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               profile[ProfileService.keyGender] ?? 'Laki-laki';
           _selectedGoal = profile[ProfileService.keyGoal] ?? 'Bulking';
           _isLoading = false;
+          _hasUnsavedChanges = false; // reset setelah load
         });
       }
     } catch (e) {
@@ -121,6 +136,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
         await _loadProfile();
+        // Auto-backup profil ke Firestore
+        CloudSyncService.backupToCloud().catchError((_) {});
       }
     } catch (e) {
       if (mounted) {
@@ -133,36 +150,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       }
     } finally {
-      if (mounted) setState(() => _isSaving = false);
+      if (mounted) setState(() {
+        _isSaving = false;
+        _hasUnsavedChanges = false; // reset setelah save
+      });
     }
   }
 
-  Future<void> _handleSyncToCloud() async {
-    setState(() => _isSyncing = true);
-    try {
-      await CloudSyncService.backupToCloud();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Semua data berhasil dibackup ke Cloud! ☁️✅'),
-            backgroundColor: AppTheme.electricBlue,
-            behavior: SnackBarBehavior.floating,
+  /// Periksa apakah ada perubahan belum disimpan, tampilkan dialog jika ada.
+  /// Return true = boleh pindah, false = user pilih tetap di sini.
+  Future<bool> checkUnsavedChanges() async {
+    if (!_hasUnsavedChanges) return true;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: AppTheme.accentRed, size: 24),
+            const SizedBox(width: 8),
+            Text('Perubahan Belum Disimpan',
+                style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w700, fontSize: 16)),
+          ],
+        ),
+        content: Text(
+          'Kamu punya perubahan profil yang belum tersimpan.\nApakah ingin disimpan sebelum pindah tab?',
+          style: TextStyle(color: AppTheme.textSecondary, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false), // Batal pindah
+            child: Text('Kembali & Simpan', style: TextStyle(color: AppTheme.neonGreen, fontWeight: FontWeight.w600)),
           ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal backup: $e'),
-            backgroundColor: AppTheme.accentRed,
-            behavior: SnackBarBehavior.floating,
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true), // Tetap pindah, buang perubahan
+            child: Text('Abaikan', style: TextStyle(color: AppTheme.textMuted)),
           ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isSyncing = false);
-    }
+        ],
+      ),
+    );
+    return result ?? false;
   }
 
   Future<void> _handleLogout() async {
@@ -287,8 +315,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           icon: Icons.wc_rounded,
                           value: _selectedGender,
                           items: _genders,
-                          onChanged: (v) =>
-                              setState(() => _selectedGender = v!),
+                          onChanged: (v) => setState(() {
+                              _selectedGender = v!;
+                              _hasUnsavedChanges = true;
+                            }),
                         ),
                       ),
                     ],
@@ -357,41 +387,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-
-                  // Sync Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 54,
-                    child: OutlinedButton.icon(
-                      onPressed: _isSyncing ? null : _handleSyncToCloud,
-                      icon: _isSyncing
-                          ? SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: AppTheme.electricBlue),
-                            )
-                          : Icon(Icons.cloud_upload_rounded,
-                              color: AppTheme.electricBlue, size: 20),
-                      label: Text(
-                        _isSyncing ? 'Mencadangkan...' : 'Backup Data ke Cloud',
-                        style: TextStyle(
-                          color: AppTheme.electricBlue,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(
-                            color: AppTheme.electricBlue.withOpacity(0.4)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 28),
 
                   // Logout Button
                   SizedBox(

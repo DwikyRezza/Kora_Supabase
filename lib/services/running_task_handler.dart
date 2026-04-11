@@ -52,10 +52,19 @@ class RunningTaskHandler extends TaskHandler {
 
     // Update notifikasi setiap 3 detik
     if (_elapsedSeconds % 3 == 0) {
+      final paceStr = _distanceKm > 0.01
+          ? () {
+              final paceMins = (_movingSeconds / 60.0) / _distanceKm;
+              if (paceMins > 99) return '--:--';
+              final m = paceMins.truncate();
+              final s = ((paceMins - m) * 60).truncate().toString().padLeft(2, '0');
+              return '$m:$s';
+            }()
+          : '--:--';
       FlutterForegroundTask.updateService(
         notificationTitle: 'Sesi Lari Sedang Berjalan 🏃',
         notificationText:
-            '${_distanceKm.toStringAsFixed(2)} km · ${_formattedTime()} · $_paceStr /km',
+            '${_distanceKm.toStringAsFixed(2)} km · ${_formattedTime()} · $paceStr /km',
       );
     }
 
@@ -276,7 +285,7 @@ class RunningTaskHandler extends TaskHandler {
         _lastSplitTimeSeconds = _elapsedSeconds;
       }
 
-      _routePoints.add(latLng);
+      _routePoints.add([position.latitude, position.longitude]);
     } else if (segmentDistanceM >= 150.0) {
       print('⚠️ [SERVICE] GPS teleport: ${segmentDistanceM.toStringAsFixed(0)}m — ignored');
     }

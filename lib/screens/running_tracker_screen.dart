@@ -8,6 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import '../models/workout.dart';
 import '../services/database_helper.dart';
 import '../services/location_service.dart';
+import '../services/cloud_sync_service.dart';
 import 'strava_import_screen.dart';
 
 class RunningTrackerScreen extends StatefulWidget {
@@ -468,6 +469,9 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     );
 
     await DatabaseHelper().insertWorkout(workout);
+
+    // Auto-backup ke Firestore setelah sesi selesai disimpan
+    CloudSyncService.backupToCloud().catchError((_) {});
 
     if (mounted) {
       _showSnackBar('Sesi lari berhasil disimpan! 🎉');

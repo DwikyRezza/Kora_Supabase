@@ -183,7 +183,92 @@ class StravaService {
 
     return imported;
   }
+
+  // ── Cek apakah sudah terkoneksi (ada refresh token) ──────────────────
+  static Future<bool> get isConnected => hasRefreshToken();
+
+  /// Hubungkan Strava dengan refresh token manual
+  static Future<bool> connectStrava() async {
+    // Strava OAuth tidak bisa dilakukan langsung tanpa WebView/browser
+    // Gunakan refresh token yang sudah di-input user
+    return await hasRefreshToken();
+  }
+
+  /// Putuskan koneksi Strava
+  static Future<void> disconnect() async {
+    await clearAllTokens();
+  }
+
+  /// Dapatkan aktivitas lari terbaru dari Strava (90 hari)
+  static Future<List<Map<String, dynamic>>> getRecentRunActivities() async {
+    try {
+      final accessToken = await getValidAccessToken();
+      final after = (DateTime.now().subtract(const Duration(days: 90))
+              .millisecondsSinceEpoch ~/
+          1000);
+      final response = await http.get(
+        Uri.parse(
+            '$_baseUrl/athlete/activities?per_page=50&after=$after'),
+        headers: {'Authorization': 'Bearer $accessToken'},
+      ).timeout(const Duration(seconds: 20));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> all = json.decode(response.body);
+        return all
+            .where((a) {
+              final t = a['type'] ?? a['sport_type'] ?? '';
+              return t == 'Run' || t == 'VirtualRun' || t == 'Walk';
+            })
+            .cast<Map<String, dynamic>>()
+            .toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  /// Detail aktivitas tunggal dari Strava
+  static Future<Map<String, dynamic>?> getActivityDetail(int id) async {
+    try {
+      final accessToken = await getValidAccessToken();
+      final response = await http.get(
+        Uri.parse('$_baseUrl/activities/$id'),
+        headers: {'Authorization': 'Bearer $accessToken'},
+      ).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body) as Map<String, dynamic>;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  // ── Format helpers ────────────────────────────────────────────────────
+
+  /// Format pace (min/km) dari jarak(m) dan waktu(detik)
+  static String formatPace(double distanceM, int seconds) {
+    if (distanceM < 10) return '--:--';
+    final paceSecPerKm = (seconds / distanceM) * 1000;
+    final m = (paceSecPerKm ~/ 60).toString().padLeft(2, '0');
+    final s = (paceSecPerKm % 60).truncate().toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+
+  /// Format jarak dari meter ke string "x.xx km"
+  static String formatDistance(double distanceM) {
+    final km = distanceM / 1000.0;
+    return '${km.toStringAsFixed(2)} km';
+  }
+
+  /// Format durasi dari detik ke "HH:MM:SS" atau "MM:SS"
+  static String formatDuration(int seconds) {
+    final h = seconds ~/ 3600;
+    final m = ((seconds % 3600) ~/ 60).toString().padLeft(2, '0');
+    final s = (seconds % 60).toString().padLeft(2, '0');
+    if (h > 0) return '$h:$m:$s';
+    return '$m:$s';
+  }
 }
+
 
 // ── Exception Classes ─────────────────────────────────────────────────────
 

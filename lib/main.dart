@@ -87,84 +87,30 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
-  late StreamSubscription _intentSub;
+  // Callback yang diset oleh ProfileScreen agar MainNavigation bisa meminta izin pindah tab
+  Future<bool> Function()? _profileLeaveGuard;
 
-  void _goToTab(int index) {
-    setState(() => _currentIndex = index);
+  void setProfileLeaveGuard(Future<bool> Function()? guard) {
+    _profileLeaveGuard = guard;
+  }
+
+  /// Pindah tab dengan cek perubahan yang belum disimpan jika sedang di tab Profil
+  Future<void> _goToTab(int index) async {
+    if (_currentIndex == 4 && index != 4 && _profileLeaveGuard != null) {
+      // Sedang di tab Profil, mau pindah — tanya dulu
+      final canLeave = await _profileLeaveGuard!();
+      if (!canLeave) return;
+    }
+    if (mounted) setState(() => _currentIndex = index);
   }
 
   @override
   void initState() {
     super.initState();
-    _initSharingIntent();
-  }
-
-  /// Inisialisasi listener untuk share intent dari Strava
-  void _initSharingIntent() {
-    // Case 1: App sudah berjalan di background, lalu user share dari Strava
-    _intentSub = ReceiveSharingIntent.instance.getMediaStream().listen(
-      (List<SharedMediaFile> files) {
-        _handleSharedMedia(files);
-      },
-      onError: (err) => debugPrint('Share intent stream error: $err'),
-    );
-
-    // Case 2: App dibuka dari posisi tertutup (cold start) via share
-    ReceiveSharingIntent.instance.getInitialMedia().then(
-      (List<SharedMediaFile> files) {
-        if (files.isNotEmpty) {
-          _handleSharedMedia(files);
-          ReceiveSharingIntent.instance.reset();
-        }
-      },
-    );
-  }
-
-  /// Proses shared media — cari URL Strava dan tampilkan bottom sheet import
-  void _handleSharedMedia(List<SharedMediaFile> files) {
-    if (!mounted) return;
-
-    // Gabungkan semua teks dari shared media
-    final allText = files
-        .where((f) =>
-            f.type == SharedMediaType.text ||
-            f.type == SharedMediaType.url)
-        .map((f) => f.path)
-        .join(' ');
-
-    if (allText.isEmpty) return;
-
-    // Cek apakah ada URL aktivitas Strava
-    final activityId = StravaShareHandler.extractActivityId(allText);
-    if (activityId == null) return; // Bukan dari Strava, abaikan
-
-    // Tampilkan bottom sheet auto-import
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _showImportBottomSheet(allText);
-    });
-  }
-
-  void _showImportBottomSheet(String sharedText) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => StravaShareOverlay(
-        sharedText: sharedText,
-        onConnectStrava: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const StravaImportScreen()),
-          );
-        },
-      ),
-    );
   }
 
   @override
   void dispose() {
-    _intentSub.cancel();
     super.dispose();
   }
 
@@ -190,7 +136,9 @@ class _MainNavigationState extends State<MainNavigation> {
           WorkoutScreen(),
           ProteinScreen(),
           ScheduleScreen(),
-          const ProfileScreen(),
+          ProfileScreen(
+            onRegisterLeaveGuard: setProfileLeaveGuard,
+          ),
         ],
       ),
       bottomNavigationBar: _buildBottomNav(),
