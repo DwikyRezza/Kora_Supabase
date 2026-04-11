@@ -236,13 +236,16 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  if (_workout.distance != null)
-                    _statHeader('Distance', '${_workout.distance!.toStringAsFixed(2)} km'),
-                  if (_workout.type == 'running')
-                    _statHeader('Pace', '${_calculatePace()} /km'),
-                  _statHeader('Time', _formatDuration(_workout.duration)),
+                  if (_workout.distance != null) ...[
+                    Expanded(child: _statHeader('Distance', '${_workout.distance!.toStringAsFixed(2)} km')),
+                    SizedBox(width: 8),
+                  ],
+                  if (_workout.type == 'running') ...[
+                    Expanded(child: _statHeader('Pace', '${_calculatePace()} /km')),
+                    SizedBox(width: 8),
+                  ],
+                  Expanded(child: _statHeader('Time', _formatDuration(_workout.duration))),
                 ],
               ),
             ),
@@ -322,30 +325,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                 children: [
                   _buildSectionTitle('Lainnya'),
                   SizedBox(height: 12),
-                  GridView.count(
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    childAspectRatio: 1.5,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    children: [
-                      _buildStatCard('Kalori', '${_workout.caloriesBurned} kal', Icons.local_fire_department),
-                      if (_workout.type == 'running') ...[
-                        _buildStatCard('Jarak', '${(_workout.distance ?? 0).toStringAsFixed(2)} km', Icons.straighten),
-                        _buildStatCard('Avg Pace', '${_calculatePace()} /km', Icons.speed),
-                        if (_workout.movingTime != null && _workout.movingTime! > 0)
-                          _buildStatCard('Moving Time', _formatDuration(_workout.movingTime!), Icons.timer),
-                      ] else ...[
-                        if (_workout.movingTime != null && _workout.movingTime! > 0)
-                          _buildStatCard('Moving Time', _formatDuration(_workout.movingTime!), Icons.timer),
-                      ],
-                      if (_workout.elevationGain != null && _workout.elevationGain! > 0)
-                        _buildStatCard('Elev Gain', '${_workout.elevationGain!.toStringAsFixed(1)} m', Icons.terrain),
-                      if (_workout.maxElevation != null && _workout.maxElevation! > 0)
-                        _buildStatCard('Max Elev', '${_workout.maxElevation!.toStringAsFixed(1)} m', Icons.landscape),
-                    ],
-                  ),
+                  _buildStatsGrid(),
                   
                   if (splits.isNotEmpty) ...[
                     SizedBox(height: 24),
@@ -425,9 +405,51 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-        Text(value, style: TextStyle(color: AppTheme.textPrimary, fontSize: 20, fontWeight: FontWeight.w900)),
+        Text(label, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12), overflow: TextOverflow.ellipsis),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(value, style: TextStyle(color: AppTheme.textPrimary, fontSize: 20, fontWeight: FontWeight.w900)),
+        ),
       ],
+    );
+  }
+
+  Widget _buildStatsGrid() {
+    final List<List<Widget>> rows = [];
+    final allCards = <Widget>[
+      _buildStatCard('Kalori', '${_workout.caloriesBurned} kal', Icons.local_fire_department),
+      if (_workout.type == 'running') ...[
+        _buildStatCard('Jarak', '${(_workout.distance ?? 0).toStringAsFixed(2)} km', Icons.straighten),
+        _buildStatCard('Avg Pace', '${_calculatePace()} /km', Icons.speed),
+        if (_workout.movingTime != null && _workout.movingTime! > 0)
+          _buildStatCard('Moving Time', _formatDuration(_workout.movingTime!), Icons.timer),
+      ] else ...[
+        if (_workout.movingTime != null && _workout.movingTime! > 0)
+          _buildStatCard('Moving Time', _formatDuration(_workout.movingTime!), Icons.timer),
+      ],
+      if (_workout.elevationGain != null && _workout.elevationGain! > 0)
+        _buildStatCard('Elev Gain', '${_workout.elevationGain!.toStringAsFixed(1)} m', Icons.terrain),
+      if (_workout.maxElevation != null && _workout.maxElevation! > 0)
+        _buildStatCard('Max Elev', '${_workout.maxElevation!.toStringAsFixed(1)} m', Icons.landscape),
+    ];
+    for (int i = 0; i < allCards.length; i += 2) {
+      rows.add([
+        allCards[i],
+        if (i + 1 < allCards.length) allCards[i + 1] else SizedBox.shrink(),
+      ]);
+    }
+    return Column(
+      children: rows.map((pair) => Padding(
+        padding: EdgeInsets.only(bottom: 12),
+        child: Row(
+          children: [
+            Expanded(child: pair[0]),
+            SizedBox(width: 12),
+            Expanded(child: pair[1]),
+          ],
+        ),
+      )).toList(),
     );
   }
 
@@ -463,12 +485,16 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: AppTheme.electricBlue, size: 24),
-          SizedBox(height: 8),
-          Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
-          Text(label, style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+          Icon(icon, color: AppTheme.electricBlue, size: 20),
+          SizedBox(height: 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
+          ),
+          Text(label, style: TextStyle(fontSize: 11, color: AppTheme.textSecondary), overflow: TextOverflow.ellipsis),
         ],
       ),
     );

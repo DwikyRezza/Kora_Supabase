@@ -197,7 +197,7 @@ class RunningTaskHandler extends TaskHandler {
 
     final locationSettings = AndroidSettings(
       accuracy: LocationAccuracy.high,
-      distanceFilter: 2,       // minimal 2m perlu bergerak
+      distanceFilter: 1,       // update setiap 1 meter bergerak
       intervalDuration: const Duration(seconds: 1),
       forceLocationManager: false,
     );
@@ -231,8 +231,8 @@ class RunningTaskHandler extends TaskHandler {
 
     if (!_isRunning) return;
 
-    // Filter akurasi buruk
-    if (position.accuracy > 30) {
+    // Filter akurasi buruk — longgarkan ke 50m agar bekerja di HP murah
+    if (position.accuracy > 50) {
       print('⚠️ [SERVICE] Bad accuracy: ${position.accuracy}m — skipping distance');
       return;
     }
@@ -252,8 +252,8 @@ class RunningTaskHandler extends TaskHandler {
     );
     final segmentDistanceKm = segmentDistanceM / 1000.0;
 
-    // Hanya tambah jika 2m – 100m (filter GPS teleport)
-    if (segmentDistanceM >= 2.0 && segmentDistanceM < 100.0) {
+    // Hanya tambah jika 1m – 150m (filter GPS teleport, lebih toleran)
+    if (segmentDistanceM >= 1.0 && segmentDistanceM < 150.0) {
       _distanceKm += segmentDistanceKm;
       _movingSeconds++;
       print('✅ [SERVICE] +${segmentDistanceM.toStringAsFixed(1)}m, total: ${(_distanceKm * 1000).toStringAsFixed(0)}m');
@@ -276,7 +276,7 @@ class RunningTaskHandler extends TaskHandler {
       }
 
       _routePoints.add(latLng);
-    } else if (segmentDistanceM >= 100.0) {
+    } else if (segmentDistanceM >= 150.0) {
       print('⚠️ [SERVICE] GPS teleport: ${segmentDistanceM.toStringAsFixed(0)}m — ignored');
     }
   }

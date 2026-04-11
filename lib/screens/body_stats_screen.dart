@@ -139,7 +139,6 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
       child: Column(
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _statItem('Berat', '${latest.weight} kg', AppTheme.electricBlue),
               _statItem('Tinggi', '${latest.height} cm', AppTheme.neonGreen),
@@ -161,12 +160,17 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
   }
 
   Widget _statItem(String label, String val, Color c) {
-    return Column(
-      children: [
-        Text(val, style: TextStyle(color: c, fontSize: 20, fontWeight: FontWeight.bold)),
-        SizedBox(height: 4),
-        Text(label, style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
-      ],
+    return Expanded(
+      child: Column(
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(val, style: TextStyle(color: c, fontSize: 20, fontWeight: FontWeight.bold)),
+          ),
+          SizedBox(height: 4),
+          Text(label, style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+        ],
+      ),
     );
   }
 

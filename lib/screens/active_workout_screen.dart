@@ -8,7 +8,7 @@ class ActiveWorkoutScreen extends StatefulWidget {
   final String workoutType;
   final double userWeight;
 
-  ActiveWorkoutScreen({
+  const ActiveWorkoutScreen({
     super.key,
     required this.workoutType,
     required this.userWeight,
@@ -55,7 +55,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 
   void _startTimer() {
     setState(() => _isRunning = true);
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() => _elapsedSeconds++);
     });
   }
@@ -67,17 +67,20 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 
   Future<void> _saveWorkout() async {
     final durationMinutes = _elapsedSeconds / 60.0;
-    
+
     // Prevent saving if duration is too short (< 1 min)
     if (durationMinutes < 1.0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Durasi terlalu singkat untuk disimpan.')),
+        const SnackBar(content: Text('Durasi terlalu singkat untuk disimpan.')),
       );
       return;
     }
 
-    final calories = Workout.calculateCalories(widget.workoutType, durationMinutes);
-    final protein = Workout.calculateProteinNeeded(widget.workoutType, durationMinutes, weight: widget.userWeight);
+    final calories =
+        Workout.calculateCalories(widget.workoutType, durationMinutes);
+    final protein = Workout.calculateProteinNeeded(
+        widget.workoutType, durationMinutes,
+        weight: widget.userWeight);
 
     final workout = Workout(
       type: widget.workoutType,
@@ -92,7 +95,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sesi latihan berhasil disimpan!')),
+        const SnackBar(content: Text('Sesi latihan berhasil disimpan!')),
       );
       Navigator.pop(context, true); // Return true to signal refresh needed
     }
@@ -125,108 +128,120 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       ),
       body: SafeArea(
         child: Padding(
-           padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
-           child: Column(
-             mainAxisAlignment: MainAxisAlignment.center,
-             crossAxisAlignment: CrossAxisAlignment.stretch,
-             children: [
-               Icon(
-                 widget.workoutType == 'basketball' ? Icons.sports_basketball : Icons.fitness_center,
-                 size: 100,
-                 color: _workoutColor,
-               ),
-               SizedBox(height: 48),
-               
-               // Timer Display
-               Container(
-                 padding: EdgeInsets.all(40),
-                 decoration: BoxDecoration(
-                   shape: BoxShape.circle,
-                   color: AppTheme.surface,
-                   border: Border.all(
-                     color: _isRunning ? _workoutColor : AppTheme.border,
-                     width: 4,
-                   ),
-                   boxShadow: _isRunning ? [
-                     BoxShadow(
-                       color: _workoutColor.withOpacity(0.3),
-                       blurRadius: 30,
-                       spreadRadius: 10,
-                     )
-                   ] : [],
-                 ),
-                 child: Center(
-                   child: Text(
-                     _formattedTime,
-                     style: TextStyle(
-                       fontSize: 48,
-                       fontWeight: FontWeight.w800,
-                       fontFeatures: [FontFeature.tabularFigures()],
-                       color: AppTheme.textPrimary,
-                     ),
-                   ),
-                 ),
-               ),
-               
-               Spacer(),
-               
-               // Dynamic Status text
-               Center(
-                 child: Text(
-                   _elapsedSeconds == 0 
-                     ? 'Siap untuk mulai?' 
-                     : (_isRunning ? 'Sesi sedang berjalan...' : 'Sesi dihentikan sementara'),
-                   style: TextStyle(
-                     fontSize: 16,
-                     color: AppTheme.textMuted,
-                   ),
-                 ),
-               ),
-               
-               SizedBox(height: 32),
-               
-               // Buttons
-               Row(
-                 children: [
-                   if (_elapsedSeconds > 0 && !_isRunning) ...[
-                     Expanded(
-                       child: ElevatedButton(
-                         onPressed: _saveWorkout,
-                         style: ElevatedButton.styleFrom(
-                           backgroundColor: AppTheme.surface,
-                           foregroundColor: AppTheme.neonGreen,
-                           padding: EdgeInsets.symmetric(vertical: 20),
-                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                           side: BorderSide(color: AppTheme.neonGreen, width: 2),
-                         ),
-                         child: Text('Simpan Sesi', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                       ),
-                     ),
-                     SizedBox(width: 16),
-                   ],
-                   
-                   Expanded(
-                     child: ElevatedButton(
-                       onPressed: _toggleTimer,
-                       style: ElevatedButton.styleFrom(
-                         backgroundColor: _isRunning ? AppTheme.accentRed : _workoutColor,
-                         padding: EdgeInsets.symmetric(vertical: 20),
-                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                       ),
-                       child: Text(
-                         _isRunning ? 'Jeda Latihan' : (_elapsedSeconds > 0 ? 'Lanjut' : 'Mulai Latihan'), 
-                         style: TextStyle(
-                           color: _isRunning ? Colors.white : Colors.black, 
-                           fontSize: 18, 
-                           fontWeight: FontWeight.bold
-                         )
-                       ),
-                     ),
-                   ),
-                 ],
-               )
-             ],
-           ),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Icon(
+                widget.workoutType == 'basketball'
+                    ? Icons.sports_basketball
+                    : Icons.fitness_center,
+                size: 100,
+                color: _workoutColor,
+              ),
+              const SizedBox(height: 48),
+
+              // Timer Display
+              Container(
+                padding: const EdgeInsets.all(40),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.surface,
+                  border: Border.all(
+                    color: _isRunning ? _workoutColor : AppTheme.border,
+                    width: 4,
+                  ),
+                  boxShadow: _isRunning
+                      ? [
+                          BoxShadow(
+                            color: _workoutColor.withOpacity(0.3),
+                            blurRadius: 30,
+                            spreadRadius: 10,
+                          )
+                        ]
+                      : [],
+                ),
+                child: Center(
+                  child: Text(
+                    _formattedTime,
+                    style: TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.w800,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                ),
+              ),
+
+              const Spacer(),
+
+              // Dynamic Status text
+              Center(
+                child: Text(
+                  _elapsedSeconds == 0
+                      ? 'Siap untuk mulai?'
+                      : (_isRunning
+                          ? 'Sesi sedang berjalan...'
+                          : 'Sesi dihentikan sementara'),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: AppTheme.textMuted,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              // Buttons
+              Row(
+                children: [
+                  if (_elapsedSeconds > 0 && !_isRunning) ...[
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _saveWorkout,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.surface,
+                          foregroundColor: AppTheme.neonGreen,
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
+                          side: BorderSide(color: AppTheme.neonGreen, width: 2),
+                        ),
+                        child: const Text('Simpan Sesi',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                  ],
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _toggleTimer,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            _isRunning ? AppTheme.accentRed : _workoutColor,
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: Text(
+                          _isRunning
+                              ? 'Jeda Latihan'
+                              : (_elapsedSeconds > 0
+                                  ? 'Lanjut'
+                                  : 'Mulai Latihan'),
+                          style: TextStyle(
+                              color: _isRunning ? Colors.white : Colors.black,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              )
+            ],
+          ),
         ),
       ),
     );

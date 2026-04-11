@@ -361,7 +361,11 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
-        Text(value, style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w900, fontSize: 18)),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(value, style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w900, fontSize: 18)),
+        ),
       ],
     );
   }

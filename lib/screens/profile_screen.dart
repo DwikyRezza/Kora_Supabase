@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../services/auth_service.dart';
 import '../services/profile_service.dart';
+import '../services/cloud_sync_service.dart'; // import
 import '../theme/app_theme.dart';
 import 'login_screen.dart';
 
@@ -18,6 +19,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _isSyncing = false; // state loading untuk sinkronisasi
   Map<String, dynamic> _profile = {};
   String? _localPhotoPath;
 
@@ -132,6 +134,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  Future<void> _handleSyncToCloud() async {
+    setState(() => _isSyncing = true);
+    try {
+      await CloudSyncService.backupToCloud();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Semua data berhasil dibackup ke Cloud! ☁️✅'),
+            backgroundColor: AppTheme.electricBlue,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal backup: $e'),
+            backgroundColor: AppTheme.accentRed,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSyncing = false);
     }
   }
 
@@ -325,6 +355,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Sync Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: OutlinedButton.icon(
+                      onPressed: _isSyncing ? null : _handleSyncToCloud,
+                      icon: _isSyncing
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: AppTheme.electricBlue),
+                            )
+                          : Icon(Icons.cloud_upload_rounded,
+                              color: AppTheme.electricBlue, size: 20),
+                      label: Text(
+                        _isSyncing ? 'Mencadangkan...' : 'Backup Data ke Cloud',
+                        style: TextStyle(
+                          color: AppTheme.electricBlue,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(
+                            color: AppTheme.electricBlue.withOpacity(0.4)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -573,6 +637,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: DropdownButtonFormField<String>(
+        isExpanded: true,
         value: value,
         decoration: InputDecoration(
           labelText: label,

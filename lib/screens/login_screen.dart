@@ -50,8 +50,13 @@ class _LoginScreenState extends State<LoginScreen>
     if (!mounted) return;
 
     if (user != null) {
-      // Check if user has completed onboarding
-      final isOnboarded = await ProfileService.isOnboarded();
+      // Check if user has completed onboarding locally
+      bool isOnboarded = await ProfileService.isOnboarded();
+
+      if (!isOnboarded) {
+        // If not found locally, check if they exist in the database and sync them down
+        isOnboarded = await ProfileService.checkAndSyncFromDatabase();
+      }
 
       if (isOnboarded) {
         // Sync existing profile to database

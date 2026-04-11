@@ -95,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
           slivers: [
             // ---- APP BAR ----
             SliverAppBar(
-              expandedHeight: 140,
+              expandedHeight: 170,
               floating: false,
               pinned: true,
               backgroundColor: AppTheme.background,
@@ -206,42 +206,55 @@ class _HomeScreenState extends State<HomeScreen> {
                     // ---- STATS GRID ----
                     SectionHeader(title: 'Ringkasan Hari Ini'),
                     SizedBox(height: 12),
-                    GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: 1.2,
+                    Column(
                       children: [
-                        StatCard(
-                          label: 'Nutrisi Dikonsumsi',
-                          value: _totalProteinToday.toStringAsFixed(1),
-                          unit: 'g',
-                          icon: Icons.restaurant_menu_rounded,
-                          gradient: AppTheme.neonGreenGrad,
-                          subtitle: 'Target: ${_totalProteinNeeded.toStringAsFixed(1)}g',
+                        Row(
+                          children: [
+                            Expanded(
+                              child: StatCard(
+                                label: 'Nutrisi Dikonsumsi',
+                                value: _totalProteinToday.toStringAsFixed(1),
+                                unit: 'g',
+                                icon: Icons.restaurant_menu_rounded,
+                                gradient: AppTheme.neonGreenGrad,
+                                subtitle: 'Target: ${_totalProteinNeeded.toStringAsFixed(1)}g',
+                              ),
+                            ),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: StatCard(
+                                label: 'Kalori Terbakar',
+                                value: _totalCaloriesToday.toString(),
+                                unit: 'kal',
+                                icon: Icons.local_fire_department_rounded,
+                                gradient: AppTheme.orangeGrad,
+                              ),
+                            ),
+                          ],
                         ),
-                        StatCard(
-                          label: 'Kalori Terbakar',
-                          value: _totalCaloriesToday.toString(),
-                          unit: 'kal',
-                          icon: Icons.local_fire_department_rounded,
-                          gradient: AppTheme.orangeGrad,
-                        ),
-                        StatCard(
-                          label: 'Durasi Latihan',
-                          value: _totalWorkoutMinutes.toString(),
-                          unit: 'menit',
-                          icon: Icons.timer_rounded,
-                          gradient: AppTheme.electricBlueGrad,
-                        ),
-                        StatCard(
-                          label: 'Sesi Latihan',
-                          value: _todayWorkouts.length.toString(),
-                          unit: 'sesi',
-                          icon: Icons.fitness_center_rounded,
-                          gradient: AppTheme.purpleGrad,
+                        SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: StatCard(
+                                label: 'Durasi Latihan',
+                                value: _totalWorkoutMinutes.toString(),
+                                unit: 'menit',
+                                icon: Icons.timer_rounded,
+                                gradient: AppTheme.electricBlueGrad,
+                              ),
+                            ),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: StatCard(
+                                label: 'Sesi Latihan',
+                                value: _todayWorkouts.length.toString(),
+                                unit: 'sesi',
+                                icon: Icons.fitness_center_rounded,
+                                gradient: AppTheme.purpleGrad,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

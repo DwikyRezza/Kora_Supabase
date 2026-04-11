@@ -22,7 +22,7 @@ class StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppTheme.cardBg,
         borderRadius: BorderRadius.circular(16),
@@ -46,39 +46,47 @@ class StatCard extends StatelessWidget {
             ],
           ),
           SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                value,
-                style: TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  height: 1,
-                ),
-              ),
-              SizedBox(width: 4),
-              Padding(
-                padding: EdgeInsets.only(bottom: 3),
-                child: Text(
-                  unit,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  value,
                   style: TextStyle(
-                    color: AppTheme.textSecondary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                    color: AppTheme.textPrimary,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                    height: 1,
                   ),
                 ),
-              ),
-            ],
+                SizedBox(width: 4),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 3),
+                  child: Text(
+                    unit,
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: AppTheme.textSecondary,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
           if (subtitle != null) ...[

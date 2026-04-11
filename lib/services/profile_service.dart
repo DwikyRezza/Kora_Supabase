@@ -2,6 +2,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'database_helper.dart';
 import 'auth_service.dart';
 
+import 'cloud_sync_service.dart';
+
 class ProfileService {
   static String keyIsOnboarded = 'isOnboarded';
   static String keyName = 'name';
@@ -188,6 +190,41 @@ class ProfileService {
       'createdAt': now,
       'updatedAt': now,
     });
+  }
+
+  /// Sync database profile data to SharedPreferences (and fetch from Cloud if missing locally)
+  static Future<bool> checkAndSyncFromDatabase() async {
+    if (!AuthService.isLoggedIn) return false;
+    
+    final uid = AuthService.uid;
+    
+    // Coba memulihkan data dari Cloud (Firebase) terlebih dahulu
+    bool fromCloud = await CloudSyncService.restoreProfile();
+    if (fromCloud) {
+       // Jika berhasil mendapatkan dari cloud, restore seluruh data lainnya ke SQLite lokal di background
+       CloudSyncService.restoreDataFromCloud().then((_) {
+         print("Berhasil mengunduh seluruh data dari Cloud ke lokal DB.");
+       }).catchError((e) {
+         print("Gagal mengunduh semua data dari Cloud: $e");
+       });
+    }
+
+    // Ambil data yang berhasil didownload ke SQLite lokal
+    final dbProfile = await _db.getUserProfile(uid);
+    
+    if (dbProfile != null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(keyName, dbProfile['name'] ?? AuthService.displayName);
+      await prefs.setInt(keyAge, dbProfile['age'] ?? 0);
+      await prefs.setString(keyGender, dbProfile['gender'] ?? 'Laki-laki');
+      await prefs.setDouble(keyHeight, (dbProfile['height'] as num?)?.toDouble() ?? 0.0);
+      await prefs.setDouble(keyWeight, (dbProfile['weight'] as num?)?.toDouble() ?? 0.0);
+      await prefs.setString(keyGoal, dbProfile['goal'] ?? '');
+      await prefs.setDouble(keyTargetProtein, (dbProfile['targetProtein'] as num?)?.toDouble() ?? 0.0);
+      await prefs.setBool(keyIsOnboarded, true);
+      return true;
+    }
+    return false;
   }
 
   static String getBMIStatus(double bmi) {
