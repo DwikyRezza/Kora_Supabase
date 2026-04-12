@@ -12,7 +12,28 @@
           "package_name": "com.tubes.apb"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "973192786080-4c751eoa3auh8cp673kibs0hn6dp471e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tubes.apb",
+            "certificate_hash": "da68d66c11c8079f80a686d7d7ab3ddbc136f469"
+          }
+        },
+        {
+          "client_id": "973192786080-b43b3ha5iogfsjtdqgb1bt5h3s6igq63.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tubes.apb",
+            "certificate_hash": "e5684cc9830e7eb75a29ca55f93c233befa0e960"
+          }
+        },
+        {
+          "client_id": "973192786080-41mojj3c865jrr0ohugsutco3k2kjdgl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCsFZeZnkfOb9mSd9wIMkgm-Ng39BbvUwQ"
@@ -20,7 +41,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "973192786080-41mojj3c865jrr0ohugsutco3k2kjdgl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
