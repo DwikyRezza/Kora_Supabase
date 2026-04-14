@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../models/schedule_event.dart';
 import '../services/database_helper.dart';
 import '../services/notification_service.dart';
+import '../services/settings_service.dart';
 import '../theme/app_theme.dart';
 import 'weekly_report_screen.dart';
 
@@ -51,7 +52,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
     if (act == true && event.id != null) {
       await _db.deleteScheduleEvent(event.id!);
-      await NotificationService().cancelWorkoutReminder(event.id!);
+      await NotificationService().cancelEventReminder(event.id!);
       _loadEvents();
     }
   }
@@ -64,17 +65,41 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       builder: (context) => _AddEditEventForm(
         event: event,
         onSubmit: (newEvent, isReminderOn) async {
+          // Cek master switch dari Settings
+          final masterNotifOn = await SettingsService.getNotifWorkout();
+          final advanceMinutes = await SettingsService.getWorkoutAdvanceMinutes();
+
           if (event == null) {
             int id = await _db.insertScheduleEvent(newEvent);
-            if (isReminderOn) {
-              await NotificationService().scheduleWorkoutReminder(id, newEvent.title, newEvent.dateTime);
+            // Gunakan isReminderOn dari form ATAU master switch dari Settings
+            if (isReminderOn && masterNotifOn) {
+              final savedEvent = newEvent.copyWith(isCompleted: false);
+              // Buat event baru dengan id yang baru disimpan
+              final eventWithId = ScheduleEvent(
+                id: id,
+                title: savedEvent.title,
+                type: savedEvent.type,
+                dateTime: savedEvent.dateTime,
+                workoutType: savedEvent.workoutType,
+                durationMinutes: savedEvent.durationMinutes,
+                notes: savedEvent.notes,
+              );
+              await NotificationService().scheduleEventReminder(
+                eventWithId,
+                advanceMinutes: advanceMinutes,
+              );
             }
           } else {
             final updatedEvent = newEvent.copyWith(isCompleted: event.isCompleted);
             await _db.updateScheduleEvent(updatedEvent);
-            await NotificationService().cancelWorkoutReminder(event.id!);
-            if (isReminderOn) {
-              await NotificationService().scheduleWorkoutReminder(event.id!, updatedEvent.title, updatedEvent.dateTime);
+            // Selalu batalkan dulu notif lama
+            await NotificationService().cancelEventReminder(event.id!);
+            // Jadwalkan ulang jika toggle form aktif DAN master switch aktif
+            if (isReminderOn && masterNotifOn) {
+              await NotificationService().scheduleEventReminder(
+                updatedEvent,
+                advanceMinutes: advanceMinutes,
+              );
             }
           }
           _loadEvents();

@@ -10,6 +10,8 @@ import '../services/strava_service.dart';
 import 'running_tracker_screen.dart';
 import 'weightlifting_screen.dart';
 import 'workout_detail_screen.dart';
+import 'profile_screen.dart';
+import 'setting_screen.dart';
 
 class WorkoutScreen extends StatefulWidget {
   WorkoutScreen({super.key});
@@ -60,16 +62,22 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text('You', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppTheme.textPrimary)),
+        title: Text('Athlete Sync', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.textPrimary)),
         backgroundColor: AppTheme.background,
         actions: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: AppTheme.surfaceVariant,
-            child: Text('👤'),
+          GestureDetector(
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
+            child: CircleAvatar(
+              radius: 18,
+              backgroundColor: AppTheme.surfaceVariant,
+              child: Text('👤'),
+            ),
           ),
           IconButton(icon: Icon(Icons.sync, color: AppTheme.textPrimary), tooltip: 'Import Strava', onPressed: () => _importFromStrava(context)),
-          IconButton(icon: Icon(Icons.settings_outlined, color: AppTheme.textPrimary), onPressed: () {}),
+          IconButton(
+            icon: Icon(Icons.settings_outlined, color: AppTheme.textPrimary),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingScreen())),
+          ),
         ],
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(50),

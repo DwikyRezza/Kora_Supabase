@@ -16,6 +16,7 @@ import 'services/profile_service.dart';
 import 'services/notification_service.dart';
 import 'services/location_service.dart';
 import 'services/auth_service.dart';
+import 'services/settings_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +33,8 @@ void main() async {
 
   await initializeDateFormatting('id', null);
   await NotificationService().init();
+  // Load persisted settings (dark mode, notifikasi, satuan, dll)
+  await SettingsService.loadAll();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
