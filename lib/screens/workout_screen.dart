@@ -70,7 +70,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
             child: CircleAvatar(
               radius: 18,
               backgroundColor: AppTheme.surfaceVariant,
-              child: Text('👤'),
+              child: Text(''),
             ),
           ),
           IconButton(icon: Icon(Icons.sync, color: AppTheme.textPrimary), tooltip: 'Import Strava', onPressed: () => _importFromStrava(context)),
@@ -145,9 +145,9 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
-                _filterChip('🏃 Run', 'running'),
-                _filterChip('🚶 Walk', 'walking'),
-                _filterChip('🏋️ Workout', 'weightlifting'),
+                _filterChip(' Run', 'running'),
+                _filterChip(' Walk', 'walking'),
+                _filterChip(' Workout', 'weightlifting'),
               ],
             ),
           ),
@@ -281,7 +281,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
               children: [
                 Row(
                   children: [
-                    CircleAvatar(backgroundColor: AppTheme.surfaceVariant, child: Text(workout.typeEmoji)),
+                    CircleAvatar(backgroundColor: AppTheme.surfaceVariant, child: Icon(workout.typeIcon, size: 24)),
                     SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -415,7 +415,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
             Text(value, style: TextStyle(color: AppTheme.textPrimary, fontSize: 20, fontWeight: FontWeight.bold)),
             if (showFire) ...[
               SizedBox(width: 4),
-              Text('🔥', style: TextStyle(fontSize: 18)),
+              Text('', style: TextStyle(fontSize: 18)),
             ],
           ],
         ),
@@ -426,7 +426,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
   Widget _shareButton() {
     return InkWell(
       onTap: () {
-        Share.share('Check out my activity progress on AthleteSync! I have a 10 week streak! 🔥');
+        Share.share('Check out my activity progress on AthleteSync! I have a 10 week streak! ');
       },
       borderRadius: BorderRadius.circular(20),
       child: Container(
@@ -506,7 +506,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
         backgroundColor: AppTheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Column(children: [
-          Text('🔗', style: TextStyle(fontSize: 36)),
+          Text('', style: TextStyle(fontSize: 36)),
           SizedBox(height: 8),
           Text('Hubungkan Strava', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold, fontSize: 18)),
         ]),
@@ -620,7 +620,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
       await StravaService.clearAllTokens();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('🔄 Sesi Strava habis. Coba Import lagi dan masukkan Refresh Token baru dari strava.com/settings/api'),
+          content: Text(' Sesi Strava habis. Coba Import lagi dan masukkan Refresh Token baru dari strava.com/settings/api'),
           backgroundColor: AppTheme.accentOrange,
           duration: Duration(seconds: 7),
         ),
@@ -644,7 +644,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
               SizedBox(height: 24),
               Text('Pilih Jenis Latihan', style: TextStyle(color: AppTheme.textPrimary, fontSize: 22, fontWeight: FontWeight.w900), textAlign: TextAlign.center),
               SizedBox(height: 32),
-              _menuItem(context, 'Lari (GPS Tracker)', 'Pantau rute dan jarak tempuh aslimu', '🏃', AppTheme.runningColor, () async {
+              _menuItem(context, 'Lari (GPS Tracker)', 'Pantau rute dan jarak tempuh aslimu', '', AppTheme.runningColor, () async {
                 Navigator.pop(context);
                 final profile = await ProfileService.getProfile();
                 final weight = profile[ProfileService.keyWeight] ?? 70.0;
@@ -652,14 +652,14 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
               }),
 
               SizedBox(height: 16),
-              _menuItem(context, 'Angkat Beban', 'Catat Reps, Sets, Beban', '🏋️', AppTheme.weightliftingColor, () async {
+              _menuItem(context, 'Angkat Beban', 'Catat Reps, Sets, Beban', '', AppTheme.weightliftingColor, () async {
                 Navigator.pop(context);
                 final profile = await ProfileService.getProfile();
                 final weight = profile[ProfileService.keyWeight] ?? 70.0;
                 Navigator.of(context).push(MaterialPageRoute(builder: (context) => WeightliftingScreen(userWeight: weight))).then((_) => _loadData());
               }),
               SizedBox(height: 16),
-              _menuItem(context, 'Import dari Strava', 'Sinkronkan data lari/sepeda dari cloud', '🔗', Color(0xFFFC5200), () async {
+              _menuItem(context, 'Import dari Strava', 'Sinkronkan data lari/sepeda dari cloud', '', Color(0xFFFC5200), () async {
                 Navigator.pop(context);
                 _importFromStrava(context);
               }),

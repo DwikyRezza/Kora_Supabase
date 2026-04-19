@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 class ProteinEntry {
   final int? id;
   final String foodName;
@@ -82,225 +83,19 @@ class ProteinEntry {
     }
   }
 
-  String get mealEmoji {
+  IconData get mealIcon {
     switch (mealType) {
-      case 'breakfast':
-        return '🌅';
-      case 'lunch':
-        return '☀️';
-      case 'dinner':
-        return '🌙';
-      case 'snack':
-        return '🍎';
-      case 'water':
-        return '💧';
-      default:
-        return '🍽️';
+      case 'breakfast': return Icons.wb_twilight;
+      case 'lunch': return Icons.wb_sunny;
+      case 'dinner': return Icons.nights_stay;
+      case 'snack': return Icons.local_dining;
+      case 'water': return Icons.local_drink;
+      default: return Icons.restaurant;
     }
   }
 
-  String get foodEmoji {
-    if (emojiStr != null) return emojiStr!;
-    final n = foodName.toLowerCase();
-
-    if (n.contains('pisang')) return '🍌';
-    if (n.contains('apel')) return '🍎';
-    if (n.contains('jeruk')) return '🍊';
-    if (n.contains('mangga')) return '🥭';
-    if (n.contains('semangka')) return '🍉';
-    if (n.contains('melon')) return '🍈';
-    if (n.contains('alpukat')) return '🥑';
-    if (n.contains('nanas')) return '🍍';
-    if (n.contains('anggur')) return '🍇';
-    if (n.contains('strawberry')) return '🍓';
-    if (n.contains('blueberry') ||
-        n.contains('blackberry') ||
-        n.contains('raspberry')) {
-      return '🫐';
-    }
-    if (n.contains('kiwi')) return '🥝';
-    if (n.contains('peach') || n.contains('persik')) return '🍑';
-    if (n.contains('ceri')) return '🍒';
-    if (n.contains('leci')) return '🍇';
-    if (n.contains('smoothie')) return '🥤';
-    if (n.contains('jus') || n.contains('juice')) return '🧃';
-
-    if (n.contains('ayam goreng') || n.contains('geprek')) return '🍗';
-    if (n.contains('ayam')) return '🐔';
-    if (n.contains('telur')) return '🥚';
-    if (n.contains('daging') ||
-        n.contains('sapi') ||
-        n.contains('rendang') ||
-        n.contains('rawon') ||
-        n.contains('steak') ||
-        n.contains('sei')) {
-      return '🥩';
-    }
-    if (n.contains('kambing')) return '🥩';
-    if (n.contains('bebek')) return '🦆';
-    if (n.contains('sosis')) return '🌭';
-    if (n.contains('babi')) return '🥓';
-    if (n.contains('ikan') ||
-        n.contains('salmon') ||
-        n.contains('tuna') ||
-        n.contains('bandeng') ||
-        n.contains('patin') ||
-        n.contains('lele') ||
-        n.contains('gurame')) {
-      return '🐟';
-    }
-    if (n.contains('udang')) return '🦐';
-    if (n.contains('cumi')) return '🦑';
-    if (n.contains('kepiting')) return '🦀';
-    if (n.contains('kerang') || n.contains('scallop') || n.contains('lobster')) {
-      return '🦪';
-    }
-    if (n.contains('susu') && !n.contains('jagung')) return '🥛';
-    if (n.contains('keju')) return '🧀';
-    if (n.contains('sate')) return '🍢';
-    if (n.contains('abon')) return '🥩';
-    if (n.contains('nugget')) return '🍗';
-
-    if (n.contains('bayam') ||
-        n.contains('kangkung') ||
-        n.contains('sayur') ||
-        n.contains('selada') ||
-        n.contains('brokoli') ||
-        n.contains('sawi') ||
-        n.contains('genjer') ||
-        n.contains('pakis') ||
-        n.contains('kelor') ||
-        n.contains('pepaya') ||
-        n.contains('rebung') ||
-        n.contains('pare')) {
-      return '🥬';
-    }
-    if (n.contains('wortel')) return '🥕';
-    if (n.contains('tomat')) return '🍅';
-    if (n.contains('jagung') && !n.contains('nasi')) return '🌽';
-    if (n.contains('kentang') && !n.contains('goreng')) return '🥔';
-    if (n.contains('kentang goreng') || n.contains('french fries')) return '🍟';
-    if (n.contains('terong')) return '🍆';
-    if (n.contains('jamur')) return '🍄';
-    if (n.contains('bawang')) return '🧅';
-    if (n.contains('kacang')) return '🥜';
-    if (n.contains('labu')) return '🎃';
-    if (n.contains('zaitun')) return '🫒';
-
-    if (n.contains('nasi')) return '🍚';
-    if (n.contains('roti')) return '🍞';
-    if (n.contains('pancake') || n.contains('waffle') || n.contains('serabi')) {
-      return '🥞';
-    }
-    if (n.contains('mie') ||
-        n.contains('spaghetti') ||
-        n.contains('pasta') ||
-        n.contains('kwetiau') ||
-        n.contains('soun') ||
-        n.contains('ramen') ||
-        n.contains('udon') ||
-        n.contains('soba')) {
-      return '🍜';
-    }
-    if (n.contains('burger')) return '🍔';
-    if (n.contains('pizza')) return '🍕';
-    if (n.contains('hotdog')) return '🌭';
-    if (n.contains('kebab')) return '🌯';
-    if (n.contains('sandwich')) return '🥪';
-    if (n.contains('sushi')) return '🍣';
-    if (n.contains('tahu')) return '🍘';
-    if (n.contains('tempe')) return '🫘';
-    if (n.contains('bakso') ||
-        n.contains('sop') ||
-        n.contains('sup') ||
-        n.contains('soto') ||
-        n.contains('rawon') ||
-        n.contains('gulai') ||
-        n.contains('tongseng') ||
-        n.contains('coto') ||
-        n.contains('laksa') ||
-        n.contains('empal gentong') ||
-        n.contains('pallubasa') ||
-        n.contains('kimchi jjigae') ||
-        n.contains('tom yum') ||
-        n.contains('tekwan')) {
-      return '🍲';
-    }
-    if (n.contains('bubur')) return '🥣';
-    if (n.contains('quinoa') || n.contains('couscous')) return '🌾';
-    if (n.contains('garlic bread')) return '🥖';
-    if (n.contains('lasagna') || n.contains('macaroni')) return '🍝';
-
-    if (n.contains('kue') ||
-        n.contains('brownies') ||
-        n.contains('bolu') ||
-        n.contains('lapis legit') ||
-        n.contains('bika') ||
-        n.contains('pukis') ||
-        n.contains('pancong') ||
-        n.contains('cubit')) {
-      return '🍰';
-    }
-    if (n.contains('cokelat') ||
-        n.contains('coklat') ||
-        n.contains('dark chocolate')) {
-      return '🍫';
-    }
-    if (n.contains('es krim') ||
-        n.contains('pudding') ||
-        n.contains('cendol') ||
-        n.contains('dawet') ||
-        n.contains('es teler') ||
-        n.contains('es campur') ||
-        n.contains('es pisang ijo') ||
-        n.contains('es pallu butung')) {
-      return '🍧';
-    }
-    if (n.contains('donat')) return '🍩';
-    if (n.contains('biskuit') ||
-        n.contains('cookies') ||
-        n.contains('granola bar')) {
-      return '🍪';
-    }
-    if (n.contains('kerupuk')) return '🍘';
-    if (n.contains('molen') ||
-        n.contains('piscok') ||
-        n.contains('pisang aroma')) {
-      return '🍌';
-    }
-    if (n.contains('madu')) return '🍯';
-
-    if (n.contains('kopi') ||
-        n.contains('latte') ||
-        n.contains('cappuccino') ||
-        n.contains('matcha')) {
-      return '☕';
-    }
-    if (n.contains('teh') ||
-        n.contains('wedang') ||
-        n.contains('bajigur') ||
-        n.contains('bandrek') ||
-        n.contains('stmj')) {
-      return '🍵';
-    }
-    if (n.contains('thai tea')) return '🧋';
-    if (n.contains('soda') ||
-        n.contains('cola') ||
-        n.contains('sprite') ||
-        n.contains('isotonik')) {
-      return '🥤';
-    }
-    if (n.contains('kelapa muda') || n.contains('es kelapa')) return '🥥';
-    if (n.contains('susu kedelai') ||
-        n.contains('susu almond') ||
-        n.contains('susu oat')) {
-      return '🥛';
-    }
-    if (n.contains('infused water')) return '🫗';
-    if (n.contains('air mineral')) return '💧';
-
-    if (waterMl > 0 && proteinGrams == 0 && calories == 0) return '💧';
-    return '🍽️';
+  IconData get foodIcon {
+    return Icons.lunch_dining;
   }
 }
 

@@ -45,7 +45,7 @@ class _WeightliftingScreenState extends State<WeightliftingScreen> {
         _stopRestTimer();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Waktu istirahat selesai! Ayo lanjut set berikutnya! 💪'),
+            content: const Text('Waktu istirahat selesai! Ayo lanjut set berikutnya! '),
             backgroundColor: AppTheme.neonGreen,
             behavior: SnackBarBehavior.floating,
           ),
@@ -324,7 +324,7 @@ class _WeightliftingScreenState extends State<WeightliftingScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text('🏋️ Logs Angkat Beban'),
+        title: Text(' Logs Angkat Beban'),
         backgroundColor: AppTheme.background,
         elevation: 0,
       ),

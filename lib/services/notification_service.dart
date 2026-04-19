@@ -64,15 +64,14 @@ class NotificationService {
     final notifTime = event.dateTime.subtract(Duration(minutes: advanceMinutes));
     if (!notifTime.isAfter(DateTime.now())) return; // sudah lewat, skip
 
-    final emoji = event.typeEmoji;
     final advLabel = advanceMinutes >= 60
         ? '${advanceMinutes ~/ 60} jam'
         : '$advanceMinutes menit';
 
     await flutterLocalNotificationsPlugin.zonedSchedule(
       event.id!,
-      '$emoji ${event.title}',
-      'Jadwalmu dimulai $advLabel lagi. Semangat! 💪',
+      event.title,
+      'Jadwalmu dimulai $advLabel lagi. Semangat! ',
       tz.TZDateTime.from(notifTime, tz.local),
       const NotificationDetails(
         android: AndroidNotificationDetails(
@@ -163,7 +162,7 @@ class NotificationService {
 
     await flutterLocalNotificationsPlugin.zonedSchedule(
       998,
-      '📊 Laporan Progress Mingguanmu!',
+      ' Laporan Progress Mingguanmu!',
       'Lihat seberapa jauh perkembanganmu minggu ini di AthleteSync.',
       tz.TZDateTime.from(nextDate, tz.local),
       const NotificationDetails(

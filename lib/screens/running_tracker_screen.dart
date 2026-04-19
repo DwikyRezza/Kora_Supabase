@@ -480,7 +480,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     CloudSyncService.backupToCloud().catchError((_) {});
 
     if (mounted) {
-      _showSnackBar('Sesi lari berhasil disimpan! 🎉');
+      _showSnackBar('Sesi lari berhasil disimpan! ');
       Navigator.pop(context);
     }
   }
@@ -804,7 +804,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text('🔗', style: TextStyle(fontSize: 12)),
+                        Text('', style: TextStyle(fontSize: 12)),
                         SizedBox(width: 4),
                         Text(
                           'Strava',

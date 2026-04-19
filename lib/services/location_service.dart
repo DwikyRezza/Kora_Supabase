@@ -73,7 +73,7 @@ class LocationService {
     required String time,
   }) async {
     await FlutterForegroundTask.updateService(
-      notificationTitle: 'Sesi Lari Aktif 🏃',
+      notificationTitle: 'Sesi Lari Aktif ',
       notificationText: '$distance km · $time',
     );
   }

@@ -113,7 +113,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text('📅 Jadwal & Pengingat'),
+        title: Text(' Jadwal & Pengingat'),
         backgroundColor: AppTheme.background,
         elevation: 0,
         actions: [
@@ -172,7 +172,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                               child: ListTile(
                                 leading: CircleAvatar(
                                   backgroundColor: AppTheme.surfaceVariant,
-                                  child: Text(event.typeEmoji, style: TextStyle(fontSize: 20)),
+                                  child: Icon(event.typeIcon, size: 20),
                                 ),
                                 title: Text(event.title, style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold)),
                                 subtitle: Column(
@@ -375,10 +375,10 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                 ),
                 items: [
-                  DropdownMenuItem(value: 'workout', child: Text('💪 Workout')),
-                  DropdownMenuItem(value: 'meal', child: Text('🍽️ Makanan/Nutrisi')),
-                  DropdownMenuItem(value: 'rest', child: Text('😴 Istirahat')),
-                  DropdownMenuItem(value: 'reminder', child: Text('🔔 Pengingat Umum')),
+                  DropdownMenuItem(value: 'workout', child: Text(' Workout')),
+                  DropdownMenuItem(value: 'meal', child: Text(' Makanan/Nutrisi')),
+                  DropdownMenuItem(value: 'rest', child: Text(' Istirahat')),
+                  DropdownMenuItem(value: 'reminder', child: Text(' Pengingat Umum')),
                 ],
                 onChanged: (val) => setState(() => _type = val!),
               ),

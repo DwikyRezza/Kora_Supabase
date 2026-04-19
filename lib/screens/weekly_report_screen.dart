@@ -85,7 +85,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('📊 Weekly Performance'),
+        title: const Text(' Weekly Performance'),
         backgroundColor: AppTheme.background,
         elevation: 0,
       ),
@@ -99,7 +99,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 _buildSummaryHeader(),
                 const SizedBox(height: 32),
                 
-                Text('🏃 Lari 7 Hari Terakhir (km)', style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(' Lari 7 Hari Terakhir (km)', style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
                 _buildRunningChart(),
 

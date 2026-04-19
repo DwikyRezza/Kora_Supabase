@@ -267,7 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Expanded(
                           child: _buildQuickAction(
-                            emoji: '🏃',
+                            icon: Icons.directions_run,
                             label: 'Catat\nLatihan',
                             color: AppTheme.electricBlue,
                             onTap: widget.onGoToWorkout,
@@ -276,7 +276,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: _buildQuickAction(
-                            emoji: '🥗',
+                            icon: Icons.restaurant,
                             label: 'Catat\nNutrisi',
                             color: AppTheme.neonGreen,
                             onTap: widget.onGoToProtein,
@@ -285,7 +285,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: _buildQuickAction(
-                            emoji: '📅',
+                            icon: Icons.calendar_today,
                             label: 'Tambah\nJadwal',
                             color: AppTheme.accentPurple,
                             onTap: widget.onGoToSchedule,
@@ -375,9 +375,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       .withOpacity(0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text(
-                  isSufficient ? '✅' : '⚡',
-                  style: const TextStyle(fontSize: 20),
+                child: Icon(
+                  isSufficient ? Icons.check_circle : Icons.bolt,
+                  size: 20,
+                  color: isSufficient ? AppTheme.neonGreen : AppTheme.electricBlue,
                 ),
               ),
               const SizedBox(width: 12),
@@ -397,7 +398,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     Text(
                       isSufficient
-                          ? 'Protein harian terpenuhi 💪'
+                          ? 'Protein harian terpenuhi '
                           : 'Butuh ${deficit.toStringAsFixed(1)}g protein lagi',
                       style: TextStyle(
                         color: isSufficient
@@ -455,7 +456,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildQuickAction({
-    required String emoji,
+    required IconData icon,
     required String label,
     required Color color,
     required VoidCallback onTap,
@@ -471,7 +472,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Column(
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 26)),
+            Icon(icon, size: 26, color: color),
             const SizedBox(height: 6),
             Text(
               label,
@@ -509,7 +510,7 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Center(
-              child: Text(event.typeEmoji, style: const TextStyle(fontSize: 20)),
+              child: Icon(event.typeIcon, size: 20),
             ),
           ),
           const SizedBox(width: 12),
@@ -588,7 +589,7 @@ class _HomeScreenState extends State<HomeScreen> {
               border: Border.all(color: typeColor.withOpacity(0.3)),
             ),
             child: Center(
-              child: Text(w.typeEmoji, style: const TextStyle(fontSize: 22)),
+              child: Icon(w.typeIcon, size: 22),
             ),
           ),
           const SizedBox(width: 12),

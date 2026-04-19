@@ -65,7 +65,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('🥗 Nutrition & Hydration', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const Text(' Nutrition & Hydration', style: TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: AppTheme.background,
         elevation: 0,
       ),
@@ -143,7 +143,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
                               child: ListTile(
                                 leading: CircleAvatar(
                                   backgroundColor: AppTheme.surfaceVariant,
-                                  child: Text(entry.foodEmoji, style: const TextStyle(fontSize: 20)),
+                                  child: Icon(entry.foodIcon, size: 20),
                                 ),
                                 title: Text(entry.foodName, style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold)),
                                 subtitle: Text(

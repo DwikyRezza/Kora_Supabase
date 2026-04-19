@@ -69,7 +69,7 @@ class _SettingScreenState extends State<SettingScreen> {
     setState(() => _darkMode = value);
     SettingsService.setDarkMode(value);
     _showFeedback(
-        value ? '🌙 Mode Gelap diaktifkan' : '☀️ Mode Terang diaktifkan');
+        value ? ' Mode Gelap diaktifkan' : ' Mode Terang diaktifkan');
   }
 
   // ── Master switch: Pengingat Jadwal ───────────────────────────────────────
@@ -84,7 +84,7 @@ class _SettingScreenState extends State<SettingScreen> {
         advanceMinutes: _advanceMinutes,
       );
       _showFeedback(
-        '🔔 Pengingat jadwal diaktifkan (${SettingsService.advanceLabel(_advanceMinutes)})',
+        ' Pengingat jadwal diaktifkan (${SettingsService.advanceLabel(_advanceMinutes)})',
       );
     } else {
       // Batalkan semua notif jadwal
@@ -93,7 +93,7 @@ class _SettingScreenState extends State<SettingScreen> {
           await NotificationService().cancelEventReminder(e.id!);
         }
       }
-      _showFeedback('🔕 Semua pengingat jadwal dimatikan');
+      _showFeedback(' Semua pengingat jadwal dimatikan');
     }
   }
 
@@ -122,11 +122,11 @@ class _SettingScreenState extends State<SettingScreen> {
     if (value) {
       await _rescheduleProgress();
       _showFeedback(
-        '📊 Laporan diaktifkan (${SettingsService.weekdayName(_progressWeekday)}, ${_fmtTime(_progressTime)})',
+        ' Laporan diaktifkan (${SettingsService.weekdayName(_progressWeekday)}, ${_fmtTime(_progressTime)})',
       );
     } else {
       await NotificationService().cancelWeeklyProgressReminder();
-      _showFeedback('🔕 Laporan mingguan dimatikan');
+      _showFeedback(' Laporan mingguan dimatikan');
     }
   }
 
@@ -171,7 +171,7 @@ class _SettingScreenState extends State<SettingScreen> {
     setState(() => _notifStrava = value);
     await SettingsService.setNotifStrava(value);
     _showFeedback(
-        value ? '🔗 Notifikasi Strava aktif' : '🔕 Notifikasi Strava nonaktif');
+        value ? ' Notifikasi Strava aktif' : ' Notifikasi Strava nonaktif');
   }
 
   // ── Satuan ────────────────────────────────────────────────────────────────
@@ -179,7 +179,7 @@ class _SettingScreenState extends State<SettingScreen> {
     setState(() => _metricUnit = value);
     await SettingsService.setMetricUnit(value);
     _showFeedback(
-        value ? '📏 Metrik (km, kg, cm)' : '📏 Imperial (mi, lbs, in)');
+        value ? ' Metrik (km, kg, cm)' : ' Imperial (mi, lbs, in)');
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -366,7 +366,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // ── Tampilan ─────────────────────────────────────────
-                      _sectionTitle(_darkMode ? '🌙 Tampilan' : '☀️ Tampilan'),
+                      _sectionTitle(_darkMode ? ' Tampilan' : ' Tampilan'),
                       const SizedBox(height: 8),
                       _buildCard([
                         _switchTile(
@@ -388,7 +388,7 @@ class _SettingScreenState extends State<SettingScreen> {
                       const SizedBox(height: 24),
 
                       // ── Pengingat Jadwal ──────────────────────────────────
-                      _sectionTitle('🗓️ Pengingat Jadwal Latihan'),
+                      _sectionTitle(' Pengingat Jadwal Latihan'),
                       const SizedBox(height: 8),
                       _buildCard([
                         _switchTile(
@@ -421,7 +421,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
                       // Preview jadwal mendatang
                       if (_notifWorkout) ...[
-                        _sectionTitle('📋 Jadwal yang akan diingatkan'),
+                        _sectionTitle(' Jadwal yang akan diingatkan'),
                         const SizedBox(height: 8),
                         _buildCard(
                           _upcomingEvents.isEmpty
@@ -459,7 +459,7 @@ class _SettingScreenState extends State<SettingScreen> {
                       const SizedBox(height: 12),
 
                       // ── Notifikasi lain ───────────────────────────────────
-                      _sectionTitle('🔔 Notifikasi Lain'),
+                      _sectionTitle(' Notifikasi Lain'),
                       const SizedBox(height: 8),
                       _buildCard([
                         _switchTile(
@@ -510,7 +510,7 @@ class _SettingScreenState extends State<SettingScreen> {
                       const SizedBox(height: 24),
 
                       // ── Satuan ─────────────────────────────────────────
-                      _sectionTitle('📏 Satuan'),
+                      _sectionTitle(' Satuan'),
                       const SizedBox(height: 8),
                       _buildCard([
                         _switchTile(
@@ -703,7 +703,7 @@ class _SettingScreenState extends State<SettingScreen> {
             ),
             child: Center(
               child:
-                  Text(event.typeEmoji, style: const TextStyle(fontSize: 16)),
+                  Icon(event.typeIcon, size: 16),
             ),
           ),
           title: Text(event.title,
