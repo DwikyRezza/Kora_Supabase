@@ -16,7 +16,6 @@ import 'services/profile_service.dart';
 import 'services/notification_service.dart';
 import 'services/location_service.dart';
 import 'services/auth_service.dart';
-import 'services/settings_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,8 +32,6 @@ void main() async {
 
   await initializeDateFormatting('id', null);
   await NotificationService().init();
-  // Load persisted settings (dark mode, notifikasi, satuan, dll)
-  await SettingsService.loadAll();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -52,7 +49,8 @@ void main() async {
 class AthleteSyncApp extends StatelessWidget {
   final bool isLoggedIn;
   final bool isOnboarded;
-  AthleteSyncApp({super.key, required this.isLoggedIn, required this.isOnboarded});
+  const AthleteSyncApp(
+      {super.key, required this.isLoggedIn, required this.isOnboarded});
 
   @override
   Widget build(BuildContext context) {
@@ -75,9 +73,9 @@ class AthleteSyncApp extends StatelessWidget {
       return const LoginScreen();
     }
     if (!isOnboarded) {
-      return OnboardingScreen();
+      return const OnboardingScreen();
     }
-    return MainNavigation();
+    return const MainNavigation();
   }
 }
 
@@ -90,21 +88,9 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
-  // Callback yang diset oleh ProfileScreen agar MainNavigation bisa meminta izin pindah tab
-  Future<bool> Function()? _profileLeaveGuard;
 
-  void setProfileLeaveGuard(Future<bool> Function()? guard) {
-    _profileLeaveGuard = guard;
-  }
-
-  /// Pindah tab dengan cek perubahan yang belum disimpan jika sedang di tab Profil
-  Future<void> _goToTab(int index) async {
-    if (_currentIndex == 4 && index != 4 && _profileLeaveGuard != null) {
-      // Sedang di tab Profil, mau pindah — tanya dulu
-      final canLeave = await _profileLeaveGuard!();
-      if (!canLeave) return;
-    }
-    if (mounted) setState(() => _currentIndex = index);
+  void _goToTab(int index) {
+    setState(() => _currentIndex = index);
   }
 
   @override
@@ -132,16 +118,14 @@ class _MainNavigationState extends State<MainNavigation> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => BodyStatsScreen()),
+                    builder: (context) => const BodyStatsScreen()),
               );
             },
           ),
           WorkoutScreen(),
-          ProteinScreen(),
+          const ProteinScreen(),
           ScheduleScreen(),
-          ProfileScreen(
-            onRegisterLeaveGuard: setProfileLeaveGuard,
-          ),
+          const ProfileScreen(),
         ],
       ),
       bottomNavigationBar: _buildBottomNav(),
@@ -234,9 +218,8 @@ class _MainNavigationState extends State<MainNavigation> {
                                 ? AppTheme.neonGreen
                                 : AppTheme.textMuted,
                             fontSize: 10,
-                            fontWeight: isActive
-                                ? FontWeight.w700
-                                : FontWeight.w400,
+                            fontWeight:
+                                isActive ? FontWeight.w700 : FontWeight.w400,
                           ),
                         ),
                       ],

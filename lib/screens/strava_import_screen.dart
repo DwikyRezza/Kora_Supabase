@@ -251,7 +251,7 @@ class _StravaImportScreenState extends State<StravaImportScreen> {
                 ),
               ),
               child: const Center(
-                child: Text('🏃', style: TextStyle(fontSize: 48)),
+                child: Text('', style: TextStyle(fontSize: 48)),
               ),
             ),
             const SizedBox(height: 28),

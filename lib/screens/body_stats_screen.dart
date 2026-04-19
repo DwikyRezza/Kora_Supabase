@@ -7,7 +7,7 @@ import '../services/profile_service.dart';
 import '../theme/app_theme.dart';
 
 class BodyStatsScreen extends StatefulWidget {
-  BodyStatsScreen({super.key});
+  const BodyStatsScreen({super.key});
 
   @override
   State<BodyStatsScreen> createState() => _BodyStatsScreenState();
@@ -38,7 +38,7 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
         final initial = BodyMeasurement(
           weight: weight,
           height: height,
-          date: DateTime.now().subtract(Duration(days: 7)), // Fake past week for visual graph
+          date: DateTime.now().subtract(const Duration(days: 7)), // Fake past week for visual graph
         );
         await _db.insertBodyMeasurement(initial);
         data.add(initial);
@@ -60,7 +60,7 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text('Kondisi Tubuh', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const Text('Kondisi Tubuh', style: TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: AppTheme.background,
         elevation: 0,
       ),
@@ -69,8 +69,8 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
         onPressed: _showAddMeasurementSheet,
         backgroundColor: AppTheme.electricBlue,
         foregroundColor: Colors.white,
-        icon: Icon(Icons.add),
-        label: Text('Perbarui Data', style: TextStyle(fontWeight: FontWeight.w700)),
+        icon: const Icon(Icons.add),
+        label: const Text('Perbarui Data', style: TextStyle(fontWeight: FontWeight.w700)),
       ),
       body: _isLoading 
         ? Center(child: CircularProgressIndicator(color: AppTheme.electricBlue))
@@ -82,16 +82,16 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
               slivers: [
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (latest != null) _buildLatestStats(latest),
-                        SizedBox(height: 24),
+                        const SizedBox(height: 24),
                         Text('Grafik Berat Badan (kg)', style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         _buildWeightChart(),
-                        SizedBox(height: 24),
+                        const SizedBox(height: 24),
                         Text('Riwayat Pengukuran', style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
                       ],
                     ),
@@ -106,7 +106,7 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
                         final m = _measurements[index];
                         return Card(
                           color: AppTheme.surface,
-                          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           child: ListTile(
                             leading: CircleAvatar(backgroundColor: AppTheme.surfaceVariant, child: Icon(Icons.monitor_weight_rounded, color: AppTheme.electricBlue)),
@@ -125,7 +125,7 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
                       childCount: _measurements.length,
                     ),
                   ),
-                SliverToBoxAdapter(child: SizedBox(height: 100)),
+                const SliverToBoxAdapter(child: SizedBox(height: 100)),
               ],
             ),
         ),
@@ -134,7 +134,7 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
 
   Widget _buildLatestStats(BodyMeasurement latest) {
     return Container(
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppTheme.border)),
       child: Column(
         children: [
@@ -145,9 +145,9 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
               _statItem('BMI', latest.bmi.toStringAsFixed(1), AppTheme.accentOrange),
             ],
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Container(
-            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             decoration: BoxDecoration(color: AppTheme.surfaceVariant, borderRadius: BorderRadius.circular(8)),
             child: Text(
               'Status: ${latest.bmiCategory}',
@@ -167,7 +167,7 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
             fit: BoxFit.scaleDown,
             child: Text(val, style: TextStyle(color: c, fontSize: 20, fontWeight: FontWeight.bold)),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(label, style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
         ],
       ),
@@ -197,15 +197,15 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
 
     return Container(
       height: 240,
-      padding: EdgeInsets.fromLTRB(16, 24, 24, 16),
+      padding: const EdgeInsets.fromLTRB(16, 24, 24, 16),
       decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppTheme.border)),
       child: LineChart(
         LineChartData(
           gridData: FlGridData(show: true, drawVerticalLine: false, getDrawingHorizontalLine: (value) => FlLine(color: AppTheme.border, strokeWidth: 1)),
           titlesData: FlTitlesData(
             show: true,
-            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
@@ -213,7 +213,7 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
                   if (value.toInt() >= 0 && value.toInt() < sortedData.length) {
                     return Text(DateFormat('dd/MM').format(sortedData[value.toInt()].date), style: TextStyle(color: AppTheme.textSecondary, fontSize: 10));
                   }
-                  return Text('');
+                  return const Text('');
                 },
               ),
             ),
@@ -237,7 +237,7 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
               color: AppTheme.electricBlue,
               barWidth: 4,
               isStrokeCapRound: true,
-              dotData: FlDotData(show: true),
+              dotData: const FlDotData(show: true),
               belowBarData: BarAreaData(
                 show: true,
                 color: AppTheme.electricBlue.withOpacity(0.15),
@@ -322,14 +322,14 @@ class _AddMeasurementSheetState extends State<_AddMeasurementSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      decoration: BoxDecoration(color: AppTheme.surface, borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
       padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           Text('Update Kondisi Tubuh', style: TextStyle(color: AppTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           Row(
             children: [
               Expanded(
@@ -337,27 +337,27 @@ class _AddMeasurementSheetState extends State<_AddMeasurementSheet> {
                   controller: _weightCtrl,
                   keyboardType: TextInputType.number,
                   style: TextStyle(color: AppTheme.textPrimary),
-                  decoration: InputDecoration(labelText: 'Berat Badan (kg)', prefixIcon: Icon(Icons.monitor_weight_rounded)),
+                  decoration: const InputDecoration(labelText: 'Berat Badan (kg)', prefixIcon: Icon(Icons.monitor_weight_rounded)),
                 ),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Expanded(
                 child: TextField(
                   controller: _heightCtrl,
                   keyboardType: TextInputType.number,
                   style: TextStyle(color: AppTheme.textPrimary),
-                  decoration: InputDecoration(labelText: 'Tinggi Badan (cm)', prefixIcon: Icon(Icons.height_rounded)),
+                  decoration: const InputDecoration(labelText: 'Tinggi Badan (cm)', prefixIcon: Icon(Icons.height_rounded)),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 32),
+          const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: _save,
-              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.electricBlue, padding: EdgeInsets.symmetric(vertical: 16)),
-              child: Text('Simpan Data', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.electricBlue, padding: const EdgeInsets.symmetric(vertical: 16)),
+              child: const Text('Simpan Data', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ),
         ],

@@ -179,7 +179,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
       final imagePath = await File('${directory.path}/workout_share.png').create();
       await imagePath.writeAsBytes(image);
       
-      await Share.shareXFiles([XFile(imagePath.path)], text: 'Latihan saya hari ini: ${_workout.title ?? _workout.typeLabel}! 🔥 #AthleteSync');
+      await Share.shareXFiles([XFile(imagePath.path)], text: 'Latihan saya hari ini: ${_workout.title ?? _workout.typeLabel}!  #AthleteSync');
     }
   }
 
@@ -249,7 +249,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                                 : FileImage(File(_userPhotoUrl!)))) as ImageProvider
                         : null,
                     child: _userPhotoUrl == null 
-                        ? Text(_userName.isNotEmpty ? _userName[0].toUpperCase() : '👤', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold))
+                        ? Text(_userName.isNotEmpty ? _userName[0].toUpperCase() : '', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold))
                         : null,
                   ),
                   SizedBox(width: 12),

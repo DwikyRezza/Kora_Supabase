@@ -765,10 +765,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildGoalSelector() {
     final goalEmoji = {
-      'Runner': '🏃',
-      'Weightlifter': '🏋️',
-      'Diet': '🥗',
-      'Bulking': '💪',
+      'Runner': '',
+      'Weightlifter': '',
+      'Diet': '',
+      'Bulking': '',
     };
 
     return Wrap(

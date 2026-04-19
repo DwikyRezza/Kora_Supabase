@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 class Workout {
   final int? id;
   final String type; // 'running', 'basketball', 'weightlifting'
@@ -135,16 +136,16 @@ class Workout {
     }
   }
 
-  String get typeEmoji {
+  IconData get typeIcon {
     switch (type) {
       case 'running':
-        return '🏃';
+        return Icons.directions_run;
       case 'basketball':
-        return '🏀';
+        return Icons.sports_basketball;
       case 'weightlifting':
-        return '🏋️';
+        return Icons.fitness_center;
       default:
-        return '💪';
+        return Icons.sports_gymnastics;
     }
   }
 }

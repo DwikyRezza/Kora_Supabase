@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class ScheduleEvent {
   final int? id;
   final String title;
@@ -58,18 +60,18 @@ class ScheduleEvent {
     );
   }
 
-  String get typeEmoji {
+  IconData get typeIcon {
     switch (type) {
       case 'workout':
-        return '💪';
+        return Icons.fitness_center;
       case 'meal':
-        return '🍽️';
+        return Icons.restaurant;
       case 'rest':
-        return '😴';
+        return Icons.bed;
       case 'reminder':
-        return '🔔';
+        return Icons.notifications;
       default:
-        return '📌';
+        return Icons.push_pin;
     }
   }
 }

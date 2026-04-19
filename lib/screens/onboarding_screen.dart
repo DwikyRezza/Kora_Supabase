@@ -4,7 +4,7 @@ import '../theme/app_theme.dart';
 import '../main.dart'; // To navigate to MainNavigation
 
 class OnboardingScreen extends StatefulWidget {
-  OnboardingScreen({super.key});
+  const OnboardingScreen({super.key});
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -54,7 +54,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 onPressed: () {
                   Navigator.of(ctx).pop();
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => MainNavigation()),
+                    MaterialPageRoute(builder: (context) => const MainNavigation()),
                   );
                 },
                 child: Text('Mulai', style: TextStyle(color: AppTheme.neonGreen)),
@@ -71,12 +71,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text('Mulai Perjalananmu'),
+        title: const Text('Mulai Perjalananmu'),
         backgroundColor: AppTheme.background,
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
@@ -90,13 +90,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               _buildTextField('Nama', (v) => _name = v!, TextInputType.name),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(child: _buildTextField('Usia', (v) => _age = int.parse(v!), TextInputType.number)),
-                  SizedBox(width: 16),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       decoration: InputDecoration(
@@ -107,22 +107,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                       dropdownColor: AppTheme.surface,
                       style: TextStyle(color: AppTheme.textPrimary),
-                      value: _gender,
+                      initialValue: _gender,
                       items: _genders.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
                       onChanged: (v) => setState(() => _gender = v!),
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(child: _buildTextField('Tinggi Badan (cm)', (v) => _height = double.parse(v!), TextInputType.number)),
-                  SizedBox(width: 16),
+                  const SizedBox(width: 16),
                   Expanded(child: _buildTextField('Berat Badan (kg)', (v) => _weight = double.parse(v!), TextInputType.number)),
                 ],
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 decoration: InputDecoration(
                   labelText: 'Goal Latihan',
@@ -132,21 +132,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
                 dropdownColor: AppTheme.surface,
                 style: TextStyle(color: AppTheme.textPrimary),
-                value: _goal,
+                initialValue: _goal,
                 items: _goals.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
                 onChanged: (v) => setState(() => _goal = v!),
               ),
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.neonGreen,
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: _saveAndContinue,
-                  child: Text(
+                  child: const Text(
                     'Simpan & Lanjutkan',
                     style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
                   ),

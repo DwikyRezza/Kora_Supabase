@@ -21,7 +21,6 @@ class RunningTrackerScreen extends StatefulWidget {
 
 class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     with WidgetsBindingObserver {
-
   // ── Google Maps controller ────────────────────────────────────────────
   final Completer<GoogleMapController> _mapController = Completer();
   static const String _mapStyleDark = '''[
@@ -49,7 +48,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
   ]''';
 
   // ── State UI ──────────────────────────────────────────────────────────
-  List<LatLng> _routePoints = [];
+  final List<LatLng> _routePoints = [];
   LatLng? _currentLocation;
   bool _isRunning = false;
   bool _hasStarted = false;
@@ -60,6 +59,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
   double _elevationGain = 0.0;
   double _maxElevation = 0.0;
   List<String> _splits = [];
+  bool _isSaving = false; // Guard agar tidak double-save
 
   // ── Marker kustom ─────────────────────────────────────────────────────
   BitmapDescriptor? _locationMarker;
@@ -69,12 +69,20 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
   DateTime? _uiRunStartTime;
   int _elapsedBeforePause = 0;
 
+  // ── Splits tracking (dihitung di screen langsung) ─────────────────────
+  int _lastSplitKm = 0;
+  int _lastSplitTimeSeconds = 0;
+
   // ── Data final untuk disimpan ─────────────────────────────────────────
   String? _finalSplitsJson;
   String? _finalRouteJson;
 
   // ── GPS stream awal (sebelum lari dimulai) ────────────────────────────
   StreamSubscription<Position>? _initialLocationStream;
+
+  // ── Flag background ────────────────────────────────────────────────────
+  bool _isInBackground = false;
+  DateTime? _backgroundStartTime; // Waktu tepat saat app di-minimize
 
   @override
   void initState() {
@@ -111,7 +119,8 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
       ..color = Colors.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4;
-    canvas.drawCircle(const Offset(size / 2, size / 2), size / 2 - 2, borderPaint);
+    canvas.drawCircle(
+        const Offset(size / 2, size / 2), size / 2 - 2, borderPaint);
 
     // Titik biru solid di tengah
     final Paint innerPaint = Paint()
@@ -119,7 +128,8 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
       ..style = PaintingStyle.fill;
     canvas.drawCircle(const Offset(size / 2, size / 2), 14, innerPaint);
 
-    final img = await recorder.endRecording().toImage(size.toInt(), size.toInt());
+    final img =
+        await recorder.endRecording().toImage(size.toInt(), size.toInt());
     final data = await img.toByteData(format: ui.ImageByteFormat.png);
     if (data != null && mounted) {
       setState(() {
@@ -135,8 +145,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
       if (!mounted) return;
       setState(() {
         if (_uiRunStartTime != null) {
-          _elapsedSeconds =
-              _elapsedBeforePause +
+          _elapsedSeconds = _elapsedBeforePause +
               DateTime.now().difference(_uiRunStartTime!).inSeconds;
         }
       });
@@ -155,71 +164,124 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     final type = map['type'] as String?;
 
     if (type == 'location') {
-      // Gunakan event 'location' HANYA untuk update marker di peta
-      // Kalkulasi jarak sepenuhnya dilakukan oleh background service
       final lat = map['lat'] as double?;
       final lng = map['lng'] as double?;
+      final accuracy = (map['accuracy'] as num?)?.toDouble() ?? 100.0;
       if (lat == null || lng == null) return;
 
       final newLoc = LatLng(lat, lng);
       if (!mounted) return;
+      // location event HANYA untuk update marker — jarak dihitung di _initialLocationStream
       setState(() => _currentLocation = newLoc);
       if (_isRunning) _animateCameraToLocation(newLoc);
-
     } else if (type == 'update') {
-      // ── SUMBER KEBENARAN utama: semua data tracking dari service ──────
-      // Ini yang memastikan distance & pace tetap jalan saat app di background
+      // ── Merge data service ke UI ──────────────────────────────────────
       if (!mounted) return;
       setState(() {
-        _distanceKm    = (map['distanceKm']    as num?)?.toDouble() ?? _distanceKm;
-        _movingSeconds = (map['movingSeconds']  as num?)?.toInt()    ?? _movingSeconds;
-        _elevationGain = (map['elevationGain']  as num?)?.toDouble() ?? _elevationGain;
-        _maxElevation  = (map['maxElevation']   as num?)?.toDouble() ?? _maxElevation;
+        if (_isInBackground) {
+          // Saat di background: service adalah sumber kebenaran penuh
+          // Terima semua nilai dari service langsung (bukan hanya jika lebih besar)
+          final svcDist = (map['distanceKm'] as num?)?.toDouble();
+          if (svcDist != null && svcDist > 0) _distanceKm = svcDist;
 
-        // Sync elapsed time dari service, HANYA jika timer UI sedang mati (saat di background)
-        // Ini yang menjaga timer tetap akurat setelah kembali dari background
-        if (_uiTimer == null || !_uiTimer!.isActive) {
-          _elapsedSeconds = (map['elapsedSeconds'] as num?)?.toInt() ?? _elapsedSeconds;
+          final svcMoving = (map['movingSeconds'] as num?)?.toInt();
+          if (svcMoving != null) _movingSeconds = svcMoving;
+
+          // Sync elapsed dari service saat background
+          final svcElapsed = (map['elapsedSeconds'] as num?)?.toInt();
+          if (svcElapsed != null && svcElapsed > 0) {
+            _elapsedSeconds = svcElapsed;
+            // Update _elapsedBeforePause agar timer tidak loncat saat foreground kembali
+            _elapsedBeforePause = svcElapsed;
+          }
+        } else {
+          // Saat foreground: UI menghitung jarak sendiri, tapi terima
+          // nilai service jika lebih besar (service lebih akurat untuk jarak panjang)
+          final svcDist = (map['distanceKm'] as num?)?.toDouble() ?? 0.0;
+          if (svcDist > _distanceKm) _distanceKm = svcDist;
+
+          final svcMoving = (map['movingSeconds'] as num?)?.toInt() ?? 0;
+          if (svcMoving > _movingSeconds) _movingSeconds = svcMoving;
+
+          // Sync elapsed HANYA jika UI timer mati
+          if (_uiTimer == null || !_uiTimer!.isActive) {
+            final svcElapsed = (map['elapsedSeconds'] as num?)?.toInt();
+            if (svcElapsed != null) _elapsedSeconds = svcElapsed;
+          }
         }
+
+        _elevationGain =
+            (map['elevationGain'] as num?)?.toDouble() ?? _elevationGain;
+        _maxElevation =
+            (map['maxElevation'] as num?)?.toDouble() ?? _maxElevation;
 
         // Sync splits dari service
         final rawSplits = map['splits'];
-        if (rawSplits is List) {
+        if (rawSplits is String) {
+          try {
+            final decoded = jsonDecode(rawSplits);
+            if (decoded is List) _splits = List<String>.from(decoded);
+          } catch (_) {}
+        } else if (rawSplits is List) {
           _splits = List<String>.from(rawSplits);
         }
 
-        // Sync rute dari service untuk polyline di peta
+        // Hanya pakai route dari service jika lebih banyak titiknya
         final rawRoute = map['routePoints'];
-        if (rawRoute is List && rawRoute.isNotEmpty) {
-          _routePoints = rawRoute
-              .whereType<List>()
-              .map((p) => LatLng((p[0] as num).toDouble(), (p[1] as num).toDouble()))
-              .toList();
+        List<LatLng>? svcRoute;
+        if (rawRoute is String) {
+          try {
+            final decoded = jsonDecode(rawRoute);
+            if (decoded is List && decoded.isNotEmpty) {
+              final parsed = <LatLng>[];
+              for (final p in decoded) {
+                if (p is List && p.length >= 2) {
+                  try {
+                    parsed.add(LatLng(
+                        (p[0] as num).toDouble(), (p[1] as num).toDouble()));
+                  } catch (_) {}
+                }
+              }
+              if (parsed.isNotEmpty) svcRoute = parsed;
+            }
+          } catch (_) {}
+        }
+        if (svcRoute != null && svcRoute.length > _routePoints.length) {
+          _routePoints = svcRoute;
         }
       });
-
     } else if (type == 'final') {
-      // Saat selesai: ambil semua data final dari service
+      // Saat selesai: ambil data terbaik (max) antara service & UI
       if (!mounted) return;
-      _distanceKm    = (map['distanceKm']    as num?)?.toDouble() ?? _distanceKm;
-      _movingSeconds = (map['movingSeconds']  as num?)?.toInt()    ?? _movingSeconds;
-      _elevationGain = (map['elevationGain']  as num?)?.toDouble() ?? _elevationGain;
-      _maxElevation  = (map['maxElevation']   as num?)?.toDouble() ?? _maxElevation;
+      final svcDist = (map['distanceKm'] as num?)?.toDouble() ?? 0.0;
+      if (svcDist > _distanceKm) _distanceKm = svcDist;
 
-      // Decode splits & route dari service (sudah di-encode JSON)
+      final svcMoving = (map['movingSeconds'] as num?)?.toInt() ?? 0;
+      if (svcMoving > _movingSeconds) _movingSeconds = svcMoving;
+
+      _elevationGain =
+          (map['elevationGain'] as num?)?.toDouble() ?? _elevationGain;
+      _maxElevation =
+          (map['maxElevation'] as num?)?.toDouble() ?? _maxElevation;
+
+      // Simpan splits dari service jika ada
       try {
         final splitsJson = map['splits'] as String?;
-        if (splitsJson != null) {
-          _finalSplitsJson = splitsJson;
-        }
+        if (splitsJson != null) _finalSplitsJson = splitsJson;
+      } catch (_) {}
+
+      // Simpan route dari service jika ada dan lebih panjang
+      try {
         final routeJson = map['routePoints'] as String?;
         if (routeJson != null) {
-          _finalRouteJson = routeJson;
+          final decoded = jsonDecode(routeJson);
+          if (decoded is List && decoded.length > _routePoints.length) {
+            _finalRouteJson = routeJson; // Service punya lebih banyak titik
+          }
         }
       } catch (_) {}
 
-      _saveRunToDatabase();
-
+      _saveRunToDatabase(); // Guard _isSaving ada di dalam method ini
     } else if (type == 'pause_from_notif') {
       _stopUiTimer();
       _elapsedBeforePause = _elapsedSeconds;
@@ -235,7 +297,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
         _showPauseStopScreen = false;
       });
     } else if (type == 'stop_from_notif') {
-      _stopRun();
+      if (!_isSaving) _stopRun();
     }
   }
 
@@ -309,34 +371,93 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     _initialLocationStream = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 1, // update setiap 1m bergerak
+        distanceFilter: 1,
       ),
     ).listen((pos) {
       if (!mounted) return;
       final loc = LatLng(pos.latitude, pos.longitude);
-      // Stream ini HANYA untuk update posisi marker di peta.
-      // Saat lari, kalkulasi jarak sepenuhnya dilakukan oleh
-      // RunningTaskHandler di dalam background service melalui 'update' events.
-      setState(() => _currentLocation = loc);
+      setState(() {
+        _currentLocation = loc;
+        // SATU-SATUNYA tempat jarak dihitung — pakai speed dari GPS
+        if (_isRunning) _addRoutePointWithDistance(loc, gpsSpeedMs: pos.speed);
+      });
       if (_isRunning || !_hasStarted) {
         _animateCameraToLocation(loc);
       }
     }, cancelOnError: false);
   }
 
+  // ── Tambah titik rute + hitung jarak di UI ────────────────────────────
+  // gpsSpeedMs: kecepatan dari GPS sensor (m/s). -1 = tidak diketahui (semua diterima)
+  void _addRoutePointWithDistance(LatLng newLoc, {double gpsSpeedMs = -1}) {
+    // Filter: skip jika GPS melaporkan kecepatan sangat rendah (<0.5 m/s = diam/drift)
+    // 0.5 m/s ≈ 1.8 km/h — ambang batas bahwa orang sedang bergerak
+    // Hanya filter jika speed tersedia (>= 0) dari sensor
+    if (gpsSpeedMs >= 0 && gpsSpeedMs < 0.5) return;
+
+    if (_routePoints.isEmpty) {
+      _routePoints.add(newLoc);
+      return;
+    }
+    final last = _routePoints.last;
+
+    // Filter duplikat koordinat identik
+    final degDiff = (last.latitude - newLoc.latitude).abs() +
+        (last.longitude - newLoc.longitude).abs();
+    if (degDiff < 0.000004) return;
+
+    // Hitung jarak meter pakai Geolocator
+    final segmentM = Geolocator.distanceBetween(
+      last.latitude,
+      last.longitude,
+      newLoc.latitude,
+      newLoc.longitude,
+    );
+
+    if (segmentM >= 1.0 && segmentM < 200.0) {
+      // Gerakan valid: akumulasi jarak
+      _distanceKm += segmentM / 1000.0;
+      _routePoints.add(newLoc);
+    } else if (segmentM >= 200.0) {
+      // GPS teleport: update posisi tanpa tambah jarak
+      _routePoints.add(newLoc);
+    }
+    // segmentM < 1.0: terlalu kecil (noise), skip
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.paused && _isRunning) {
-      // Simpan elapsed sebelum layar mati; service akan terus hitung jarak
+      // App masuk background
       _stopUiTimer();
       _elapsedBeforePause = _elapsedSeconds;
+      _isInBackground = true;
+      _backgroundStartTime =
+          DateTime.now(); // Catat waktu tepat masuk background
+      // Matikan UI GPS stream — hemat baterai, biarkan service yang tracking
+      _initialLocationStream?.cancel();
+      _initialLocationStream = null;
     } else if (state == AppLifecycleState.resumed && _isRunning) {
-      // Saat kembali ke foreground, sinkronkan waktu dari service
-      // Timer UI dilanjut dari waktu yang sudah berjalan
-      _uiRunStartTime = DateTime.now().subtract(Duration(seconds: _elapsedSeconds));
+      // App kembali ke foreground
+      _isInBackground = false;
+
+      // Hitung berapa lama di background menggunakan system clock (selalu akurat)
+      if (_backgroundStartTime != null) {
+        final bgElapsed =
+            DateTime.now().difference(_backgroundStartTime!).inSeconds;
+        _elapsedSeconds += bgElapsed; // Tambah waktu background ke elapsed
+        _elapsedBeforePause = _elapsedSeconds; // Sync sebelum timer start
+        _backgroundStartTime = null;
+      }
+
+      // Mulai timer dari nilai elapsed yang sudah mencakup waktu background
+      _uiRunStartTime = DateTime.now();
       _startUiTimer();
+      // Hidupkan kembali UI GPS stream
       _startInitialLocationStream();
+    } else if (state == AppLifecycleState.detached) {
+      _isInBackground = false;
     }
   }
 
@@ -348,23 +469,26 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     }
 
     setState(() {
-      _isRunning     = true;
-      _hasStarted    = true;
+      _isRunning = true;
+      _hasStarted = true;
       _showPauseStopScreen = false;
       _routePoints.clear();
-      _distanceKm    = 0.0;
-      _elapsedSeconds      = 0;
-      _movingSeconds  = 0;
-      _elevationGain  = 0.0;
-      _maxElevation   = 0.0;
+      _distanceKm = 0.0;
+      _elapsedSeconds = 0;
+      _movingSeconds = 0;
+      _elevationGain = 0.0;
+      _maxElevation = 0.0;
       _splits.clear();
       _elapsedBeforePause = 0;
+      _lastSplitKm = 0;
+      _lastSplitTimeSeconds = 0;
     });
 
     _uiRunStartTime = DateTime.now();
     _startUiTimer();
+    // JANGAN cancel _initialLocationStream — kita pakai untuk kalkulasi jarak
+    // Stream ini tetap jalan dan menggerakkan marker DAN menghitung jarak
     await LocationService.startService();
-
   }
 
   // ── Pause Run ─────────────────────────────────────────────────────────
@@ -380,8 +504,11 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
 
   // ── Resume Run ────────────────────────────────────────────────────────
   Future<void> _resumeRun() async {
-    // Lanjutkan timer dari elapsed yang sudah ada (tidak mulai dari 0)
-    _uiRunStartTime = DateTime.now().subtract(Duration(seconds: _elapsedSeconds));
+    // Set elapsedBeforePause = elapsed sekarang, timer start = now
+    // Formula timer: elapsed = elapsedBeforePause + diff(now, uiRunStartTime)
+    // = elapsedSeconds + 0 = elapsedSeconds (benar, tidak loncat)
+    _elapsedBeforePause = _elapsedSeconds;
+    _uiRunStartTime = DateTime.now();
     _startUiTimer();
     await LocationService.sendCommand({'command': 'resume'});
     setState(() {
@@ -392,18 +519,28 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
 
   // ── Stop Run ──────────────────────────────────────────────────────────
   Future<void> _stopRun() async {
+    // Guard: jangan stop 2x
+    if (_isSaving) return;
     _stopUiTimer();
     setState(() {
       _isRunning = false;
       _showPauseStopScreen = false;
+      _isSaving = true;
     });
-    // Kirim stop ke service -> service mengirim event 'final' -> _onReceiveTaskData
-    // memanggil _saveRunToDatabase(). Jangan panggil langsung (double-save).
     await LocationService.sendCommand({'command': 'stop'});
+    // Jika service tidak merespons dalam 3 detik (misalnya service mati), simpan langsung
+    await Future.delayed(const Duration(seconds: 3));
+    if (mounted && _isSaving) {
+      _saveRunToDatabase();
+    }
   }
 
   // ── Simpan ke Database ────────────────────────────────────────────────
   Future<void> _saveRunToDatabase() async {
+    // Guard double-save
+    if (!_isSaving) return;
+    _isSaving = false;
+
     await LocationService.stopService();
 
     if (_distanceKm < 0.01) {
@@ -417,25 +554,26 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     final durationMinutes = _elapsedSeconds / 60.0;
     final calories = Workout.calculateCalories('running', durationMinutes);
     final protein = Workout.calculateProteinNeeded(
-      'running', durationMinutes,
+      'running',
+      durationMinutes,
       weight: widget.userWeight,
     );
 
-    final now = DateTime.now();
     final workout = Workout(
       type: 'running',
       duration: durationMinutes,
       distance: _distanceKm,
       caloriesBurned: calories,
       proteinNeeded: protein,
-      date: now,
+      date: DateTime.now(),
       notes: 'Lari GPS Tracker. Jarak: ${_distanceKm.toStringAsFixed(2)} km',
       movingTime: _movingSeconds / 60.0,
       elevationGain: _elevationGain,
       maxElevation: _maxElevation,
       splitsStr: _finalSplitsJson ?? jsonEncode(_splits),
       polyline: _finalRouteJson ??
-          jsonEncode(_routePoints.map((p) => [p.latitude, p.longitude]).toList()),
+          jsonEncode(
+              _routePoints.map((p) => [p.latitude, p.longitude]).toList()),
       title: _defaultActivityTitle('running', now),
     );
 
@@ -445,53 +583,15 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     CloudSyncService.backupToCloud().catchError((_) {});
 
     if (mounted) {
-      _showSnackBar('Sesi lari berhasil disimpan! 🎉');
+      _showSnackBar('Sesi lari berhasil disimpan! ');
       Navigator.pop(context);
     }
   }
 
   void _showSnackBar(String msg) {
     if (mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(msg)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     }
-  }
-
-  /// Generates a time-aware default activity title.
-  /// e.g. "Morning Run", "Afternoon Workout", "Night Run"
-  static String _defaultActivityTitle(String type, DateTime date) {
-    final hour = date.hour;
-    String timeLabel;
-    if (hour >= 5 && hour < 10) {
-      timeLabel = 'Morning';
-    } else if (hour >= 10 && hour < 14) {
-      timeLabel = 'Midday';
-    } else if (hour >= 14 && hour < 17) {
-      timeLabel = 'Afternoon';
-    } else if (hour >= 17 && hour < 20) {
-      timeLabel = 'Evening';
-    } else {
-      timeLabel = 'Night';
-    }
-
-    String activityLabel;
-    switch (type) {
-      case 'running':
-        activityLabel = 'Run';
-        break;
-      case 'weightlifting':
-        activityLabel = 'Workout';
-        break;
-      case 'basketball':
-        activityLabel = 'Basketball';
-        break;
-      case 'walking':
-        activityLabel = 'Walk';
-        break;
-      default:
-        activityLabel = 'Activity';
-    }
-    return '$timeLabel $activityLabel';
   }
 
   void _handleBackPress() {
@@ -515,11 +615,12 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
   }
 
   String get _pace {
+    // Pace = elapsed time / distance (min/km)
     if (_distanceKm < 0.01) return '--:--';
-    final secs = _movingSeconds > 0 ? _movingSeconds : _elapsedSeconds;
-    if (secs == 0) return '--:--';
-    final paceMins = (secs / 60.0) / _distanceKm;
-    if (paceMins > 99) return '--:--';
+    if (_elapsedSeconds == 0) return '--:--';
+    final paceMins = (_elapsedSeconds / 60.0) / _distanceKm;
+    // Sembunyikan hanya jika sangat tidak masuk akal (> 60 min/km = tidak bergerak)
+    if (paceMins > 60.0) return '--:--';
     final m = paceMins.truncate();
     final s = ((paceMins - m) * 60).truncate().toString().padLeft(2, '0');
     return '$m:$s';
@@ -535,9 +636,8 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
       },
       child: Scaffold(
         backgroundColor: Colors.black,
-        body: _showPauseStopScreen
-            ? _buildPauseStopScreen()
-            : _buildMainScreen(),
+        body:
+            _showPauseStopScreen ? _buildPauseStopScreen() : _buildMainScreen(),
       ),
     );
   }
@@ -572,7 +672,8 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _pauseStatItem('Waktu', _formattedTime),
-                      _pauseStatItem('Jarak', '${_distanceKm.toStringAsFixed(2)} km'),
+                      _pauseStatItem(
+                          'Jarak', '${_distanceKm.toStringAsFixed(2)} km'),
                       _pauseStatItem('Pace', _pace),
                     ],
                   ),
@@ -580,8 +681,10 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _pauseStatItem('Elevasi', '${_elevationGain.toStringAsFixed(0)} m'),
-                      _pauseStatItem('Max Elev', '${_maxElevation.toStringAsFixed(0)} m'),
+                      _pauseStatItem(
+                          'Elevasi', '${_elevationGain.toStringAsFixed(0)} m'),
+                      _pauseStatItem(
+                          'Max Elev', '${_maxElevation.toStringAsFixed(0)} m'),
                     ],
                   ),
                 ],
@@ -651,11 +754,15 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
       children: [
         Text(value,
             style: const TextStyle(
-                color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.w900)),
         const SizedBox(height: 4),
         Text(label,
             style: TextStyle(
-                color: Colors.grey[500], fontSize: 12, fontWeight: FontWeight.w600)),
+                color: Colors.grey[500],
+                fontSize: 12,
+                fontWeight: FontWeight.w600)),
       ],
     );
   }
@@ -682,9 +789,10 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
       markers.add(Marker(
         markerId: const MarkerId('current_location'),
         position: _currentLocation!,
-        icon: _locationMarker ?? BitmapDescriptor.defaultMarkerWithHue(
-          BitmapDescriptor.hueAzure,
-        ),
+        icon: _locationMarker ??
+            BitmapDescriptor.defaultMarkerWithHue(
+              BitmapDescriptor.hueAzure,
+            ),
         anchor: const Offset(0.5, 0.5),
         flat: true,
         zIndexInt: 2,
@@ -725,7 +833,8 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
           child: CircleAvatar(
             backgroundColor: Colors.black54,
             child: IconButton(
-              icon: const Icon(Icons.expand_more, color: Colors.white, size: 30),
+              icon:
+                  const Icon(Icons.expand_more, color: Colors.white, size: 30),
               onPressed: _handleBackPress,
             ),
           ),
@@ -740,7 +849,8 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
             children: [
               // GPS badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.black54,
                   borderRadius: BorderRadius.circular(20),
@@ -750,14 +860,18 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                   children: [
                     Icon(
                       Icons.gps_fixed,
-                      color: _currentLocation != null ? Colors.greenAccent : Colors.redAccent,
+                      color: _currentLocation != null
+                          ? Colors.greenAccent
+                          : Colors.redAccent,
                       size: 14,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       _currentLocation != null ? 'GPS Ready' : 'Mencari GPS...',
                       style: TextStyle(
-                        color: _currentLocation != null ? Colors.greenAccent : Colors.redAccent,
+                        color: _currentLocation != null
+                            ? Colors.greenAccent
+                            : Colors.redAccent,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
@@ -778,7 +892,8 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                     );
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFC5200),
                       borderRadius: BorderRadius.circular(20),
@@ -793,7 +908,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text('🔗', style: TextStyle(fontSize: 12)),
+                        Text('', style: TextStyle(fontSize: 12)),
                         SizedBox(width: 4),
                         Text(
                           'Strava',
@@ -865,7 +980,8 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                       children: [
                         _statItem('Time', _formattedTime),
                         _statItemPace('Avg pace (/km)', _pace),
-                        _statItem('Distance (km)', _distanceKm.toStringAsFixed(2)),
+                        _statItem(
+                            'Distance (km)', _distanceKm.toStringAsFixed(2)),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -886,7 +1002,8 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                 child: Row(
                   children: [
                     if (!_isRunning && _hasStarted) ...[
-                      Expanded(child: _actionButton(
+                      Expanded(
+                          child: _actionButton(
                         label: 'Resume',
                         color: const Color(0xFFFC5200),
                         icon: Icons.play_arrow,
@@ -894,7 +1011,8 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                         onTap: _resumeRun,
                       )),
                       const SizedBox(width: 16),
-                      Expanded(child: _actionButton(
+                      Expanded(
+                          child: _actionButton(
                         label: 'Finish',
                         color: Colors.white,
                         icon: Icons.stop,
@@ -902,7 +1020,8 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                         onTap: _stopRun,
                       )),
                     ] else if (_isRunning) ...[
-                      Expanded(child: _actionButton(
+                      Expanded(
+                          child: _actionButton(
                         label: 'Pause',
                         color: const Color(0xFFFC5200),
                         icon: Icons.pause,
@@ -910,9 +1029,14 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                         onTap: _pauseRun,
                       )),
                     ] else ...[
-                      Expanded(child: _actionButton(
-                        label: _currentLocation == null ? 'Mencari GPS...' : 'Start',
-                        color: _currentLocation == null ? Colors.grey : const Color(0xFFFC5200),
+                      Expanded(
+                          child: _actionButton(
+                        label: _currentLocation == null
+                            ? 'Mencari GPS...'
+                            : 'Start',
+                        color: _currentLocation == null
+                            ? Colors.grey
+                            : const Color(0xFFFC5200),
                         icon: Icons.play_arrow,
                         textColor: Colors.white,
                         onTap: _currentLocation == null ? () {} : _startRun,
@@ -934,7 +1058,8 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(8),
-        decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+        decoration:
+            const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
         child: Icon(icon, color: Colors.white, size: 24),
       ),
     );
@@ -945,10 +1070,14 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
       children: [
         Text(value,
             style: const TextStyle(
-                color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900)),
+                color: Colors.white,
+                fontSize: 28,
+                fontWeight: FontWeight.w900)),
         Text(label,
             style: TextStyle(
-                color: Colors.grey[500], fontSize: 12, fontWeight: FontWeight.w600)),
+                color: Colors.grey[500],
+                fontSize: 12,
+                fontWeight: FontWeight.w600)),
       ],
     );
   }
@@ -963,12 +1092,16 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
             const SizedBox(width: 4),
             Text(value,
                 style: const TextStyle(
-                    color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900)),
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900)),
           ],
         ),
         Text(label,
             style: TextStyle(
-                color: Colors.grey[500], fontSize: 12, fontWeight: FontWeight.w600)),
+                color: Colors.grey[500],
+                fontSize: 12,
+                fontWeight: FontWeight.w600)),
       ],
     );
   }

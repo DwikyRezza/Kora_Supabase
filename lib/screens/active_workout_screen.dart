@@ -26,11 +26,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   String get _workoutTitle {
     switch (widget.workoutType) {
       case 'basketball':
-        return '🏀 Latihan Basket';
+        return ' Latihan Basket';
       case 'weightlifting':
-        return '🏋️ Angkat Beban';
+        return ' Angkat Beban';
       default:
-        return '💪 Latihan Bebas';
+        return ' Latihan Bebas';
     }
   }
 

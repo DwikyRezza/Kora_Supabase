@@ -14,7 +14,7 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback onGoToSchedule;
   final VoidCallback onGoToBodyStats;
 
-  HomeScreen({
+  const HomeScreen({
     super.key,
     required this.onGoToWorkout,
     required this.onGoToProtein,
@@ -102,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
               elevation: 0,
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
-                  padding: EdgeInsets.fromLTRB(20, 60, 20, 16),
+                  padding: const EdgeInsets.fromLTRB(20, 60, 20, 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -121,11 +121,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                SizedBox(height: 2),
+                                const SizedBox(height: 2),
                                 ShaderMask(
                                   shaderCallback: (bounds) =>
                                       AppTheme.neonGreenGrad.createShader(bounds),
-                                  child: Text(
+                                  child: const Text(
                                     'AthleteSync',
                                     style: TextStyle(
                                       color: Colors.white,
@@ -145,18 +145,18 @@ class _HomeScreenState extends State<HomeScreen> {
                               size: 22,
                             ),
                             padding: EdgeInsets.zero,
-                            constraints: BoxConstraints(minWidth: 36, minHeight: 36),
+                            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                             onPressed: () {
                               setState(() {
                                 AppTheme.toggleTheme();
                               });
                             },
                           ),
-                          SizedBox(width: 4),
+                          const SizedBox(width: 4),
                           GestureDetector(
                             onTap: widget.onGoToBodyStats,
                             child: Container(
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
                                 color: AppTheme.surfaceVariant,
@@ -167,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(Icons.monitor_weight_rounded, color: AppTheme.electricBlue, size: 14),
-                                  SizedBox(width: 4),
+                                  const SizedBox(width: 4),
                                   Text(
                                     'Cek Tubuh',
                                     style: TextStyle(
@@ -196,16 +196,16 @@ class _HomeScreenState extends State<HomeScreen> {
               )
             else
               SliverPadding(
-                padding: EdgeInsets.fromLTRB(16, 0, 16, 100),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     // ---- PROTEIN SYNC BANNER ----
                     _buildProteinSyncBanner(),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
                     // ---- STATS GRID ----
-                    SectionHeader(title: 'Ringkasan Hari Ini'),
-                    SizedBox(height: 12),
+                    const SectionHeader(title: 'Ringkasan Hari Ini'),
+                    const SizedBox(height: 12),
                     Column(
                       children: [
                         Row(
@@ -220,7 +220,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 subtitle: 'Target: ${_totalProteinNeeded.toStringAsFixed(1)}g',
                               ),
                             ),
-                            SizedBox(width: 12),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: StatCard(
                                 label: 'Kalori Terbakar',
@@ -232,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ],
                         ),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         Row(
                           children: [
                             Expanded(
@@ -244,7 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 gradient: AppTheme.electricBlueGrad,
                               ),
                             ),
-                            SizedBox(width: 12),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: StatCard(
                                 label: 'Sesi Latihan',
@@ -258,34 +258,34 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
                     // ---- QUICK ACTIONS ----
-                    SectionHeader(title: 'Aksi Cepat'),
-                    SizedBox(height: 12),
+                    const SectionHeader(title: 'Aksi Cepat'),
+                    const SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
                           child: _buildQuickAction(
-                            emoji: '🏃',
+                            icon: Icons.directions_run,
                             label: 'Catat\nLatihan',
                             color: AppTheme.electricBlue,
                             onTap: widget.onGoToWorkout,
                           ),
                         ),
-                        SizedBox(width: 10),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: _buildQuickAction(
-                            emoji: '🥗',
+                            icon: Icons.restaurant,
                             label: 'Catat\nNutrisi',
                             color: AppTheme.neonGreen,
                             onTap: widget.onGoToProtein,
                           ),
                         ),
-                        SizedBox(width: 10),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: _buildQuickAction(
-                            emoji: '📅',
+                            icon: Icons.calendar_today,
                             label: 'Tambah\nJadwal',
                             color: AppTheme.accentPurple,
                             onTap: widget.onGoToSchedule,
@@ -293,7 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
                     // ---- UPCOMING EVENTS ----
                     SectionHeader(
@@ -301,7 +301,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       action: 'Lihat Semua',
                       onAction: widget.onGoToSchedule,
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     if (_upcomingEvents.isEmpty)
                       _buildEmptyState(
                         'Belum ada jadwal',
@@ -310,7 +310,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       )
                     else
                       ...(_upcomingEvents.take(3).map((e) => _buildEventTile(e))),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
                     // ---- TODAY WORKOUTS ----
                     SectionHeader(
@@ -318,7 +318,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       action: 'Tambah',
                       onAction: widget.onGoToWorkout,
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     if (_todayWorkouts.isEmpty)
                       _buildEmptyState(
                         'Belum ada latihan',
@@ -344,15 +344,15 @@ class _HomeScreenState extends State<HomeScreen> {
         : 0.0;
 
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isSufficient 
-            ? (AppTheme.isDarkMode ? Color(0xFF0D3320) : Color(0xFFE8F5E9))
-            : (AppTheme.isDarkMode ? Color(0xFF1A1A2E) : Color(0xFFE3F2FD)),
+            ? (AppTheme.isDarkMode ? const Color(0xFF0D3320) : const Color(0xFFE8F5E9))
+            : (AppTheme.isDarkMode ? const Color(0xFF1A1A2E) : const Color(0xFFE3F2FD)),
         gradient: AppTheme.isDarkMode ? LinearGradient(
           colors: isSufficient
-              ? [Color(0xFF0D3320), Color(0xFF0A2918)]
-              : [Color(0xFF1A1A2E), Color(0xFF16213E)],
+              ? [const Color(0xFF0D3320), const Color(0xFF0A2918)]
+              : [const Color(0xFF1A1A2E), const Color(0xFF16213E)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ) : null,
@@ -369,18 +369,19 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(8),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: (isSufficient ? AppTheme.neonGreen : AppTheme.electricBlue)
                       .withOpacity(0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text(
-                  isSufficient ? '✅' : '⚡',
-                  style: TextStyle(fontSize: 20),
+                child: Icon(
+                  isSufficient ? Icons.check_circle : Icons.bolt,
+                  size: 20,
+                  color: isSufficient ? AppTheme.neonGreen : AppTheme.electricBlue,
                 ),
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -397,7 +398,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     Text(
                       isSufficient
-                          ? 'Protein harian terpenuhi 💪'
+                          ? 'Protein harian terpenuhi '
                           : 'Butuh ${deficit.toStringAsFixed(1)}g protein lagi',
                       style: TextStyle(
                         color: isSufficient
@@ -421,7 +422,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          SizedBox(height: 14),
+          const SizedBox(height: 14),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
@@ -433,7 +434,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Row(
             children: [
               Text(
@@ -441,7 +442,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: TextStyle(
                     color: AppTheme.textMuted, fontSize: 11),
               ),
-              Spacer(),
+              const Spacer(),
               Text(
                 'Target: ${_totalProteinNeeded.toStringAsFixed(1)}g',
                 style: TextStyle(
@@ -455,7 +456,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildQuickAction({
-    required String emoji,
+    required IconData icon,
     required String label,
     required Color color,
     required VoidCallback onTap,
@@ -463,7 +464,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(14),
@@ -471,8 +472,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Column(
           children: [
-            Text(emoji, style: TextStyle(fontSize: 26)),
-            SizedBox(height: 6),
+            Icon(icon, size: 26, color: color),
+            const SizedBox(height: 6),
             Text(
               label,
               textAlign: TextAlign.center,
@@ -492,8 +493,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildEventTile(ScheduleEvent event) {
     final isToday = event.dateTime.day == DateTime.now().day;
     return Container(
-      margin: EdgeInsets.only(bottom: 8),
-      padding: EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(12),
@@ -509,10 +510,10 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Center(
-              child: Text(event.typeEmoji, style: TextStyle(fontSize: 20)),
+              child: Icon(event.typeIcon, size: 20),
             ),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -525,7 +526,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
                   '${isToday ? 'Hari ini' : DateFormat('d MMM', 'id').format(event.dateTime)}, ${DateFormat('HH:mm').format(event.dateTime)} • ${event.durationMinutes} menit',
                   style: TextStyle(
@@ -537,7 +538,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: AppTheme.neonGreen.withOpacity(0.1),
               borderRadius: BorderRadius.circular(6),
@@ -570,8 +571,8 @@ class _HomeScreenState extends State<HomeScreen> {
         typeColor = AppTheme.weightliftingColor;
     }
     return Container(
-      margin: EdgeInsets.only(bottom: 8),
-      padding: EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(12),
@@ -588,10 +589,10 @@ class _HomeScreenState extends State<HomeScreen> {
               border: Border.all(color: typeColor.withOpacity(0.3)),
             ),
             child: Center(
-              child: Text(w.typeEmoji, style: TextStyle(fontSize: 22)),
+              child: Icon(w.typeIcon, size: 22),
             ),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -604,7 +605,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
                   '${w.duration.round()} menit • ${w.caloriesBurned} kal',
                   style: TextStyle(
@@ -639,11 +640,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildEmptyState(String title, String subtitle, IconData icon) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 32),
+      padding: const EdgeInsets.symmetric(vertical: 32),
       child: Column(
         children: [
           Icon(icon, color: AppTheme.textMuted, size: 40),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             title,
             style: TextStyle(
@@ -652,7 +653,7 @@ class _HomeScreenState extends State<HomeScreen> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
             subtitle,
             style: TextStyle(color: AppTheme.textMuted, fontSize: 12),

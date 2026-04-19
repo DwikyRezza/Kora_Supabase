@@ -9,7 +9,7 @@ class StatCard extends StatelessWidget {
   final LinearGradient gradient;
   final String? subtitle;
 
-  StatCard({
+  const StatCard({
     super.key,
     required this.label,
     required this.value,
@@ -22,7 +22,7 @@ class StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppTheme.cardBg,
         borderRadius: BorderRadius.circular(16),
@@ -42,10 +42,10 @@ class StatCard extends StatelessWidget {
                 ),
                 child: Icon(icon, color: Colors.black, size: 18),
               ),
-              Spacer(),
+              const Spacer(),
             ],
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
@@ -61,9 +61,9 @@ class StatCard extends StatelessWidget {
                     height: 1,
                   ),
                 ),
-                SizedBox(width: 4),
+                const SizedBox(width: 4),
                 Padding(
-                  padding: EdgeInsets.only(bottom: 3),
+                  padding: const EdgeInsets.only(bottom: 3),
                   child: Text(
                     unit,
                     style: TextStyle(
@@ -76,7 +76,7 @@ class StatCard extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
@@ -90,7 +90,7 @@ class StatCard extends StatelessWidget {
             ),
           ),
           if (subtitle != null) ...[
-            SizedBox(height: 2),
+            const SizedBox(height: 2),
             Text(
               subtitle!,
               style: TextStyle(
@@ -112,7 +112,7 @@ class GlowButton extends StatelessWidget {
   final LinearGradient gradient;
   final bool isSmall;
 
-  GlowButton({
+  const GlowButton({
     super.key,
     required this.label,
     required this.icon,
@@ -137,7 +137,7 @@ class GlowButton extends StatelessWidget {
             BoxShadow(
               color: gradient.colors.first.withOpacity(0.3),
               blurRadius: 12,
-              offset: Offset(0, 4),
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -145,7 +145,7 @@ class GlowButton extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, color: Colors.black, size: isSmall ? 16 : 18),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
@@ -166,7 +166,7 @@ class SectionHeader extends StatelessWidget {
   final String? action;
   final VoidCallback? onAction;
 
-  SectionHeader({
+  const SectionHeader({
     super.key,
     required this.title,
     this.action,
@@ -185,7 +185,7 @@ class SectionHeader extends StatelessWidget {
             fontWeight: FontWeight.w700,
           ),
         ),
-        Spacer(),
+        const Spacer(),
         if (action != null)
           GestureDetector(
             onTap: onAction,

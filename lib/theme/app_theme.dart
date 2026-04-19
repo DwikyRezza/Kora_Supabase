@@ -109,7 +109,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: const Color(0xFF2D3748), width: 1),
+          side: const BorderSide(color: Color(0xFF2D3748), width: 1),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -184,7 +184,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: const Color(0xFFCBD5E0), width: 1),
+          side: const BorderSide(color: Color(0xFFCBD5E0), width: 1),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(

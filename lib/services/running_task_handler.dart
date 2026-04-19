@@ -32,13 +32,13 @@ class RunningTaskHandler extends TaskHandler {
   // ── Lifecycle ──────────────────────────────────────────────────────────
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
-    print('🟢 [SERVICE] RunningTaskHandler started');
+    print(' [SERVICE] RunningTaskHandler started');
     _handleStart({});
   }
 
   @override
   Future<void> onDestroy(DateTime timestamp) async {
-    print('🔴 [SERVICE] RunningTaskHandler destroyed');
+    print(' [SERVICE] RunningTaskHandler destroyed');
     await _positionStream?.cancel();
     _positionStream = null;
   }
@@ -65,8 +65,8 @@ class RunningTaskHandler extends TaskHandler {
       'distanceKm': _distanceKm,
       'elevationGain': _elevationGain,
       'maxElevation': _maxElevation < 0 ? 0.0 : _maxElevation,
-      'splits': _splits,
-      'routePoints': _routePoints,
+      'splits': jsonEncode(_splits),
+      'routePoints': jsonEncode(_routePoints),
       'isRunning': _isRunning,
     });
   }
@@ -74,7 +74,7 @@ class RunningTaskHandler extends TaskHandler {
   // ── Terima perintah dari Flutter UI ───────────────────────────────────
   @override
   void onReceiveData(Object data) {
-    print('📨 [SERVICE] Received: $data');
+    print(' [SERVICE] Received: $data');
     if (data is! Map) return;
     final cmd = data['command'] as String?;
     switch (cmd) {
@@ -95,7 +95,7 @@ class RunningTaskHandler extends TaskHandler {
 
   @override
   void onNotificationButtonPressed(String id) {
-    print('🔔 [SERVICE] Button: $id');
+    print(' [SERVICE] Button: $id');
     if (id == 'pause_btn') {
       _handlePause();
       FlutterForegroundTask.sendDataToMain({'type': 'pause_from_notif'});
@@ -179,7 +179,7 @@ class RunningTaskHandler extends TaskHandler {
 
   void _startGpsStream() {
     _positionStream?.cancel();
-    print('🚀 [SERVICE] Starting GPS stream...');
+    print(' [SERVICE] Starting GPS stream...');
 
     // Gunakan AndroidSettings untuk kontrol penuh di Android
     final locationSettings = AndroidSettings(
@@ -221,14 +221,15 @@ class RunningTaskHandler extends TaskHandler {
     // Hanya proses jarak jika sedang running
     if (!_isRunning) return;
 
-    // Filter akurasi buruk — longgarkan ke 50m agar bekerja di HP murah
-    if (position.accuracy > 50) {
-      print('⚠️ [SERVICE] Bad accuracy: ${position.accuracy}m — skipping distance');
+    // Filter akurasi buruk — 100m agar toleran di HP nyata / area terbuka
+    // Jika tidak ada titik sama sekali, terima akurasi apapun agar rute mulai terekam
+    if (position.accuracy > 100 && _routePoints.isNotEmpty) {
+      print('⚠️ [SERVICE] Bad accuracy: ${position.accuracy}m — skipping');
       return;
     }
 
     // Titik pertama — simpan sebagai awal rute
-    if (_lastValidPosition == null) {
+    if (_lastValidPosition == null || _routePoints.isEmpty) {
       _lastValidPosition = position;
       _routePoints.add([position.latitude, position.longitude]);
 
@@ -237,7 +238,7 @@ class RunningTaskHandler extends TaskHandler {
         _lastAltitude = position.altitude;
         _maxElevation = position.altitude;
       }
-      print('📍 [SERVICE] First point recorded: ${position.latitude}, ${position.longitude}');
+      print('[SERVICE] First point recorded: ${position.latitude}, ${position.longitude}, acc=${position.accuracy}m');
       return;
     }
 
@@ -249,17 +250,27 @@ class RunningTaskHandler extends TaskHandler {
     );
     final segmentDistanceKm = segmentDistanceM / 1000.0;
 
-    // Hanya tambah jika 1m – 150m (filter GPS teleport, lebih toleran)
-    if (segmentDistanceM >= 1.0 && segmentDistanceM < 150.0) {
+    if (segmentDistanceM >= 200.0) {
+      // GPS teleport — update last position but don't add distance
+      print('⚠️ [SERVICE] GPS teleport: ${segmentDistanceM.toStringAsFixed(0)}m — skipped');
+      _lastValidPosition = position;
+      return;
+    }
+
+    // Threshold 0.5m (lebih sensitif dari sebelumnya 1m)
+    if (segmentDistanceM >= 0.5) {
       _distanceKm += segmentDistanceKm;
       _movingSeconds++;
-      print('✅ [SERVICE] +${segmentDistanceM.toStringAsFixed(1)}m, total: ${(_distanceKm * 1000).toStringAsFixed(0)}m');
+      _lastValidPosition = position;
+      print('✅ [SERVICE] +${segmentDistanceM.toStringAsFixed(1)}m, total: ${(_distanceKm * 1000).toStringAsFixed(0)}m, acc:${position.accuracy.toStringAsFixed(0)}m');
 
       // Elevation
-      final altDiff = position.altitude - _lastAltitude;
-      if (altDiff > 0.5) _elevationGain += altDiff;
-      if (position.altitude > _maxElevation) _maxElevation = position.altitude;
-      _lastAltitude = position.altitude;
+      if (_lastAltitude > -9000 && position.altitude != 0) {
+        final altDiff = position.altitude - _lastAltitude;
+        if (altDiff > 0.5) _elevationGain += altDiff;
+        if (position.altitude > _maxElevation) _maxElevation = position.altitude;
+      }
+      if (position.altitude != 0) _lastAltitude = position.altitude;
 
       // Splits per km
       final currentKm = _distanceKm.floor();
@@ -273,8 +284,6 @@ class RunningTaskHandler extends TaskHandler {
       }
 
       _routePoints.add([position.latitude, position.longitude]);
-    } else if (segmentDistanceM >= 150.0) {
-      print('⚠️ [SERVICE] GPS teleport: ${segmentDistanceM.toStringAsFixed(0)}m — ignored');
     }
   }
 

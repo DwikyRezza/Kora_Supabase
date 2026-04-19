@@ -6,7 +6,7 @@ import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 
 class ProteinScreen extends StatefulWidget {
-  ProteinScreen({super.key});
+  const ProteinScreen({super.key});
 
   @override
   State<ProteinScreen> createState() => _ProteinScreenState();
@@ -17,8 +17,8 @@ class _ProteinScreenState extends State<ProteinScreen> {
   List<ProteinEntry> _entries = [];
   bool _isLoading = true;
   double _targetProtein = 150.0;
-  double _targetCalories = 2500.0; // Estimate
-  int _targetWaterMl = 2000;
+  final double _targetCalories = 2500.0; // Estimate
+  final int _targetWaterMl = 2000;
 
   @override
   void initState() {
@@ -65,7 +65,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text('🥗 Nutrition & Hydration', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const Text(' Nutrition & Hydration', style: TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: AppTheme.background,
         elevation: 0,
       ),
@@ -74,8 +74,8 @@ class _ProteinScreenState extends State<ProteinScreen> {
         onPressed: _showAddProteinSheet,
         backgroundColor: AppTheme.neonGreen,
         foregroundColor: Colors.black,
-        icon: Icon(Icons.restaurant_menu_rounded),
-        label: Text('Catat Nutrisi', style: TextStyle(fontWeight: FontWeight.w800)),
+        icon: const Icon(Icons.restaurant_menu_rounded),
+        label: const Text('Catat Nutrisi', style: TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: AppTheme.neonGreen))
@@ -87,14 +87,14 @@ class _ProteinScreenState extends State<ProteinScreen> {
                 slivers: [
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _buildEnergyAndHydration(),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           _buildMacrosGrid(),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           _buildMicrosAndLimits(),
                         ],
                       ),
@@ -102,7 +102,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
                   ),
                   SliverToBoxAdapter(
                      child: Padding(
-                       padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
+                       padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
                        child: Text('Riwayat Konsumsi', style: TextStyle(color: AppTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
                      ),
                   ),
@@ -123,11 +123,11 @@ class _ProteinScreenState extends State<ProteinScreen> {
                             key: Key('nut_${entry.id}'),
                             direction: DismissDirection.endToStart,
                             background: Container(
-                              margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                               decoration: BoxDecoration(color: AppTheme.accentRed, borderRadius: BorderRadius.circular(16)),
                               alignment: Alignment.centerRight,
-                              padding: EdgeInsets.only(right: 20),
-                              child: Icon(Icons.delete_rounded, color: Colors.white),
+                              padding: const EdgeInsets.only(right: 20),
+                              child: const Icon(Icons.delete_rounded, color: Colors.white),
                             ),
                             onDismissed: (_) async {
                               await _db.deleteProteinEntry(entry.id!);
@@ -135,7 +135,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
                             },
                             child: Card(
                               color: AppTheme.cardBg,
-                              margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                                 side: BorderSide(color: AppTheme.border),
@@ -143,7 +143,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
                               child: ListTile(
                                 leading: CircleAvatar(
                                   backgroundColor: AppTheme.surfaceVariant,
-                                  child: Text(entry.foodEmoji, style: TextStyle(fontSize: 20)),
+                                  child: Icon(entry.foodIcon, size: 20),
                                 ),
                                 title: Text(entry.foodName, style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold)),
                                 subtitle: Text(
@@ -169,7 +169,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
                         childCount: _entries.length,
                       ),
                     ),
-                  SliverToBoxAdapter(child: SizedBox(height: 100)),
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
                 ],
               ),
             ),
@@ -184,7 +184,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
       children: [
         Expanded(
           child: Container(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppTheme.border)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,25 +192,25 @@ class _ProteinScreenState extends State<ProteinScreen> {
                 Row(
                   children: [
                     Icon(Icons.local_fire_department_rounded, color: AppTheme.accentOrange, size: 20),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text('Kalori', style: TextStyle(color: AppTheme.textMuted, fontWeight: FontWeight.w600)),
                   ],
                 ),
-                SizedBox(height: 12),
-                Text('${_totalCalories.toStringAsFixed(0)}', style: TextStyle(color: AppTheme.textPrimary, fontSize: 28, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 12),
+                Text(_totalCalories.toStringAsFixed(0), style: TextStyle(color: AppTheme.textPrimary, fontSize: 28, fontWeight: FontWeight.w900)),
                 Text('kcal dikonsumsi', style: TextStyle(color: AppTheme.textMuted, fontSize: 11)),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 LinearProgressIndicator(value: calProgress, backgroundColor: AppTheme.surfaceVariant, valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accentOrange), borderRadius: BorderRadius.circular(4)),
               ],
             ),
           ),
         ),
-        SizedBox(width: 16),
+        const SizedBox(width: 16),
         Expanded(
           child: GestureDetector(
             onTap: _showAddWaterSheet,
             child: Container(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(color: AppTheme.electricBlue.withOpacity(0.1), borderRadius: BorderRadius.circular(20), border: Border.all(color: AppTheme.electricBlue.withOpacity(0.3))),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,17 +221,17 @@ class _ProteinScreenState extends State<ProteinScreen> {
                       Row(
                         children: [
                           Icon(Icons.water_drop_rounded, color: AppTheme.electricBlue, size: 20),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Text('Air Putih', style: TextStyle(color: AppTheme.electricBlue, fontWeight: FontWeight.w600)),
                         ],
                       ),
                       Icon(Icons.add_circle, color: AppTheme.electricBlue, size: 20),
                     ],
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Text('$_totalWater', style: TextStyle(color: AppTheme.electricBlue, fontSize: 28, fontWeight: FontWeight.w900)),
                   Text('dari $_targetWaterMl ml', style: TextStyle(color: AppTheme.electricBlue, fontSize: 11)),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   LinearProgressIndicator(value: waterProgress, backgroundColor: AppTheme.electricBlue.withOpacity(0.2), valueColor: AlwaysStoppedAnimation<Color>(AppTheme.electricBlue), borderRadius: BorderRadius.circular(4)),
                 ],
               ),
@@ -244,13 +244,13 @@ class _ProteinScreenState extends State<ProteinScreen> {
 
   Widget _buildMacrosGrid() {
     return Container(
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppTheme.border)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Makronutrisi (Bahan Bakar)', style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -286,7 +286,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
             ],
           ),
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         Text(label, style: TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.w600)),
       ],
     );
@@ -294,17 +294,17 @@ class _ProteinScreenState extends State<ProteinScreen> {
 
   Widget _buildMicrosAndLimits() {
     return Container(
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(color: AppTheme.cardBg, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppTheme.border)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
            Text('Mikro & Batasan (GGL)', style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
-           SizedBox(height: 16),
+           const SizedBox(height: 16),
            _microBar('Serat (Pencernaan)', _totalFiber, 30, Colors.green[400]!, 'g'),
-           SizedBox(height: 12),
+           const SizedBox(height: 12),
            _microBar('Gula (Maks 50g)', _totalSugar, 50, AppTheme.accentRed, 'g', isLimit: true),
-           SizedBox(height: 12),
+           const SizedBox(height: 12),
            _microBar('Garam (Maks 5g)', _totalSalt, 5, Colors.purple[300]!, 'g', isLimit: true),
         ],
       ),
@@ -325,7 +325,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
               style: TextStyle(color: overLimit ? AppTheme.accentRed : AppTheme.textPrimary, fontSize: 12, fontWeight: FontWeight.bold)),
            ],
         ),
-        SizedBox(height: 6),
+        const SizedBox(height: 6),
         LinearProgressIndicator(
           value: progress,
           backgroundColor: AppTheme.surfaceVariant,
@@ -341,15 +341,15 @@ class _ProteinScreenState extends State<ProteinScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) {
         return Padding(
-          padding: EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('Tambah Air Putih', style: TextStyle(color: AppTheme.electricBlue, fontSize: 20, fontWeight: FontWeight.bold)),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -358,7 +358,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
                   _waterButton(1000, 'Botol Besar'),
                 ],
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
             ],
           ),
         );
@@ -382,7 +382,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
       },
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
         decoration: BoxDecoration(
           color: AppTheme.electricBlue.withOpacity(0.1),
           borderRadius: BorderRadius.circular(16),
@@ -391,7 +391,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
         child: Column(
           children: [
             Icon(Icons.water_drop, color: AppTheme.electricBlue, size: 32),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text('+$ml ml', style: TextStyle(color: AppTheme.electricBlue, fontWeight: FontWeight.bold, fontSize: 16)),
           ],
         ),
@@ -460,7 +460,7 @@ class _AddNutritionSheetState extends State<_AddNutritionSheet> {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
       child: Column(
@@ -470,13 +470,13 @@ class _AddNutritionSheetState extends State<_AddNutritionSheet> {
           Center(
             child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppTheme.border, borderRadius: BorderRadius.circular(2))),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Text('Catat Nutrisi Makanan', style: TextStyle(color: AppTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           
           Autocomplete<Map<String, dynamic>>(
             optionsBuilder: (TextEditingValue textEditingValue) {
-              if (textEditingValue.text.isEmpty) return Iterable<Map<String, dynamic>>.empty();
+              if (textEditingValue.text.isEmpty) return const Iterable<Map<String, dynamic>>.empty();
               return ProteinFoodDatabase.foods.where((food) => (food['name'] as String).toLowerCase().contains(textEditingValue.text.toLowerCase()));
             },
             displayStringForOption: (option) => option['name'],
@@ -495,11 +495,11 @@ class _AddNutritionSheetState extends State<_AddNutritionSheet> {
               );
             },
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           
           if (_selectedFood != null) ...[
             Container(
-              padding: EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(color: AppTheme.cardBg, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppTheme.border)),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -511,7 +511,7 @@ class _AddNutritionSheetState extends State<_AddNutritionSheet> {
                 ],
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
           ],
 
           Row(
@@ -521,23 +521,23 @@ class _AddNutritionSheetState extends State<_AddNutritionSheet> {
                   controller: _amountCtrl,
                   keyboardType: TextInputType.number,
                   style: TextStyle(color: AppTheme.textPrimary),
-                  decoration: InputDecoration(labelText: 'Porsi (100g/butir)'),
+                  decoration: const InputDecoration(labelText: 'Porsi (100g/butir)'),
                 ),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: _selectedMealType,
+                  initialValue: _selectedMealType,
                   dropdownColor: AppTheme.surface,
                   style: TextStyle(color: AppTheme.textPrimary),
-                  decoration: InputDecoration(labelText: 'Waktu Makan'),
+                  decoration: const InputDecoration(labelText: 'Waktu Makan'),
                   items: _mealTypes.map((m) => DropdownMenuItem(value: m['id'], child: Text(m['label']!))).toList(),
                   onChanged: (v) => setState(() => _selectedMealType = v!),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           
           SizedBox(
             width: double.infinity,
@@ -545,10 +545,10 @@ class _AddNutritionSheetState extends State<_AddNutritionSheet> {
               onPressed: _selectedFood == null ? null : _save,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.neonGreen,
-                padding: EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
-              child: Text('Simpan Makanan', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
+              child: const Text('Simpan Makanan', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
             ),
           ),
         ],
