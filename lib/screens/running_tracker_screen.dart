@@ -48,7 +48,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
   ]''';
 
   // ── State UI ──────────────────────────────────────────────────────────
-  final List<LatLng> _routePoints = [];
+  List<LatLng> _routePoints = [];
   LatLng? _currentLocation;
   bool _isRunning = false;
   bool _hasStarted = false;
@@ -298,6 +298,35 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
       });
     } else if (type == 'stop_from_notif') {
       if (!_isSaving) _stopRun();
+    }
+  }
+
+  /// Generates a time-aware default activity title.
+  String _defaultActivityTitle(String type, DateTime date) {
+    final hour = date.hour;
+    String timeLabel;
+    if (hour >= 5 && hour < 10) {
+      timeLabel = 'Morning';
+    } else if (hour >= 10 && hour < 14) {
+      timeLabel = 'Midday';
+    } else if (hour >= 14 && hour < 17) {
+      timeLabel = 'Afternoon';
+    } else if (hour >= 17 && hour < 20) {
+      timeLabel = 'Evening';
+    } else {
+      timeLabel = 'Night';
+    }
+    switch (type) {
+      case 'running':
+        return '$timeLabel Run';
+      case 'weightlifting':
+        return '$timeLabel Workout';
+      case 'basketball':
+        return '$timeLabel Basketball';
+      case 'walking':
+        return '$timeLabel Walk';
+      default:
+        return '$timeLabel Activity';
     }
   }
 
@@ -559,13 +588,14 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
       weight: widget.userWeight,
     );
 
+    final now = DateTime.now();
     final workout = Workout(
       type: 'running',
       duration: durationMinutes,
       distance: _distanceKm,
       caloriesBurned: calories,
       proteinNeeded: protein,
-      date: DateTime.now(),
+      date: now,
       notes: 'Lari GPS Tracker. Jarak: ${_distanceKm.toStringAsFixed(2)} km',
       movingTime: _movingSeconds / 60.0,
       elevationGain: _elevationGain,
