@@ -1,0 +1,287 @@
+
+--- CONFLICT START (line 61) ---
+  List<String> _splits = [];
+  bool _isSaving = false; // Guard agar tidak double-save
+   --- separator ---
+  final List<String> _splits = [];
+--- CONFLICT END (line 66) ---
+
+
+--- CONFLICT START (line 178) ---
+      // location event HANYA untuk update marker — jarak dihitung di _initialLocationStream
+      setState(() => _currentLocation = newLoc);
+      if (_isRunning) _animateCameraToLocation(newLoc);
+    } else if (type == 'update') {
+      // ── Merge data service ke UI ──────────────────────────────────────
+      if (!mounted) return;
+      setState(() {
+        if (_isInBackground) {
+          // Saat di background: service adalah sumber kebenaran penuh
+          // Terima semua nilai dari service langsung (bukan hanya jika lebih besar)
+          final svcDist = (map['distanceKm'] as num?)?.toDouble();
+          if (svcDist != null && svcDist > 0) _distanceKm = svcDist;
+
+          final svcMoving = (map['movingSeconds'] as num?)?.toInt();
+          if (svcMoving != null) _movingSeconds = svcMoving;
+
+          // Sync elapsed dari service saat background
+          final svcElapsed = (map['elapsedSeconds'] as num?)?.toInt();
+          if (svcElapsed != null && svcElapsed > 0) {
+            _elapsedSeconds = svcElapsed;
+            // Update _elapsedBeforePause agar timer tidak loncat saat foreground kembali
+            _elapsedBeforePause = svcElapsed;
+          }
+        } else {
+          // Saat foreground: UI menghitung jarak sendiri, tapi terima
+          // nilai service jika lebih besar (service lebih akurat untuk jarak panjang)
+          final svcDist = (map['distanceKm'] as num?)?.toDouble() ?? 0.0;
+          if (svcDist > _distanceKm) _distanceKm = svcDist;
+
+          final svcMoving = (map['movingSeconds'] as num?)?.toInt() ?? 0;
+          if (svcMoving > _movingSeconds) _movingSeconds = svcMoving;
+
+          // Sync elapsed HANYA jika UI timer mati
+          if (_uiTimer == null || !_uiTimer!.isActive) {
+            final svcElapsed = (map['elapsedSeconds'] as num?)?.toInt();
+            if (svcElapsed != null) _elapsedSeconds = svcElapsed;
+          }
+        }
+
+        _elevationGain =
+            (map['elevationGain'] as num?)?.toDouble() ?? _elevationGain;
+        _maxElevation =
+            (map['maxElevation'] as num?)?.toDouble() ?? _maxElevation;
+
+        // Sync splits dari service
+        final rawSplits = map['splits'];
+        if (rawSplits is String) {
+          try {
+            final decoded = jsonDecode(rawSplits);
+            if (decoded is List) _splits = List<String>.from(decoded);
+          } catch (_) {}
+        } else if (rawSplits is List) {
+          _splits = List<String>.from(rawSplits);
+        }
+
+        // Hanya pakai route dari service jika lebih banyak titiknya
+        final rawRoute = map['routePoints'];
+        List<LatLng>? svcRoute;
+        if (rawRoute is String) {
+          try {
+            final decoded = jsonDecode(rawRoute);
+            if (decoded is List && decoded.isNotEmpty) {
+              final parsed = <LatLng>[];
+              for (final p in decoded) {
+                if (p is List && p.length >= 2) {
+                  try {
+                    parsed.add(LatLng(
+                        (p[0] as num).toDouble(), (p[1] as num).toDouble()));
+                  } catch (_) {}
+                }
+              }
+              if (parsed.isNotEmpty) svcRoute = parsed;
+            }
+          } catch (_) {}
+        }
+        if (svcRoute != null && svcRoute.length > _routePoints.length) {
+          _routePoints = svcRoute;
+        }
+      });
+    } else if (type == 'final') {
+      // Saat selesai: ambil data terbaik (max) antara service & UI
+      if (!mounted) return;
+      final svcDist = (map['distanceKm'] as num?)?.toDouble() ?? 0.0;
+      if (svcDist > _distanceKm) _distanceKm = svcDist;
+
+      final svcMoving = (map['movingSeconds'] as num?)?.toInt() ?? 0;
+      if (svcMoving > _movingSeconds) _movingSeconds = svcMoving;
+
+   --- separator ---
+
+      setState(() {
+        _currentLocation = newLoc;
+
+        // Kalkulasi jarak LANGSUNG di screen dari event lokasi yang sudah terbukti bekerja
+        if (_isRunning && accuracy <= 60.0) {
+          if (_routePoints.isEmpty) {
+            _routePoints.add(newLoc);
+          } else {
+            final lastPt = _routePoints.last;
+            final segmentM = Geolocator.distanceBetween(
+              lastPt.latitude,
+              lastPt.longitude,
+              newLoc.latitude,
+              newLoc.longitude,
+            );
+            // Filter noise GPS (<1m) & GPS teleport (>200m)
+            if (segmentM >= 1.0 && segmentM < 200.0) {
+              _distanceKm += segmentM / 1000.0;
+              _movingSeconds++;
+              _routePoints.add(newLoc);
+
+              // Splits per km
+              final currentKm = _distanceKm.floor();
+              if (currentKm > _lastSplitKm) {
+                final splitTime = _elapsedSeconds - _lastSplitTimeSeconds;
+                final m = (splitTime ~/ 60).toString().padLeft(2, '0');
+                final s = (splitTime % 60).toString().padLeft(2, '0');
+                _splits.add('$m:$s');
+                _lastSplitKm = currentKm;
+                _lastSplitTimeSeconds = _elapsedSeconds;
+              }
+            }
+          }
+        }
+      });
+
+      if (_isRunning) {
+        _animateCameraToLocation(newLoc);
+      }
+    } else if (type == 'update') {
+      // Hanya ambil data elevasi dari service
+      if (!mounted) return;
+      setState(() {
+        _elevationGain =
+            (map['elevationGain'] as num?)?.toDouble() ?? _elevationGain;
+        _maxElevation =
+            (map['maxElevation'] as num?)?.toDouble() ?? _maxElevation;
+      });
+    } else if (type == 'final') {
+      // Simpan elevasi dari service, jarak & rute dari perhitungan lokal
+--- CONFLICT END (line 319) ---
+
+
+--- CONFLICT START (line 324) ---
+
+      // Simpan splits dari service jika ada
+      try {
+        final splitsJson = map['splits'] as String?;
+        if (splitsJson != null) _finalSplitsJson = splitsJson;
+      } catch (_) {}
+
+      // Simpan route dari service jika ada dan lebih panjang
+      try {
+        final routeJson = map['routePoints'] as String?;
+        if (routeJson != null) {
+          final decoded = jsonDecode(routeJson);
+          if (decoded is List && decoded.length > _routePoints.length) {
+            _finalRouteJson = routeJson; // Service punya lebih banyak titik
+          }
+        }
+      } catch (_) {}
+
+      _saveRunToDatabase(); // Guard _isSaving ada di dalam method ini
+   --- separator ---
+      _finalSplitsJson = null; // pakai _splits lokal
+      _finalRouteJson = null; // pakai _routePoints lokal
+      _saveRunToDatabase();
+--- CONFLICT END (line 348) ---
+
+
+--- CONFLICT START (line 443) ---
+      setState(() {
+        _currentLocation = loc;
+        // SATU-SATUNYA tempat jarak dihitung — pakai speed dari GPS
+        if (_isRunning) _addRoutePointWithDistance(loc, gpsSpeedMs: pos.speed);
+      });
+      if (_isRunning || !_hasStarted) {
+   --- separator ---
+
+      if (_isRunning) {
+        // ── Saat lari: hitung jarak, rute, splits di sini ──────────────
+        setState(() {
+          _currentLocation = loc;
+          // Filter akurasi buruk (longgar 65m untuk HP biasa)
+          if (pos.accuracy <= 65.0) {
+            if (_routePoints.isEmpty) {
+              _routePoints.add(loc);
+            } else {
+              final lastPt = _routePoints.last;
+              final segmentM = Geolocator.distanceBetween(
+                lastPt.latitude,
+                lastPt.longitude,
+                loc.latitude,
+                loc.longitude,
+              );
+              // Tambah jika >= 1m dan < 200m (filter GPS teleport)
+              if (segmentM >= 1.0 && segmentM < 200.0) {
+                _distanceKm += segmentM / 1000.0;
+                _movingSeconds++;
+                _routePoints.add(loc);
+                // Splits per km
+                final currentKm = _distanceKm.floor();
+                if (currentKm > _lastSplitKm) {
+                  final splitTime = _elapsedSeconds - _lastSplitTimeSeconds;
+                  final mStr = (splitTime ~/ 60).toString().padLeft(2, '0');
+                  final sStr = (splitTime % 60).toString().padLeft(2, '0');
+                  _splits.add('$mStr:$sStr');
+                  _lastSplitKm = currentKm;
+                  _lastSplitTimeSeconds = _elapsedSeconds;
+                }
+              }
+            }
+          }
+        });
+        _animateCameraToLocation(loc);
+      } else {
+        // ── Sebelum lari: hanya update marker
+        setState(() => _currentLocation = loc);
+--- CONFLICT END (line 491) ---
+
+
+--- CONFLICT START (line 539) ---
+      // App masuk background
+      _stopUiTimer();
+      _elapsedBeforePause = _elapsedSeconds;
+      _isInBackground = true;
+      _backgroundStartTime =
+          DateTime.now(); // Catat waktu tepat masuk background
+      // Matikan UI GPS stream — hemat baterai, biarkan service yang tracking
+      _initialLocationStream?.cancel();
+      _initialLocationStream = null;
+    } else if (state == AppLifecycleState.resumed && _isRunning) {
+      // App kembali ke foreground
+      _isInBackground = false;
+
+      // Hitung berapa lama di background menggunakan system clock (selalu akurat)
+      if (_backgroundStartTime != null) {
+        final bgElapsed =
+            DateTime.now().difference(_backgroundStartTime!).inSeconds;
+        _elapsedSeconds += bgElapsed; // Tambah waktu background ke elapsed
+        _elapsedBeforePause = _elapsedSeconds; // Sync sebelum timer start
+        _backgroundStartTime = null;
+      }
+
+      // Mulai timer dari nilai elapsed yang sudah mencakup waktu background
+      _uiRunStartTime = DateTime.now();
+   --- separator ---
+      _stopUiTimer();
+    } else if (state == AppLifecycleState.resumed && _isRunning) {
+--- CONFLICT END (line 567) ---
+
+
+--- CONFLICT START (line 619) ---
+    // Set elapsedBeforePause = elapsed sekarang, timer start = now
+    // Formula timer: elapsed = elapsedBeforePause + diff(now, uiRunStartTime)
+    // = elapsedSeconds + 0 = elapsedSeconds (benar, tidak loncat)
+    _elapsedBeforePause = _elapsedSeconds;
+   --- separator ---
+--- CONFLICT END (line 625) ---
+
+
+--- CONFLICT START (line 646) ---
+    // Jika service tidak merespons dalam 3 detik (misalnya service mati), simpan langsung
+    await Future.delayed(const Duration(seconds: 3));
+    if (mounted && _isSaving) {
+      _saveRunToDatabase();
+    }
+   --- separator ---
+    await _saveRunToDatabase();
+--- CONFLICT END (line 654) ---
+
+
+--- CONFLICT START (line 696) ---
+      title: _defaultActivityTitle('running', now),
+   --- separator ---
+--- CONFLICT END (line 699) ---
+

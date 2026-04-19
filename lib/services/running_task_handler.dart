@@ -32,13 +32,13 @@ class RunningTaskHandler extends TaskHandler {
   // ── Lifecycle ──────────────────────────────────────────────────────────
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
-    print('🟢 [SERVICE] RunningTaskHandler started');
+    print(' [SERVICE] RunningTaskHandler started');
     _handleStart({});
   }
 
   @override
   Future<void> onDestroy(DateTime timestamp) async {
-    print('🔴 [SERVICE] RunningTaskHandler destroyed');
+    print(' [SERVICE] RunningTaskHandler destroyed');
     await _positionStream?.cancel();
     _positionStream = null;
   }
@@ -74,7 +74,7 @@ class RunningTaskHandler extends TaskHandler {
   // ── Terima perintah dari Flutter UI ───────────────────────────────────
   @override
   void onReceiveData(Object data) {
-    print('📨 [SERVICE] Received: $data');
+    print(' [SERVICE] Received: $data');
     if (data is! Map) return;
     final cmd = data['command'] as String?;
     switch (cmd) {
@@ -95,7 +95,7 @@ class RunningTaskHandler extends TaskHandler {
 
   @override
   void onNotificationButtonPressed(String id) {
-    print('🔔 [SERVICE] Button: $id');
+    print(' [SERVICE] Button: $id');
     if (id == 'pause_btn') {
       _handlePause();
       FlutterForegroundTask.sendDataToMain({'type': 'pause_from_notif'});
@@ -179,7 +179,7 @@ class RunningTaskHandler extends TaskHandler {
 
   void _startGpsStream() {
     _positionStream?.cancel();
-    print('🚀 [SERVICE] Starting GPS stream...');
+    print(' [SERVICE] Starting GPS stream...');
 
     // Gunakan AndroidSettings untuk kontrol penuh di Android
     final locationSettings = AndroidSettings(
@@ -238,7 +238,7 @@ class RunningTaskHandler extends TaskHandler {
         _lastAltitude = position.altitude;
         _maxElevation = position.altitude;
       }
-      print('📍 [SERVICE] First point recorded: ${position.latitude}, ${position.longitude}, acc=${position.accuracy}m');
+      print('[SERVICE] First point recorded: ${position.latitude}, ${position.longitude}, acc=${position.accuracy}m');
       return;
     }
 

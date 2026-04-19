@@ -48,7 +48,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
   ]''';
 
   // ── State UI ──────────────────────────────────────────────────────────
-  List<LatLng> _routePoints = [];
+  final List<LatLng> _routePoints = [];
   LatLng? _currentLocation;
   bool _isRunning = false;
   bool _hasStarted = false;
@@ -68,6 +68,10 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
   Timer? _uiTimer;
   DateTime? _uiRunStartTime;
   int _elapsedBeforePause = 0;
+
+  // ── Splits tracking (dihitung di screen langsung) ─────────────────────
+  int _lastSplitKm = 0;
+  int _lastSplitTimeSeconds = 0;
 
   // ── Data final untuk disimpan ─────────────────────────────────────────
   String? _finalSplitsJson;
@@ -162,6 +166,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     if (type == 'location') {
       final lat = map['lat'] as double?;
       final lng = map['lng'] as double?;
+      final accuracy = (map['accuracy'] as num?)?.toDouble() ?? 100.0;
       if (lat == null || lng == null) return;
 
       final newLoc = LatLng(lat, lng);
@@ -475,10 +480,14 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
       _maxElevation = 0.0;
       _splits.clear();
       _elapsedBeforePause = 0;
+      _lastSplitKm = 0;
+      _lastSplitTimeSeconds = 0;
     });
 
     _uiRunStartTime = DateTime.now();
     _startUiTimer();
+    // JANGAN cancel _initialLocationStream — kita pakai untuk kalkulasi jarak
+    // Stream ini tetap jalan dan menggerakkan marker DAN menghitung jarak
     await LocationService.startService();
   }
 
@@ -518,8 +527,6 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
       _showPauseStopScreen = false;
       _isSaving = true;
     });
-    // Kirim stop ke service -> service mengirim event 'final' -> _onReceiveTaskData
-    // memanggil _saveRunToDatabase(). Jangan panggil langsung (double-save).
     await LocationService.sendCommand({'command': 'stop'});
     // Jika service tidak merespons dalam 3 detik (misalnya service mati), simpan langsung
     await Future.delayed(const Duration(seconds: 3));
@@ -552,14 +559,13 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
       weight: widget.userWeight,
     );
 
-    final now = DateTime.now();
     final workout = Workout(
       type: 'running',
       duration: durationMinutes,
       distance: _distanceKm,
       caloriesBurned: calories,
       proteinNeeded: protein,
-      date: now,
+      date: DateTime.now(),
       notes: 'Lari GPS Tracker. Jarak: ${_distanceKm.toStringAsFixed(2)} km',
       movingTime: _movingSeconds / 60.0,
       elevationGain: _elevationGain,
@@ -577,7 +583,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     CloudSyncService.backupToCloud().catchError((_) {});
 
     if (mounted) {
-      _showSnackBar('Sesi lari berhasil disimpan! 🎉');
+      _showSnackBar('Sesi lari berhasil disimpan! ');
       Navigator.pop(context);
     }
   }
@@ -586,43 +592,6 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     }
-  }
-
-  /// Generates a time-aware default activity title.
-  /// e.g. "Morning Run", "Afternoon Workout", "Night Run"
-  static String _defaultActivityTitle(String type, DateTime date) {
-    final hour = date.hour;
-    String timeLabel;
-    if (hour >= 5 && hour < 10) {
-      timeLabel = 'Morning';
-    } else if (hour >= 10 && hour < 14) {
-      timeLabel = 'Midday';
-    } else if (hour >= 14 && hour < 17) {
-      timeLabel = 'Afternoon';
-    } else if (hour >= 17 && hour < 20) {
-      timeLabel = 'Evening';
-    } else {
-      timeLabel = 'Night';
-    }
-
-    String activityLabel;
-    switch (type) {
-      case 'running':
-        activityLabel = 'Run';
-        break;
-      case 'weightlifting':
-        activityLabel = 'Workout';
-        break;
-      case 'basketball':
-        activityLabel = 'Basketball';
-        break;
-      case 'walking':
-        activityLabel = 'Walk';
-        break;
-      default:
-        activityLabel = 'Activity';
-    }
-    return '$timeLabel $activityLabel';
   }
 
   void _handleBackPress() {
@@ -939,7 +908,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text('🔗', style: TextStyle(fontSize: 12)),
+                        Text('', style: TextStyle(fontSize: 12)),
                         SizedBox(width: 4),
                         Text(
                           'Strava',

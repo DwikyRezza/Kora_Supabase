@@ -6,7 +6,7 @@ import '../services/profile_service.dart';
 import '../theme/app_theme.dart';
 
 class WeeklyReportScreen extends StatefulWidget {
-  WeeklyReportScreen({super.key});
+  const WeeklyReportScreen({super.key});
 
   @override
   State<WeeklyReportScreen> createState() => _WeeklyReportScreenState();
@@ -85,29 +85,29 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text('📊 Weekly Performance'),
+        title: const Text(' Weekly Performance'),
         backgroundColor: AppTheme.background,
         elevation: 0,
       ),
       body: _isLoading 
         ? Center(child: CircularProgressIndicator(color: AppTheme.neonGreen))
         : SingleChildScrollView(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildSummaryHeader(),
-                SizedBox(height: 32),
+                const SizedBox(height: 32),
                 
-                Text('🏃 Lari 7 Hari Terakhir (km)', style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
-                SizedBox(height: 16),
+                Text(' Lari 7 Hari Terakhir (km)', style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
                 _buildRunningChart(),
 
-                SizedBox(height: 32),
+                const SizedBox(height: 32),
                 Text('🥩 Kepatuhan Protein 7 Hari Terakhir', style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 _buildProteinChart(),
-                SizedBox(height: 100), // spacing
+                const SizedBox(height: 100), // spacing
               ],
             ),
           ),
@@ -116,7 +116,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
   Widget _buildSummaryHeader() {
     return Container(
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(20),
@@ -125,25 +125,25 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       child: Column(
         children: [
           Text('Rata-rata Kepatuhan Protein', style: TextStyle(color: AppTheme.textMuted)),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text('${(_avgProteinRatio * 100).toInt()}%', style: TextStyle(color: _avgProteinRatio >= 0.8 ? AppTheme.neonGreen : AppTheme.accentOrange, fontSize: 32, fontWeight: FontWeight.w900)),
-          SizedBox(height: 16),
-          Divider(),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
+          const Divider(),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               Column(
                 children: [
                   Text('Total Jarak Lari', style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text('${_totalDistance.toStringAsFixed(1)} km', style: TextStyle(color: AppTheme.electricBlue, fontSize: 18, fontWeight: FontWeight.bold)),
                 ],
               ),
               Column(
                 children: [
                   Text('Hari Terbaik', style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text('Sabtu', style: TextStyle(color: AppTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
                 ],
               ),
@@ -172,19 +172,19 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 showTitles: true,
                 getTitlesWidget: (val, meta) {
                   int idx = val.toInt();
-                  if (idx < 0 || idx >= 7) return SizedBox.shrink();
+                  if (idx < 0 || idx >= 7) return const SizedBox.shrink();
                   return Padding(
-                    padding: EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.only(top: 8),
                     child: Text(DateFormat('E', 'id').format(_days[idx]), style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
                   );
                 },
               ),
             ),
-            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
-          gridData: FlGridData(show: false),
+          gridData: const FlGridData(show: false),
           borderData: FlBorderData(show: false),
           barGroups: List.generate(7, (i) {
             return BarChartGroupData(
@@ -194,7 +194,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                   toY: _runningDistances[i],
                   color: AppTheme.electricBlue,
                   width: 16,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
                 )
               ],
             );
@@ -219,19 +219,19 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 showTitles: true,
                 getTitlesWidget: (val, meta) {
                   int idx = val.toInt();
-                  if (idx < 0 || idx >= 7) return SizedBox.shrink();
+                  if (idx < 0 || idx >= 7) return const SizedBox.shrink();
                   return Padding(
-                    padding: EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.only(top: 8),
                     child: Text(DateFormat('E', 'id').format(_days[idx]), style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
                   );
                 },
               ),
             ),
-            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
-          gridData: FlGridData(show: false),
+          gridData: const FlGridData(show: false),
           borderData: FlBorderData(show: false),
           barGroups: List.generate(7, (i) {
             final val = _proteinRatios[i];
@@ -242,7 +242,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                   toY: val,
                   color: val >= 1.0 ? AppTheme.neonGreen : AppTheme.accentRed,
                   width: 16,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
                 )
               ],
             );

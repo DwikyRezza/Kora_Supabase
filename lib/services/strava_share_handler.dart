@@ -366,7 +366,7 @@ class _StravaShareOverlayState extends State<StravaShareOverlay> {
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    'Aktivitas berhasil disimpan ke riwayat AthleteSync! 🎉',
+                    'Aktivitas berhasil disimpan ke riwayat AthleteSync! ',
                     style: TextStyle(color: Color(0xFF39FF8F), fontSize: 12),
                     textAlign: TextAlign.center,
                   ),
@@ -393,7 +393,7 @@ class _StravaShareOverlayState extends State<StravaShareOverlay> {
               ),
             ),
           ] else if (_state == _State.needsAuth) ...[
-            const Text('🔗', style: TextStyle(fontSize: 40)),
+            const Text('', style: TextStyle(fontSize: 40)),
             const SizedBox(height: 12),
             const Text(
               'Hubungkan akun Strava kamu terlebih dahulu agar AthleteSync bisa mengambil data aktivitas.',
@@ -425,7 +425,7 @@ class _StravaShareOverlayState extends State<StravaShareOverlay> {
             ),
           ] else ...[
             // Error state
-            Text('⚠️', style: const TextStyle(fontSize: 40)),
+            const Text('⚠️', style: TextStyle(fontSize: 40)),
             const SizedBox(height: 12),
             Text(
               _message,
