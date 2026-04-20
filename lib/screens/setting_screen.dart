@@ -540,7 +540,7 @@ class _SettingScreenState extends State<SettingScreen> {
                             icon: Icons.code_rounded,
                             iconColor: AppTheme.neonGreen,
                             title: 'Developer',
-                            trailing: 'AthleteSync Team'),
+                            trailing: 'Corefit Team'),
                       ]),
 
                       const SizedBox(height: 32),

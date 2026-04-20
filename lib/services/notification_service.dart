@@ -39,8 +39,8 @@ class NotificationService {
   }) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-            'athletesync_channel', 'AthleteSync Notifications',
-            channelDescription: 'Default channel for AthleteSync',
+            'corefit_channel', 'Corefit Notifications',
+            channelDescription: 'Default channel for Corefit',
             importance: Importance.max,
             priority: Priority.high,
             showWhen: false);
@@ -75,7 +75,7 @@ class NotificationService {
       tz.TZDateTime.from(notifTime, tz.local),
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'athletesync_schedule', 'Schedule Reminders',
+          'corefit_schedule', 'Schedule Reminders',
           channelDescription: 'Notifikasi pengingat jadwal latihan',
           importance: Importance.high,
           priority: Priority.high,
@@ -124,7 +124,7 @@ class NotificationService {
       tz.TZDateTime.from(scheduledDate, tz.local),
       const NotificationDetails(
         android: AndroidNotificationDetails(
-            'athletesync_protein', 'Protein Reminders',
+            'corefit_protein', 'Protein Reminders',
             channelDescription: 'Channel for protein reminders',
             importance: Importance.defaultImportance,
             priority: Priority.defaultPriority),
@@ -163,11 +163,11 @@ class NotificationService {
     await flutterLocalNotificationsPlugin.zonedSchedule(
       998,
       ' Laporan Progress Mingguanmu!',
-      'Lihat seberapa jauh perkembanganmu minggu ini di AthleteSync.',
+      'Lihat seberapa jauh perkembanganmu minggu ini di Corefit.',
       tz.TZDateTime.from(nextDate, tz.local),
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'athletesync_progress', 'Weekly Progress',
+          'corefit_progress', 'Weekly Progress',
           channelDescription: 'Channel for weekly progress reports',
           importance: Importance.defaultImportance,
           priority: Priority.defaultPriority,

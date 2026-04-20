@@ -9,6 +9,7 @@ import '../models/workout.dart';
 import '../services/database_helper.dart';
 import '../services/location_service.dart';
 import '../services/cloud_sync_service.dart';
+import '../utils/responsive.dart';
 import 'strava_import_screen.dart';
 
 class RunningTrackerScreen extends StatefulWidget {
@@ -553,7 +554,6 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     _stopUiTimer();
     setState(() {
       _isRunning = false;
-      _showPauseStopScreen = false;
       _isSaving = true;
     });
     await LocationService.sendCommand({'command': 'stop'});
@@ -568,13 +568,15 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
   Future<void> _saveRunToDatabase() async {
     // Guard double-save
     if (!_isSaving) return;
-    _isSaving = false;
 
     await LocationService.stopService();
 
     if (_distanceKm < 0.01) {
       if (mounted) {
         _showSnackBar('Aktivitas dibatalkan: Tidak ada rekaman jarak (0 km).');
+        setState(() {
+          _isSaving = false;
+        });
         Navigator.pop(context);
       }
       return;
@@ -724,21 +726,21 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: GestureDetector(
-                onTap: _resumeRun,
+                onTap: _isSaving ? null : _resumeRun,
                 child: Container(
                   height: 64,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFC5200),
+                    color: _isSaving ? Colors.grey[800] : const Color(0xFFFC5200),
                     borderRadius: BorderRadius.circular(32),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.play_arrow, color: Colors.white, size: 32),
-                      SizedBox(width: 8),
+                      Icon(Icons.play_arrow, color: _isSaving ? Colors.grey[500] : Colors.white, size: 32),
+                      const SizedBox(width: 8),
                       Text('Resume',
                           style: TextStyle(
-                              color: Colors.white,
+                              color: _isSaving ? Colors.grey[500] : Colors.white,
                               fontSize: 22,
                               fontWeight: FontWeight.w900)),
                     ],
@@ -750,24 +752,30 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: GestureDetector(
-                onTap: _stopRun,
+                onTap: _isSaving ? null : _stopRun,
                 child: Container(
                   height: 64,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: _isSaving ? Colors.grey : Colors.white,
                     borderRadius: BorderRadius.circular(32),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.stop, color: Colors.black, size: 32),
-                      SizedBox(width: 8),
-                      Text('Finish & Simpan',
-                          style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900)),
-                    ],
+                    children: _isSaving
+                        ? const [
+                            SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 3)),
+                            SizedBox(width: 12),
+                            Text('Menyimpan...', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.w900)),
+                          ]
+                        : const [
+                            Icon(Icons.stop, color: Colors.black, size: 32),
+                            SizedBox(width: 8),
+                            Text('Finish & Simpan',
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w900)),
+                          ],
                   ),
                 ),
               ),
@@ -991,18 +999,18 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                 Container(
                   width: double.infinity,
                   color: const Color(0xFFFFD12B),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: const Center(
+                  padding: EdgeInsets.symmetric(vertical: context.spaceMD),
+                  child: Center(
                     child: Text('Dijeda',
                         style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.w900,
-                            fontSize: 18)),
+                            fontSize: context.fontLG)),
                   ),
                 ),
               Container(
                 color: const Color(0xFF191919),
-                padding: const EdgeInsets.fromLTRB(24, 32, 24, 48),
+                padding: EdgeInsets.fromLTRB(context.spaceLG, context.space2XL, context.spaceLG, context.spaceLG),
                 child: Column(
                   children: [
                     Row(
@@ -1014,7 +1022,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                             'Distance (km)', _distanceKm.toStringAsFixed(2)),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: context.spaceLG),
                     Container(
                       width: 32,
                       height: 4,
@@ -1028,26 +1036,26 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
               ),
               Container(
                 color: Colors.black,
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+                padding: EdgeInsets.fromLTRB(context.spaceLG, context.spaceMD, context.spaceLG, context.spaceXL),
                 child: Row(
                   children: [
                     if (!_isRunning && _hasStarted) ...[
                       Expanded(
                           child: _actionButton(
                         label: 'Resume',
-                        color: const Color(0xFFFC5200),
+                        color: _isSaving ? Colors.grey[800]! : const Color(0xFFFC5200),
                         icon: Icons.play_arrow,
-                        textColor: Colors.white,
-                        onTap: _resumeRun,
+                        textColor: _isSaving ? Colors.grey[500]! : Colors.white,
+                        onTap: _isSaving ? () {} : _resumeRun,
                       )),
                       const SizedBox(width: 16),
                       Expanded(
                           child: _actionButton(
-                        label: 'Finish',
-                        color: Colors.white,
-                        icon: Icons.stop,
+                        label: _isSaving ? 'Menyimpan...' : 'Finish',
+                        color: _isSaving ? Colors.grey : Colors.white,
+                        icon: _isSaving ? Icons.hourglass_empty : Icons.stop,
                         textColor: Colors.black,
-                        onTap: _stopRun,
+                        onTap: _isSaving ? () {} : _stopRun,
                       )),
                     ] else if (_isRunning) ...[
                       Expanded(
@@ -1099,14 +1107,14 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     return Column(
       children: [
         Text(value,
-            style: const TextStyle(
+            style: TextStyle(
                 color: Colors.white,
-                fontSize: 28,
+                fontSize: context.fontXL,
                 fontWeight: FontWeight.w900)),
         Text(label,
             style: TextStyle(
                 color: Colors.grey[500],
-                fontSize: 12,
+                fontSize: context.fontXS,
                 fontWeight: FontWeight.w600)),
       ],
     );
@@ -1118,19 +1126,19 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.more_horiz, color: Colors.white, size: 20),
+            Icon(Icons.more_horiz, color: Colors.white, size: context.iconSM),
             const SizedBox(width: 4),
             Text(value,
-                style: const TextStyle(
+                style: TextStyle(
                     color: Colors.white,
-                    fontSize: 28,
+                    fontSize: context.fontXL,
                     fontWeight: FontWeight.w900)),
           ],
         ),
         Text(label,
             style: TextStyle(
                 color: Colors.grey[500],
-                fontSize: 12,
+                fontSize: context.fontXS,
                 fontWeight: FontWeight.w600)),
       ],
     );
@@ -1146,20 +1154,20 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 60,
+        height: context.buttonHeight,
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(context.buttonHeight / 2),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: textColor, size: 28),
-            const SizedBox(width: 8),
+            Icon(icon, color: textColor, size: context.iconMD),
+            SizedBox(width: context.spaceSM),
             Text(label,
                 style: TextStyle(
                     color: textColor,
-                    fontSize: 20,
+                    fontSize: context.fontLG,
                     fontWeight: FontWeight.w900)),
           ],
         ),

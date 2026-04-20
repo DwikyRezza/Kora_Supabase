@@ -16,7 +16,7 @@
 
 
     <application
-        android:label="AthleteSync"
+        android:label="Corefit"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
@@ -47,13 +47,13 @@
             </intent-filter>
             <!-- Strava deep link untuk share dari Strava -->
             <!-- Share target: muncul di share sheet Android saat user share dari Strava/app lain -->
-            <intent-filter android:label="Import ke AthleteSync">
+            <intent-filter android:label="Import ke Corefit">
                 <action android:name="android.intent.action.SEND"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <data android:mimeType="text/plain"/>
             </intent-filter>
             <!-- Deep link: buka langsung dari URL strava.com/activities/ID -->
-            <intent-filter android:label="Buka di AthleteSync">
+            <intent-filter android:label="Buka di Corefit">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
@@ -70,7 +70,7 @@
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="athletesync" android:host="callback"/>
+                <data android:scheme="corefit" android:host="callback"/>
             </intent-filter>
         </activity>
 

@@ -3,14 +3,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'theme/app_theme.dart';
+import 'utils/responsive.dart';
+import 'screens/landing_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/workout_screen.dart';
 import 'screens/protein_screen.dart';
 import 'screens/schedule_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/body_stats_screen.dart';
-import 'screens/login_screen.dart';
 import 'screens/profile_screen.dart';
 import 'services/profile_service.dart';
 import 'services/notification_service.dart';
@@ -22,6 +24,16 @@ void main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp();
+
+  // ── Aktifkan Firestore Offline Persistence ────────────────────────────────
+  // Firestore akan cache data lokal secara otomatis.
+  // - Baca: dari cache jika offline, dari cloud jika online (selalu up-to-date)
+  // - Tulis: antrian lokal, auto-sync ke cloud saat internet tersedia
+  // - Source of truth tetap Firestore Cloud
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
 
   // WAJIB: inisialisasi port komunikasi antara TaskHandler (background service)
   // dan Flutter UI. Harus dipanggil SEBELUM runApp().
@@ -43,13 +55,13 @@ void main() async {
   bool isLoggedIn = AuthService.isLoggedIn;
   bool onboarded = await ProfileService.isOnboarded();
 
-  runApp(AthleteSyncApp(isLoggedIn: isLoggedIn, isOnboarded: onboarded));
+  runApp(CorefitApp(isLoggedIn: isLoggedIn, isOnboarded: onboarded));
 }
 
-class AthleteSyncApp extends StatelessWidget {
+class CorefitApp extends StatelessWidget {
   final bool isLoggedIn;
   final bool isOnboarded;
-  const AthleteSyncApp(
+  const CorefitApp(
       {super.key, required this.isLoggedIn, required this.isOnboarded});
 
   @override
@@ -58,7 +70,7 @@ class AthleteSyncApp extends StatelessWidget {
       valueListenable: AppTheme.themeNotifier,
       builder: (context, currentMode, _) {
         return MaterialApp(
-          title: 'AthleteSync',
+          title: 'Corefit',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.theme,
           themeMode: currentMode,
@@ -70,7 +82,7 @@ class AthleteSyncApp extends StatelessWidget {
 
   Widget _getHomeScreen() {
     if (!isLoggedIn) {
-      return const LoginScreen();
+      return const LandingScreen();
     }
     if (!isOnboarded) {
       return const OnboardingScreen();
@@ -176,59 +188,66 @@ class _MainNavigationState extends State<MainNavigation> {
         ],
       ),
       child: SafeArea(
-        child: SizedBox(
-          height: 60,
-          child: Row(
-            children: List.generate(items.length, (index) {
-              final isActive = _currentIndex == index;
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () => _goToTab(index),
-                  behavior: HitTestBehavior.opaque,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: isActive
-                                ? AppTheme.neonGreen.withValues(alpha: 0.15)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Icon(
-                            isActive
-                                ? (items[index].activeIcon as Icon).icon
-                                : (items[index].icon as Icon).icon,
-                            color: isActive
-                                ? AppTheme.neonGreen
-                                : AppTheme.textMuted,
-                            size: 22,
-                          ),
+        child: Builder(
+          builder: (ctx) {
+            final navHeight = ctx.isTablet ? 70.0 : 60.0;
+            final iconSize = ctx.isTablet ? 26.0 : 22.0;
+            final labelSize = ctx.isTablet ? 12.0 : 10.0;
+            return SizedBox(
+              height: navHeight,
+              child: Row(
+                children: List.generate(items.length, (index) {
+                  final isActive = _currentIndex == index;
+                  return Expanded(
+                    child: GestureDetector(
+                      onTap: () => _goToTab(index),
+                      behavior: HitTestBehavior.opaque,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: ctx.spaceMD, vertical: ctx.spaceXS),
+                              decoration: BoxDecoration(
+                                color: isActive
+                                    ? AppTheme.neonGreen.withValues(alpha: 0.15)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Icon(
+                                isActive
+                                    ? (items[index].activeIcon as Icon).icon
+                                    : (items[index].icon as Icon).icon,
+                                color: isActive
+                                    ? AppTheme.neonGreen
+                                    : AppTheme.textMuted,
+                                size: iconSize,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              items[index].label!,
+                              style: TextStyle(
+                                color: isActive
+                                    ? AppTheme.neonGreen
+                                    : AppTheme.textMuted,
+                                fontSize: labelSize,
+                                fontWeight:
+                                    isActive ? FontWeight.w700 : FontWeight.w400,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          items[index].label!,
-                          style: TextStyle(
-                            color: isActive
-                                ? AppTheme.neonGreen
-                                : AppTheme.textMuted,
-                            fontSize: 10,
-                            fontWeight:
-                                isActive ? FontWeight.w700 : FontWeight.w400,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-              );
-            }),
-          ),
+                  );
+                }),
+              ),
+            );
+          },
         ),
       ),
     );

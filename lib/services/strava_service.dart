@@ -150,7 +150,7 @@ class StravaService {
 
       if (existingNotes.contains(notes)) continue;
 
-      // Mapping tipe aktivitas Strava → AthleteSync
+      // Mapping tipe aktivitas Strava → Corefit
       String type = 'running';
       final stravaType = activity['type'] ?? activity['sport_type'] ?? '';
       if (stravaType == 'Walk') {
@@ -190,7 +190,7 @@ class StravaService {
 
   /// Buka halaman OAuth Strava di browser, tangkap callback, lalu simpan token
   static Future<bool> connectStrava() async {
-    const callbackScheme = 'athletesync';
+    const callbackScheme = 'corefit';
     const callbackHost   = 'callback';
 
     // Bangun URL otorisasi Strava

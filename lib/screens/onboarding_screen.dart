@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../services/profile_service.dart';
+import '../services/cloud_sync_service.dart';
 import '../theme/app_theme.dart';
-import '../main.dart'; // To navigate to MainNavigation
+import '../utils/responsive.dart';
+import '../main.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -25,10 +27,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _saveAndContinue() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      
+
       double bmi = _weight / ((_height / 100) * (_height / 100));
       String status = ProfileService.getBMIStatus(bmi);
 
+      // Simpan ke lokal + Firestore (via ProfileService yang sudah diupdate)
       await ProfileService.saveProfile(
         name: _name,
         age: _age,
@@ -38,27 +41,43 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         goal: _goal,
       );
 
+      // Backup semua data ke Firestore
+      CloudSyncService.backupToCloud().catchError((_) {});
+
       if (mounted) {
         showDialog(
           context: context,
           barrierDismissible: false,
           builder: (ctx) => AlertDialog(
             backgroundColor: AppTheme.surface,
-            title: Text('Profil Tersimpan', style: TextStyle(color: AppTheme.neonGreen)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
+              children: [
+                Icon(Icons.check_circle_rounded, color: AppTheme.neonGreen, size: 28),
+                const SizedBox(width: 10),
+                Text('Profil Tersimpan!',
+                    style: TextStyle(color: AppTheme.neonGreen, fontWeight: FontWeight.w800)),
+              ],
+            ),
             content: Text(
-              'BMI Anda: ${bmi.toStringAsFixed(1)}\nStatus: $status\n\nTarget Protein telah disesuaikan dengan goal Anda.',
-              style: TextStyle(color: AppTheme.textPrimary),
+              'BMI Anda: ${bmi.toStringAsFixed(1)} — $status\n\nData profil Anda telah disimpan ke cloud. Selamat datang di Corefit! 🎉',
+              style: TextStyle(color: AppTheme.textSecondary, height: 1.5),
             ),
             actions: [
-              TextButton(
+              ElevatedButton(
                 onPressed: () {
                   Navigator.of(ctx).pop();
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => const MainNavigation()),
+                    MaterialPageRoute(builder: (_) => const MainNavigation()),
                   );
                 },
-                child: Text('Mulai', style: TextStyle(color: AppTheme.neonGreen)),
-              )
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.neonGreen,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text('Mulai Sekarang',
+                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.w700)),
+              ),
             ],
           ),
         );
@@ -76,7 +95,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(context.spaceLG),
         child: Form(
           key: _formKey,
           child: Column(
@@ -86,17 +105,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 'Lengkapi Profil Anda',
                 style: TextStyle(
                   color: AppTheme.textPrimary,
-                  fontSize: 24,
+                  fontSize: context.font2XL,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: context.spaceXL),
               _buildTextField('Nama', (v) => _name = v!, TextInputType.name),
-              const SizedBox(height: 16),
+              SizedBox(height: context.spaceLG),
               Row(
                 children: [
                   Expanded(child: _buildTextField('Usia', (v) => _age = int.parse(v!), TextInputType.number)),
-                  const SizedBox(width: 16),
+                  SizedBox(width: context.spaceLG),
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       decoration: InputDecoration(
@@ -114,15 +133,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: context.spaceLG),
               Row(
                 children: [
                   Expanded(child: _buildTextField('Tinggi Badan (cm)', (v) => _height = double.parse(v!), TextInputType.number)),
-                  const SizedBox(width: 16),
+                  SizedBox(width: context.spaceLG),
                   Expanded(child: _buildTextField('Berat Badan (kg)', (v) => _weight = double.parse(v!), TextInputType.number)),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: context.spaceLG),
               DropdownButtonFormField<String>(
                 decoration: InputDecoration(
                   labelText: 'Goal Latihan',
@@ -136,19 +155,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 items: _goals.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
                 onChanged: (v) => setState(() => _goal = v!),
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: context.space2XL),
               SizedBox(
                 width: double.infinity,
+                height: context.buttonHeight,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.neonGreen,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(context.radiusMD)),
                   ),
                   onPressed: _saveAndContinue,
-                  child: const Text(
+                  child: Text(
                     'Simpan & Lanjutkan',
-                    style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: Colors.black, fontSize: context.fontMD, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

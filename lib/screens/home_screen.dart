@@ -6,6 +6,7 @@ import '../models/schedule_event.dart';
 import '../services/database_helper.dart';
 import '../services/profile_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive.dart';
 import '../widgets/common_widgets.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -102,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
               elevation: 0,
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
-                  padding: const EdgeInsets.fromLTRB(20, 60, 20, 16),
+                  padding: EdgeInsets.fromLTRB(context.spaceLG, 60, context.spaceLG, context.spaceMD),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -117,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   '$greeting, ${_userName.isNotEmpty ? _userName : "Atlet"}! 👋',
                                   style: TextStyle(
                                     color: AppTheme.textSecondary,
-                                    fontSize: 14,
+                                    fontSize: context.fontSM,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -125,11 +126,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ShaderMask(
                                   shaderCallback: (bounds) =>
                                       AppTheme.neonGreenGrad.createShader(bounds),
-                                  child: const Text(
-                                    'AthleteSync',
+                                  child: Text(
+                                    'Corefit',
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 26,
+                                      fontSize: context.font2XL,
                                       fontWeight: FontWeight.w900,
                                       letterSpacing: 0.5,
                                     ),
@@ -196,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
               )
             else
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                padding: EdgeInsets.fromLTRB(context.spaceLG, 0, context.spaceLG, 100),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     // ---- PROTEIN SYNC BANNER ----
@@ -464,22 +465,22 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: EdgeInsets.symmetric(vertical: context.spaceLG),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(context.radiusMD),
           border: Border.all(color: color.withOpacity(0.3)),
         ),
         child: Column(
           children: [
-            Icon(icon, size: 26, color: color),
-            const SizedBox(height: 6),
+            Icon(icon, size: context.iconMD, color: color),
+            SizedBox(height: context.spaceXS),
             Text(
               label,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: color,
-                fontSize: 11,
+                fontSize: context.fontXS,
                 fontWeight: FontWeight.w600,
                 height: 1.3,
               ),

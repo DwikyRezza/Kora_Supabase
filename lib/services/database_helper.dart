@@ -20,7 +20,7 @@ class DatabaseHelper {
 
   Future<Database> _initDatabase() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'athletesync.db');
+    final path = join(dbPath, 'corefit.db');
     return await openDatabase(
       path,
       version: 8,

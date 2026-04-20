@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import '../models/workout.dart';
 import '../services/database_helper.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive.dart';
 import '../services/profile_service.dart';
 import '../services/strava_service.dart';
 import 'running_tracker_screen.dart';
@@ -62,20 +63,20 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text('Athlete Sync', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.textPrimary)),
+        title: Text('Corefit', style: TextStyle(fontSize: context.fontXL, fontWeight: FontWeight.w900, color: AppTheme.textPrimary)),
         backgroundColor: AppTheme.background,
         actions: [
           GestureDetector(
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
             child: CircleAvatar(
-              radius: 18,
+              radius: context.avatarSM / 2,
               backgroundColor: AppTheme.surfaceVariant,
               child: Text(''),
             ),
           ),
-          IconButton(icon: Icon(Icons.sync, color: AppTheme.textPrimary), tooltip: 'Import Strava', onPressed: () => _importFromStrava(context)),
+          IconButton(icon: Icon(Icons.sync, color: AppTheme.textPrimary, size: context.iconSM), tooltip: 'Import Strava', onPressed: () => _importFromStrava(context)),
           IconButton(
-            icon: Icon(Icons.settings_outlined, color: AppTheme.textPrimary),
+            icon: Icon(Icons.settings_outlined, color: AppTheme.textPrimary, size: context.iconSM),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingScreen())),
           ),
         ],
@@ -135,14 +136,14 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
     final timeStr = h > 0 ? '${h}h ${m}m' : '${m}m';
 
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(vertical: 16),
+      padding: EdgeInsets.symmetric(vertical: context.spaceLG),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Filter Row
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: context.spaceLG),
             child: Row(
               children: [
                 _filterChip(' Run', 'running'),
@@ -151,16 +152,16 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
               ],
             ),
           ),
-          SizedBox(height: 24),
+          SizedBox(height: context.spaceXL),
 
           // Summary Section
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: context.spaceLG),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Last 30 Days', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold, fontSize: 18)),
-                SizedBox(height: 16),
+                Text('Last 30 Days', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold, fontSize: context.fontLG)),
+                SizedBox(height: context.spaceLG),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -173,7 +174,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
             ),
           ),
 
-          SizedBox(height: 32),
+          SizedBox(height: context.space2XL),
 
           // Chart Section
           Padding(

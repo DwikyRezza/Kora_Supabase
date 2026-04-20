@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/protein_entry.dart';
 import '../services/database_helper.dart';
 import '../services/profile_service.dart';
+import '../services/cloud_sync_service.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 
@@ -131,6 +132,8 @@ class _ProteinScreenState extends State<ProteinScreen> {
                             ),
                             onDismissed: (_) async {
                               await _db.deleteProteinEntry(entry.id!);
+                              // Sync ke Firestore di background
+                              CloudSyncService.syncNutritionToCloud().catchError((_) {});
                               _loadData();
                             },
                             child: Card(
@@ -378,6 +381,8 @@ class _ProteinScreenState extends State<ProteinScreen> {
           mealType: 'water',
           date: DateTime.now(),
         ));
+        // Sync ke Firestore di background
+        CloudSyncService.syncNutritionToCloud().catchError((_) {});
         _loadData();
       },
       borderRadius: BorderRadius.circular(16),
@@ -451,7 +456,8 @@ class _AddNutritionSheetState extends State<_AddNutritionSheet> {
       mealType: _selectedMealType,
       date: DateTime.now(),
     ));
-
+    // Sync ke Firestore di background
+    CloudSyncService.syncNutritionToCloud().catchError((_) {});
     widget.onSaved();
   }
 

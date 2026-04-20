@@ -179,7 +179,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
       final imagePath = await File('${directory.path}/workout_share.png').create();
       await imagePath.writeAsBytes(image);
       
-      await Share.shareXFiles([XFile(imagePath.path)], text: 'Latihan saya hari ini: ${_workout.title ?? _workout.typeLabel}!  #AthleteSync');
+      await Share.shareXFiles([XFile(imagePath.path)], text: 'Latihan saya hari ini: ${_workout.title ?? _workout.typeLabel}!  #Corefit');
     }
   }
 

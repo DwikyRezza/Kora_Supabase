@@ -195,7 +195,7 @@ class _StravaImportScreenState extends State<StravaImportScreen> {
             ),
             const SizedBox(width: 10),
             const Text(
-              '× AthleteSync',
+              '× Corefit',
               style: TextStyle(
                 color: Color(0xFF39FF8F),
                 fontSize: 16,
@@ -265,7 +265,7 @@ class _StravaImportScreenState extends State<StravaImportScreen> {
             ),
             const SizedBox(height: 12),
             const Text(
-              'Lari menggunakan Strava, lalu import data aktivitasmu langsung ke AthleteSync.',
+              'Lari menggunakan Strava, lalu import data aktivitasmu langsung ke Corefit.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFF8892A4),
@@ -546,7 +546,7 @@ class _StravaImportScreenState extends State<StravaImportScreen> {
                   size: 18,
                 ),
                 label: Text(
-                  alreadyImported ? 'Sudah Diimport' : 'Import ke AthleteSync',
+                  alreadyImported ? 'Sudah Diimport' : 'Import ke Corefit',
                   style: const TextStyle(
                       fontWeight: FontWeight.w700, fontSize: 13),
                 ),
