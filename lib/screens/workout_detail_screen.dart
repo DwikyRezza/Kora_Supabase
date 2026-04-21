@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/workout.dart';
+import '../models/exercise_definition.dart';
 import '../services/database_helper.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
@@ -371,21 +372,38 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                 ),
               ),
 
-            SizedBox(height: 24),
 
             Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionTitle('Lainnya'),
-                  SizedBox(height: 12),
+                  // --- STAT GRID 2x2 ---
                   _buildStatsGrid(),
-                  
+                  const SizedBox(height: 28),
+
+                  // --- MUSCLE DISTRIBUTION (weightlifting) ---
+                  if (_workout.type == 'weightlifting') ...[
+                    _buildMuscleSectionFromNotes(),
+                    const SizedBox(height: 28),
+                  ],
+
+                  // --- DETAIL PER GERAKAN (from notes) ---
+                  if (_workout.notes != null && _workout.notes!.isNotEmpty) ...[
+                    _buildSectionTitle('Detail Per Gerakan'),
+                    const SizedBox(height: 12),
+                    _buildDetailLogsFromNotes(),
+                    const SizedBox(height: 28),
+                  ],
+
+                  // --- RPE (from notes) ---
+                  ..._buildRPEFromNotes(),
+                  const SizedBox(height: 28),
+
+                  // --- SPLITS (lari) ---
                   if (splits.isNotEmpty) ...[
-                    SizedBox(height: 24),
                     _buildSectionTitle('Splits'),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Container(
                       decoration: BoxDecoration(
                         color: AppTheme.surface,
@@ -394,7 +412,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                       ),
                       child: ListView.separated(
                         shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
+                        physics: const NeverScrollableScrollPhysics(),
                         itemCount: splits.length,
                         separatorBuilder: (_, __) => Divider(color: AppTheme.border, height: 1),
                         itemBuilder: (context, i) {
@@ -409,9 +427,10 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                         },
                       ),
                     ),
+                    const SizedBox(height: 28),
                   ],
 
-                  SizedBox(height: 24),
+                  // --- FOTO LATIHAN ---
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -422,7 +441,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                       )
                     ],
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   if (photos.isNotEmpty)
                     SizedBox(
                       height: 200,
@@ -431,7 +450,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                         itemCount: photos.length,
                         itemBuilder: (context, i) {
                           return Padding(
-                            padding: EdgeInsets.only(right: 12),
+                            padding: const EdgeInsets.only(right: 12),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(16),
                               child: Image.file(
@@ -445,10 +464,11 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                         },
                       ),
                     ),
+                  const SizedBox(height: 48),
                 ],
               ),
             ),
-            SizedBox(height: 48),
+
           ],
         ),
       ),
@@ -477,6 +497,12 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
       if (_workout.type == 'running') ...[
         _buildStatCard('Jarak', '${(_workout.distance ?? 0).toStringAsFixed(2)} km', Icons.straighten),
         _buildStatCard('Avg Pace', '${_calculatePace()} /km', Icons.speed),
+        if (_workout.movingTime != null && _workout.movingTime! > 0)
+          _buildStatCard('Moving Time', _formatDuration(_workout.movingTime!), Icons.timer),
+      ] else if (_workout.type == 'weightlifting') ...[
+        _buildStatCard('Total Reps', '${_workout.reps ?? 0}', Icons.repeat_rounded),
+        _buildStatCard('Total Set', '${_workout.sets ?? 0}', Icons.layers_rounded),
+        _buildStatCard('Total Volume', '${_workout.weight?.toStringAsFixed(0) ?? 0} kg', Icons.fitness_center_rounded),
         if (_workout.movingTime != null && _workout.movingTime! > 0)
           _buildStatCard('Moving Time', _formatDuration(_workout.movingTime!), Icons.timer),
       ] else ...[
@@ -521,6 +547,175 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
     final m = mins.truncate() % 60;
     if (h > 0) return '${h}h ${m}m';
     return '${m}m';
+  }
+
+  // --- PARSE NOTES: Muscle Distribution ---
+  Widget _buildMuscleSectionFromNotes() {
+    final notes = _workout.notes ?? '';
+    // Cari bagian 'Detail Latihan:'
+    final detailIdx = notes.indexOf('Detail Latihan:');
+    if (detailIdx < 0) return const SizedBox();
+    final rawDetail = notes.substring(detailIdx + 'Detail Latihan:'.length).trim();
+
+    // Ambil baris yang merupakan nama gerakan (diikuti tanda ':')
+    final exerciseNames = rawDetail
+        .split('\n')
+        .where((line) => line.trim().isNotEmpty && line.trim().endsWith(':') && !line.trim().startsWith(' '))
+        .map((line) => line.trim().replaceAll(':', '').trim())
+        .toList();
+
+    if (exerciseNames.isEmpty) return const SizedBox();
+
+    // Lookup muscle groups dari exerciseDatabase
+    final Map<String, double> muscleDist = {};
+    for (final name in exerciseNames) {
+      final ex = exerciseDatabase.cast<ExerciseDefinition?>().firstWhere(
+        (e) => e!.name.toLowerCase() == name.toLowerCase(),
+        orElse: () => null,
+      );
+      if (ex != null) {
+        for (final muscle in ex.muscleGroups) {
+          muscleDist[muscle] = (muscleDist[muscle] ?? 0) + 1;
+        }
+      } else {
+        // fallback: gunakan nama gerakan sebagai otot
+        muscleDist[name] = (muscleDist[name] ?? 0) + 1;
+      }
+    }
+
+    if (muscleDist.isEmpty) return const SizedBox();
+
+    final totalVol = muscleDist.values.fold(0.0, (a, b) => a + b);
+    final sorted = muscleDist.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Otot Terlatih', style: TextStyle(color: AppTheme.textPrimary, fontSize: 15, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 16),
+          ...sorted.map((e) {
+            final percent = e.value / totalVol;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                children: [
+                  SizedBox(width: 110, child: Text(e.key, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: percent,
+                        minHeight: 8,
+                        backgroundColor: AppTheme.border,
+                        valueColor: AlwaysStoppedAnimation<Color>(AppTheme.electricBlue),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  SizedBox(width: 40, child: Text('${(percent * 100).toStringAsFixed(0)}%', textAlign: TextAlign.right, style: TextStyle(color: AppTheme.textPrimary, fontSize: 12, fontWeight: FontWeight.bold))),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  // --- PARSE NOTES: Detail Per Gerakan ---
+  Widget _buildDetailLogsFromNotes() {
+    final notes = _workout.notes ?? '';
+    // Pisah bagian "Detail Latihan:" dari notes
+    final detailIdx = notes.indexOf('Detail Latihan:');
+    String rawDetail = detailIdx >= 0 ? notes.substring(detailIdx + 'Detail Latihan:'.length).trim() : notes;
+
+    // Hilangkan baris Catatan & RPE agar tidak muncul di sini
+    rawDetail = rawDetail.replaceAll(RegExp(r'Catatan:.*\n?'), '').replaceAll(RegExp(r'Intensitas \(RPE\):.*\n?'), '').trim();
+
+    if (rawDetail.isEmpty) return const SizedBox();
+
+    // Pecah per gerakan
+    final blocks = rawDetail.split(RegExp(r'\n(?=[A-Za-z])')).where((b) => b.trim().isNotEmpty).toList();
+
+    return Column(
+      children: blocks.map((block) {
+        final lines = block.trim().split('\n');
+        final title = lines.first.replaceAll(':', '').trim();
+        final setLines = lines.skip(1).where((l) => l.trim().isNotEmpty).toList();
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                Icon(Icons.fitness_center_rounded, color: AppTheme.electricBlue, size: 16),
+                const SizedBox(width: 8),
+                Expanded(child: Text(title, style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w700, fontSize: 15))),
+              ]),
+              if (setLines.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                ...setLines.asMap().entries.map((e) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(children: [
+                    Container(
+                      width: 28, height: 28,
+                      decoration: BoxDecoration(color: AppTheme.electricBlue.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+                      child: Center(child: Text('${e.key + 1}', style: TextStyle(color: AppTheme.electricBlue, fontSize: 12, fontWeight: FontWeight.bold))),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(e.value.trim(), style: TextStyle(color: AppTheme.textPrimary, fontSize: 13)),
+                  ]),
+                )),
+              ],
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // --- PARSE NOTES: RPE ---
+  List<Widget> _buildRPEFromNotes() {
+    final notes = _workout.notes ?? '';
+    final match = RegExp(r'Intensitas \(RPE\): (\d+)/10').firstMatch(notes);
+    if (match == null) return [];
+    final rpeVal = double.tryParse(match.group(1) ?? '0') ?? 0;
+    final Color rpeColor = rpeVal > 7 ? const Color(0xFFFF4444) : (rpeVal > 4 ? const Color(0xFFFFB830) : const Color(0xFF00D68F));
+    return [
+      Text('Intensitas Latihan (RPE)', style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.w800)),
+      const SizedBox(height: 8),
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.border),
+        ),
+        child: Row(children: [
+          Expanded(child: LinearProgressIndicator(
+            value: rpeVal / 10,
+            minHeight: 10,
+            backgroundColor: AppTheme.border,
+            valueColor: AlwaysStoppedAnimation<Color>(rpeColor),
+          )),
+          const SizedBox(width: 16),
+          Text('${rpeVal.toInt()}/10', style: TextStyle(color: rpeColor, fontSize: 20, fontWeight: FontWeight.w900)),
+        ]),
+      ),
+    ];
   }
 
   Widget _buildSectionTitle(String title) {
