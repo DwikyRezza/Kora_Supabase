@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../models/schedule_event.dart';
 import '../services/database_helper.dart';
 import '../services/notification_service.dart';
+import '../services/meal_recommender_service.dart';
+import '../services/profile_service.dart';
 import '../services/settings_service.dart';
 import '../theme/app_theme.dart';
 import 'weekly_report_screen.dart';
@@ -38,17 +41,24 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   void _deleteEvent(ScheduleEvent event) async {
     final act = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surface,
-        title: Text('Hapus Jadwal?', style: TextStyle(color: AppTheme.textPrimary)),
-        content: Text('Apakah Anda yakin ingin menghapus jadwal ini?', style: TextStyle(color: AppTheme.textMuted)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Batal', style: TextStyle(color: AppTheme.textSecondary))),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('Hapus', style: TextStyle(color: AppTheme.accentRed))),
-        ],
-      )
-    );
+        context: context,
+        builder: (ctx) => AlertDialog(
+              backgroundColor: AppTheme.surface,
+              title: Text('Hapus Jadwal?',
+                  style: TextStyle(color: AppTheme.textPrimary)),
+              content: Text('Apakah Anda yakin ingin menghapus jadwal ini?',
+                  style: TextStyle(color: AppTheme.textMuted)),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: Text('Batal',
+                        style: TextStyle(color: AppTheme.textSecondary))),
+                TextButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: Text('Hapus',
+                        style: TextStyle(color: AppTheme.accentRed))),
+              ],
+            ));
 
     if (act == true && event.id != null) {
       await _db.deleteScheduleEvent(event.id!);
@@ -67,7 +77,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         onSubmit: (newEvent, isReminderOn) async {
           // Cek master switch dari Settings
           final masterNotifOn = await SettingsService.getNotifWorkout();
-          final advanceMinutes = await SettingsService.getWorkoutAdvanceMinutes();
+          final advanceMinutes =
+              await SettingsService.getWorkoutAdvanceMinutes();
 
           if (event == null) {
             int id = await _db.insertScheduleEvent(newEvent);
@@ -90,7 +101,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               );
             }
           } else {
-            final updatedEvent = newEvent.copyWith(isCompleted: event.isCompleted);
+            final updatedEvent =
+                newEvent.copyWith(isCompleted: event.isCompleted);
             await _db.updateScheduleEvent(updatedEvent);
             // Selalu batalkan dulu notif lama
             await NotificationService().cancelEventReminder(event.id!);
@@ -134,7 +146,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         backgroundColor: AppTheme.neonGreen,
         foregroundColor: Colors.black,
         icon: Icon(Icons.add_rounded),
-        label: Text('Buat Jadwal', style: TextStyle(fontWeight: FontWeight.w700)),
+        label:
+            Text('Buat Jadwal', style: TextStyle(fontWeight: FontWeight.w700)),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: AppTheme.neonGreen))
@@ -150,7 +163,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           child: Text(
                             'Belum ada jadwal.\nTekan tombol di bawah untuk menyusun aktivitasmu.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: AppTheme.textMuted, fontSize: 16),
+                            style: TextStyle(
+                                color: AppTheme.textMuted, fontSize: 16),
                           ),
                         )
                       ],
@@ -163,7 +177,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         return Card(
                           color: AppTheme.surface,
                           margin: EdgeInsets.only(bottom: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                           child: InkWell(
                             borderRadius: BorderRadius.circular(12),
                             onTap: () => _showAddEditEventSheet(event: event),
@@ -174,31 +189,46 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                                   backgroundColor: AppTheme.surfaceVariant,
                                   child: Icon(event.typeIcon, size: 20),
                                 ),
-                                title: Text(event.title, style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold)),
+                                title: Text(event.title,
+                                    style: TextStyle(
+                                        color: AppTheme.textPrimary,
+                                        fontWeight: FontWeight.bold)),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     SizedBox(height: 4),
-                                    Text('${DateFormat('d MMM yyyy • HH:mm').format(event.dateTime)}', 
-                                        style: TextStyle(color: AppTheme.electricBlue, fontWeight: FontWeight.w600)),
+                                    Text(
+                                        '${DateFormat('d MMM yyyy • HH:mm').format(event.dateTime)}',
+                                        style: TextStyle(
+                                            color: AppTheme.electricBlue,
+                                            fontWeight: FontWeight.w600)),
                                     if (event.durationMinutes > 0)
-                                      Text('Durasi: ${event.durationMinutes} menit', style: TextStyle(color: AppTheme.textMuted)),
+                                      Text(
+                                          'Durasi: ${event.durationMinutes} menit',
+                                          style: TextStyle(
+                                              color: AppTheme.textMuted)),
                                   ],
                                 ),
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     IconButton(
-                                      icon: Icon(Icons.delete_outline, color: AppTheme.accentRed),
+                                      icon: Icon(Icons.delete_outline,
+                                          color: AppTheme.accentRed),
                                       onPressed: () => _deleteEvent(event),
                                     ),
                                     IconButton(
-                                      icon: Icon(Icons.check_circle_outline, color: AppTheme.neonGreen),
+                                      icon: Icon(Icons.check_circle_outline,
+                                          color: AppTheme.neonGreen),
                                       onPressed: () async {
-                                        await _db.updateScheduleEventCompletion(event.id!, true);
+                                        await _db.updateScheduleEventCompletion(
+                                            event.id!, true);
                                         _loadEvents();
                                         if (mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Aktivitas ditandai selesai!')));
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(SnackBar(
+                                                  content: Text(
+                                                      'Aktivitas ditandai selesai!')));
                                         }
                                       },
                                     ),
@@ -229,7 +259,8 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
   late TextEditingController _durationController;
-  
+  late TextEditingController _notesController;
+
   String _type = 'workout';
   String _workoutType = 'running';
   DateTime _selectedDate = DateTime.now();
@@ -240,16 +271,20 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.event?.title ?? '');
-    _durationController = TextEditingController(text: widget.event?.durationMinutes.toString() ?? '60');
-    
+    _durationController = TextEditingController(
+        text: widget.event?.durationMinutes.toString() ?? '60');
+    _notesController = TextEditingController(text: widget.event?.notes ?? '');
+
     if (widget.event != null) {
       _type = widget.event!.type;
-      _workoutType = widget.event!.workoutType.isEmpty ? 'running' : widget.event!.workoutType;
+      _workoutType = widget.event!.workoutType.isEmpty
+          ? 'running'
+          : widget.event!.workoutType;
       _selectedDate = widget.event!.dateTime;
       _selectedTime = TimeOfDay.fromDateTime(widget.event!.dateTime);
-      // For simplicity, we assume reminder is on if editing. 
+      // For simplicity, we assume reminder is on if editing.
       // A more complex app would store reminder boolean in DB.
-      _isReminderOn = true; 
+      _isReminderOn = true;
     }
   }
 
@@ -257,6 +292,7 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
   void dispose() {
     _titleController.dispose();
     _durationController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -321,6 +357,7 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
         dateTime: finalDateTime,
         workoutType: _type == 'workout' ? _workoutType : '',
         durationMinutes: int.tryParse(_durationController.text) ?? 0,
+        notes: _notesController.text.trim(),
       );
 
       widget.onSubmit(newEvent, _isReminderOn);
@@ -333,7 +370,9 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
     return Container(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 20, right: 20, top: 20,
+        left: 20,
+        right: 20,
+        top: 20,
       ),
       decoration: BoxDecoration(
         color: AppTheme.background,
@@ -346,11 +385,21 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppTheme.surfaceVariant, borderRadius: BorderRadius.circular(2)))),
+              Center(
+                  child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                          color: AppTheme.surfaceVariant,
+                          borderRadius: BorderRadius.circular(2)))),
               SizedBox(height: 20),
-              Text(widget.event == null ? 'Buat Jadwal Baru' : 'Edit Jadwal', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
+              Text(widget.event == null ? 'Buat Jadwal Baru' : 'Edit Jadwal',
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary)),
               SizedBox(height: 20),
-              
+
               TextFormField(
                 controller: _titleController,
                 style: TextStyle(color: AppTheme.textPrimary),
@@ -358,9 +407,13 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
                   labelText: 'Judul Aktivitas',
                   fillColor: AppTheme.surface,
                   filled: true,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none),
                 ),
-                validator: (val) => val == null || val.isEmpty ? 'Judul tidak boleh kosong' : null,
+                validator: (val) => val == null || val.isEmpty
+                    ? 'Judul tidak boleh kosong'
+                    : null,
               ),
               SizedBox(height: 16),
 
@@ -372,13 +425,17 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
                   labelText: 'Kategori',
                   fillColor: AppTheme.surface,
                   filled: true,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none),
                 ),
                 items: [
                   DropdownMenuItem(value: 'workout', child: Text(' Workout')),
-                  DropdownMenuItem(value: 'meal', child: Text(' Makanan/Nutrisi')),
+                  DropdownMenuItem(
+                      value: 'meal', child: Text(' Makanan/Nutrisi')),
                   DropdownMenuItem(value: 'rest', child: Text(' Istirahat')),
-                  DropdownMenuItem(value: 'reminder', child: Text(' Pengingat Umum')),
+                  DropdownMenuItem(
+                      value: 'reminder', child: Text(' Pengingat Umum')),
                 ],
                 onChanged: (val) => setState(() => _type = val!),
               ),
@@ -393,15 +450,61 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
                     labelText: 'Jenis Latihan',
                     fillColor: AppTheme.surface,
                     filled: true,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none),
                   ),
                   items: [
-                    DropdownMenuItem(value: 'running', child: Text('Lari / Running')),
-                    DropdownMenuItem(value: 'basketball', child: Text('Basket')),
-                    DropdownMenuItem(value: 'weightlifting', child: Text('Angkat Beban')),
-                    DropdownMenuItem(value: 'custom', child: Text('Spesifik Lainnya')),
+                    DropdownMenuItem(
+                        value: 'running', child: Text('Lari / Running')),
+                    DropdownMenuItem(
+                        value: 'basketball', child: Text('Basket')),
+                    DropdownMenuItem(
+                        value: 'weightlifting', child: Text('Angkat Beban')),
+                    DropdownMenuItem(
+                        value: 'custom', child: Text('Spesifik Lainnya')),
                   ],
                   onChanged: (val) => setState(() => _workoutType = val!),
+                ),
+                SizedBox(height: 16),
+              ],
+
+              if (_type == 'meal') ...[
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    final profile = await ProfileService.getProfile();
+                    final goal = profile[ProfileService.keyGoal] ?? 'Bulking';
+                    final budget =
+                        profile[ProfileService.keyDailyBudget] ?? 50000;
+
+                    final rec =
+                        MealRecommenderService.getRecommendation(goal, budget);
+                    setState(() {
+                      _titleController.text = rec.title;
+                      _notesController.text =
+                          '${rec.description}\n\nEstimasi Harga: Rp${rec.estimatedCost.toInt()} (${rec.category})';
+                    });
+                  },
+                  icon: Icon(Icons.auto_awesome, color: AppTheme.neonGreen),
+                  label: Text('Dapatkan Rekomendasi Menu (AI)'),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: AppTheme.neonGreen),
+                    foregroundColor: AppTheme.neonGreen,
+                  ),
+                ),
+                SizedBox(height: 16),
+                TextFormField(
+                  controller: _notesController,
+                  style: TextStyle(color: AppTheme.textPrimary),
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    labelText: 'Catatan / Menu Spesifik',
+                    fillColor: AppTheme.surface,
+                    filled: true,
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none),
+                  ),
                 ),
                 SizedBox(height: 16),
               ],
@@ -412,13 +515,18 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
                     child: InkWell(
                       onTap: _pickDate,
                       child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                        decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(12)),
+                        padding:
+                            EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                        decoration: BoxDecoration(
+                            color: AppTheme.surface,
+                            borderRadius: BorderRadius.circular(12)),
                         child: Row(
                           children: [
-                            Icon(Icons.calendar_today, color: AppTheme.neonGreen, size: 20),
+                            Icon(Icons.calendar_today,
+                                color: AppTheme.neonGreen, size: 20),
                             SizedBox(width: 8),
-                            Text(DateFormat('d MMM yyyy').format(_selectedDate), style: TextStyle(color: AppTheme.textPrimary)),
+                            Text(DateFormat('d MMM yyyy').format(_selectedDate),
+                                style: TextStyle(color: AppTheme.textPrimary)),
                           ],
                         ),
                       ),
@@ -429,13 +537,18 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
                     child: InkWell(
                       onTap: _pickTime,
                       child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                        decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(12)),
+                        padding:
+                            EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                        decoration: BoxDecoration(
+                            color: AppTheme.surface,
+                            borderRadius: BorderRadius.circular(12)),
                         child: Row(
                           children: [
-                            Icon(Icons.access_time, color: AppTheme.neonGreen, size: 20),
+                            Icon(Icons.access_time,
+                                color: AppTheme.neonGreen, size: 20),
                             SizedBox(width: 8),
-                            Text(_selectedTime.format(context), style: TextStyle(color: AppTheme.textPrimary)),
+                            Text(_selectedTime.format(context),
+                                style: TextStyle(color: AppTheme.textPrimary)),
                           ],
                         ),
                       ),
@@ -449,18 +562,69 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
                 controller: _durationController,
                 style: TextStyle(color: AppTheme.textPrimary),
                 keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
                 decoration: InputDecoration(
                   labelText: 'Estimasi Durasi (Menit)',
                   fillColor: AppTheme.surface,
                   filled: true,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none),
                 ),
               ),
+              SizedBox(height: 10),
+              // Duration quick presets
+              Wrap(
+                spacing: 8,
+                children: [15, 30, 45, 60, 90].map((minutes) {
+                  final label = minutes >= 60
+                      ? '${minutes ~/ 60} Jam${minutes % 60 != 0 ? ' ${minutes % 60}m' : ''}'
+                      : '${minutes}m';
+                  final isSelected =
+                      _durationController.text == minutes.toString();
+                  return GestureDetector(
+                    onTap: () => setState(
+                        () => _durationController.text = minutes.toString()),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppTheme.neonGreen.withOpacity(0.15)
+                            : AppTheme.surfaceVariant,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color:
+                              isSelected ? AppTheme.neonGreen : AppTheme.border,
+                          width: isSelected ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          color: isSelected
+                              ? AppTheme.neonGreen
+                              : AppTheme.textSecondary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
               SizedBox(height: 16),
-              
+
               SwitchListTile(
-                title: Text('Aktifkan Notifikasi Pengingat', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold)),
-                subtitle: Text('Alarm akan berbunyi di waktu terjadwal', style: TextStyle(color: AppTheme.textMuted)),
+                title: Text('Aktifkan Notifikasi Pengingat',
+                    style: TextStyle(
+                        color: AppTheme.textPrimary,
+                        fontWeight: FontWeight.bold)),
+                subtitle: Text('Alarm akan berbunyi di waktu terjadwal',
+                    style: TextStyle(color: AppTheme.textMuted)),
                 activeColor: AppTheme.neonGreen,
                 value: _isReminderOn,
                 onChanged: (val) => setState(() => _isReminderOn = val),
@@ -473,9 +637,12 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
                   backgroundColor: AppTheme.neonGreen,
                   foregroundColor: Colors.black,
                   padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
-                child: Text('Simpan Jadwal', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: Text('Simpan Jadwal',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
               SizedBox(height: 32),
             ],

@@ -110,34 +110,49 @@ class NotificationService {
   }
 
   // ── Notifikasi protein ─────────────────────────────────────────────────────
-  Future<void> scheduleProteinReminder() async {
+  Future<void> scheduleNutritionReminders() async {
     final now = DateTime.now();
-    var scheduledDate = DateTime(now.year, now.month, now.day, 20, 0);
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    
+    // Siang (12:00) - Santai
+    var noonDate = DateTime(now.year, now.month, now.day, 12, 0);
+    if (noonDate.isBefore(now)) {
+      noonDate = noonDate.add(const Duration(days: 1));
     }
-
     await flutterLocalNotificationsPlugin.zonedSchedule(
       999,
-      '⚠ Jangan Lupa Protein!',
-      'Gimana progress harianmu? Pastikan target protein terpenuhi ya.',
-      tz.TZDateTime.from(scheduledDate, tz.local),
+      'Jangan Lupa Makan Siang!',
+      'Gimana progress nutrisimu? Jangan sampai kosong ya.',
+      tz.TZDateTime.from(noonDate, tz.local),
       const NotificationDetails(
-        android: AndroidNotificationDetails(
-            'corefit_protein', 'Protein Reminders',
-            channelDescription: 'Channel for protein reminders',
-            importance: Importance.defaultImportance,
-            priority: Priority.defaultPriority),
+        android: AndroidNotificationDetails('corefit_protein', 'Nutrition Reminders', channelDescription: 'Reminders', importance: Importance.defaultImportance),
       ),
       matchDateTimeComponents: DateTimeComponents.time,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+    );
+
+    // Sore (18:00) - Tegas
+    var eveningDate = DateTime(now.year, now.month, now.day, 18, 0);
+    if (eveningDate.isBefore(now)) {
+      eveningDate = eveningDate.add(const Duration(days: 1));
+    }
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      1000,
+      'Waktu hampir habis, Za! 🔥',
+      'Segera penuhi target protein/kalori kamu sekarang atau biarkan streak apimu padam malam ini. Disiplin adalah kunci!',
+      tz.TZDateTime.from(eveningDate, tz.local),
+      const NotificationDetails(
+        android: AndroidNotificationDetails('corefit_protein_strict', 'Strict Nutrition Reminders', channelDescription: 'Strict Reminders', importance: Importance.high, priority: Priority.high),
+      ),
+      matchDateTimeComponents: DateTimeComponents.time,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
     );
   }
 
-  Future<void> cancelProteinReminder() async {
+  Future<void> cancelNutritionReminders() async {
     await flutterLocalNotificationsPlugin.cancel(999);
+    await flutterLocalNotificationsPlugin.cancel(1000);
   }
 
   // biarkan backward-compat ─ masih dipakai di schedule_screen lama

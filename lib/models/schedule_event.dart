@@ -9,6 +9,7 @@ class ScheduleEvent {
   final int durationMinutes;
   final String notes;
   final bool isCompleted;
+  final String status;
 
   ScheduleEvent({
     this.id,
@@ -19,6 +20,7 @@ class ScheduleEvent {
     this.durationMinutes = 60,
     this.notes = '',
     this.isCompleted = false,
+    this.status = 'pending',
   });
 
   Map<String, dynamic> toMap() {
@@ -31,6 +33,7 @@ class ScheduleEvent {
       'durationMinutes': durationMinutes,
       'notes': notes,
       'isCompleted': isCompleted ? 1 : 0,
+      'status': status,
     };
   }
 
@@ -44,10 +47,11 @@ class ScheduleEvent {
       durationMinutes: map['durationMinutes'] ?? 60,
       notes: map['notes'] ?? '',
       isCompleted: map['isCompleted'] == 1,
+      status: map['status'] ?? (map['isCompleted'] == 1 ? 'done' : 'pending'),
     );
   }
 
-  ScheduleEvent copyWith({bool? isCompleted}) {
+  ScheduleEvent copyWith({bool? isCompleted, String? status}) {
     return ScheduleEvent(
       id: id,
       title: title,
@@ -57,6 +61,7 @@ class ScheduleEvent {
       durationMinutes: durationMinutes,
       notes: notes,
       isCompleted: isCompleted ?? this.isCompleted,
+      status: status ?? this.status,
     );
   }
 

@@ -34,6 +34,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _ageController = TextEditingController();
   final _heightController = TextEditingController();
   final _weightController = TextEditingController();
+  final _budgetController = TextEditingController();
+  final _statusController = TextEditingController();
   String _selectedGender = 'Laki-laki';
   String _selectedGoal = 'Bulking';
 
@@ -47,14 +49,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Pantau perubahan pada semua field teks
     _nameController.addListener(_markUnsaved);
     _ageController.addListener(_markUnsaved);
-    _heightController.addListener(_markUnsaved);
-    _weightController.addListener(_markUnsaved);
+    // Height & weight also trigger BMI card rebuild
+    _heightController.addListener(_onBodyDataChanged);
+    _weightController.addListener(_onBodyDataChanged);
+    _budgetController.addListener(_markUnsaved);
+    _statusController.addListener(_markUnsaved);
     // Daftarkan guard pindah tab ke MainNavigation
     widget.onRegisterLeaveGuard?.call(checkUnsavedChanges);
   }
 
   void _markUnsaved() {
-    if (!_hasUnsavedChanges) setState(() => _hasUnsavedChanges = true);
+    // Always call setState so BMI card and other computed UI elements re-render
+    setState(() => _hasUnsavedChanges = true);
+  }
+
+  void _onBodyDataChanged() {
+    // Triggers rebuild so BMI card updates in real-time
+    setState(() => _hasUnsavedChanges = true);
   }
 
   @override
@@ -63,6 +74,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _ageController.dispose();
     _heightController.dispose();
     _weightController.dispose();
+    _budgetController.dispose();
+    _statusController.dispose();
     // Hapus guard saat screen di-dispose
     widget.onRegisterLeaveGuard?.call(null);
     super.dispose();
@@ -86,6 +99,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               (profile[ProfileService.keyHeight] ?? 0.0).toString();
           _weightController.text =
               (profile[ProfileService.keyWeight] ?? 0.0).toString();
+          _budgetController.text =
+              (profile[ProfileService.keyDailyBudget] ?? 50000).toString();
+          _statusController.text = profile[ProfileService.keyStatus] ?? '';
           _selectedGender =
               profile[ProfileService.keyGender] ?? 'Laki-laki';
           _selectedGoal = profile[ProfileService.keyGoal] ?? 'Bulking';
@@ -157,6 +173,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           height: double.tryParse(_heightController.text) ?? 0.0,
           weight: double.tryParse(_weightController.text) ?? 0.0,
           goal: _selectedGoal,
+          dailyBudget: int.tryParse(_budgetController.text) ?? 50000,
+          status: _statusController.text.trim(),
           // photoUrl tidak dikirim — foto sudah tersimpan di Firestore via StorageService
         );
         CloudSyncService.backupToCloud().catchError((_) {});
@@ -184,6 +202,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           height: double.tryParse(_heightController.text) ?? 0.0,
           weight: double.tryParse(_weightController.text) ?? 0.0,
           goal: _selectedGoal,
+          dailyBudget: int.tryParse(_budgetController.text) ?? 50000,
+          status: _statusController.text.trim(),
           // photoUrl tidak dikirim → ProfileService akan pakai Google URL
         );
         if (mounted) {
@@ -209,6 +229,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final age = int.tryParse(_ageController.text) ?? 0;
       final height = double.tryParse(_heightController.text) ?? 0.0;
       final weight = double.tryParse(_weightController.text) ?? 0.0;
+      final budget = int.tryParse(_budgetController.text) ?? 50000;
 
       // Hanya kirim cloud URL ke ProfileService.
       // Path lokal TIDAK dikirim — ProfileService akan pakai foto yang sudah ada di cloud.
@@ -222,6 +243,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         height: height,
         weight: weight,
         goal: _selectedGoal,
+        dailyBudget: budget,
+        status: _statusController.text.trim(),
         photoUrl: photoToSave,
       );
 
@@ -413,6 +436,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     type: TextInputType.name,
                   ),
                   const SizedBox(height: 12),
+                  _buildTextField(
+                    controller: _statusController,
+                    label: 'Status (Semester / Kampus)',
+                    icon: Icons.school_rounded,
+                    type: TextInputType.text,
+                  ),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
@@ -468,6 +498,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildSectionTitle('Goal Latihan'),
                   const SizedBox(height: 12),
                   _buildGoalSelector(),
+                  const SizedBox(height: 24),
+                  
+                  _buildSectionTitle('Budget Harian'),
+                  const SizedBox(height: 12),
+                  _buildTextField(
+                    controller: _budgetController,
+                    label: 'Estimasi Budget Makanan (Rp)',
+                    icon: Icons.account_balance_wallet_rounded,
+                    type: TextInputType.number,
+                  ),
                   const SizedBox(height: 32),
 
                   // Save Button
@@ -831,11 +871,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildGoalSelector() {
-    final goalEmoji = {
-      'Runner': '',
-      'Weightlifter': '',
-      'Diet': '',
-      'Bulking': '',
+    final goalData = {
+      'Runner':      {'emoji': '🏃', 'icon': Icons.directions_run_rounded},
+      'Weightlifter':{'emoji': '🏋️', 'icon': Icons.fitness_center_rounded},
+      'Diet':        {'emoji': '🥗', 'icon': Icons.eco_rounded},
+      'Bulking':     {'emoji': '💪', 'icon': Icons.show_chart_rounded},
     };
 
     return Wrap(
@@ -843,8 +883,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       runSpacing: 10,
       children: _goals.map((goal) {
         final isSelected = _selectedGoal == goal;
+        final data = goalData[goal]!;
         return GestureDetector(
-          onTap: () => setState(() => _selectedGoal = goal),
+          onTap: () => setState(() {
+            _selectedGoal = goal;
+            _hasUnsavedChanges = true;
+          }),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -854,16 +898,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   : AppTheme.surface,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isSelected
-                    ? AppTheme.neonGreen
-                    : AppTheme.border,
+                color: isSelected ? AppTheme.neonGreen : AppTheme.border,
                 width: isSelected ? 2 : 1,
               ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: AppTheme.neonGreen.withOpacity(0.25),
+                        blurRadius: 12,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(goalEmoji[goal] ?? '', style: const TextStyle(fontSize: 18)),
+                Text(data['emoji'] as String, style: const TextStyle(fontSize: 18)),
                 const SizedBox(width: 8),
                 Text(
                   goal,
@@ -876,6 +927,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         isSelected ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
+                if (isSelected) ...[
+                  const SizedBox(width: 6),
+                  Icon(Icons.check_circle_rounded,
+                      color: AppTheme.neonGreen, size: 14),
+                ],
               ],
             ),
           ),

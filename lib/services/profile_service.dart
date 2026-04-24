@@ -12,7 +12,9 @@ class ProfileService {
   static const keyWeight = 'weight';
   static const keyGoal = 'goal';
   static const keyTargetProtein = 'targetProtein';
+  static const keyDailyBudget = 'dailyBudget';
   static const keyPhotoUrl = 'photoUrl';
+  static const keyStatus = 'status'; // semester/kampus
   static const keyIsOnboarded = 'isOnboarded';
 
   static final _firestore = FirebaseFirestore.instance;
@@ -52,7 +54,9 @@ class ProfileService {
     required double height,
     required double weight,
     required String goal,
+    int dailyBudget = 50000,
     String? photoUrl,
+    String status = '',
   }) async {
     if (!AuthService.isLoggedIn) return;
 
@@ -97,6 +101,8 @@ class ProfileService {
       'weight': weight,
       'goal': goal,
       'targetProtein': targetProtein,
+      'dailyBudget': dailyBudget,
+      'status': status,
       'createdAt': createdAt,
       'updatedAt': now,
     };
@@ -124,6 +130,8 @@ class ProfileService {
             keyWeight: (p['weight'] as num?)?.toDouble() ?? 0.0,
             keyGoal: p['goal'] ?? '',
             keyTargetProtein: (p['targetProtein'] as num?)?.toDouble() ?? 0.0,
+            keyDailyBudget: p['dailyBudget'] ?? 50000,
+            keyStatus: p['status'] ?? '',
             'photoUrl': p['photoUrl'] ?? AuthService.photoUrl,
             'email': p['email'] ?? AuthService.email,
           };
@@ -146,6 +154,8 @@ class ProfileService {
     keyWeight: 0.0,
     keyGoal: '',
     keyTargetProtein: 0.0,
+    keyDailyBudget: 50000,
+    keyStatus: '',
     'photoUrl': AuthService.photoUrl,
     'email': AuthService.email,
   };

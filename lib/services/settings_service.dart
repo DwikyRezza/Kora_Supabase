@@ -8,15 +8,19 @@ class SettingsService {
   // ── Keys ──────────────────────────────────────────────────────────────────
   static const _kDarkMode            = 'setting_dark_mode';
   static const _kNotifWorkout        = 'setting_notif_workout';
-  static const _kNotifWorkoutAdvance = 'setting_notif_workout_advance'; // menit sebelum jadwal
+  static const _kNotifWorkoutAdvance = 'setting_notif_workout_advance';
   static const _kNotifProgress       = 'setting_notif_progress';
   static const _kNotifStrava         = 'setting_notif_strava';
+  static const _kNotifHydration      = 'setting_notif_hydration';
   static const _kMetricUnit          = 'setting_metric_unit';
+  static const _kLanguage            = 'setting_language'; // 'id', 'en', 'system'
+  static const _kWhistleAlarm        = 'setting_whistle_alarm';
+  static const _kNotif1800           = 'setting_notif_1800';
 
   // Waktu & hari notifikasi progress mingguan
   static const _kProgressHour        = 'setting_progress_hour';
   static const _kProgressMinute      = 'setting_progress_minute';
-  static const _kProgressWeekday     = 'setting_progress_weekday'; // 1=Mon..7=Sun
+  static const _kProgressWeekday     = 'setting_progress_weekday';
 
   // ── Load semua pengaturan saat startup ────────────────────────────────────
   static Future<void> loadAll() async {
@@ -111,6 +115,17 @@ class SettingsService {
     await prefs.setBool(_kNotifStrava, value);
   }
 
+  // ── Toggle Notif Hydration ────────────────────────────────────────────────
+  static Future<bool> getNotifHydration() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_kNotifHydration) ?? false;
+  }
+
+  static Future<void> setNotifHydration(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kNotifHydration, value);
+  }
+
   // ── Satuan ────────────────────────────────────────────────────────────────
   static Future<bool> getMetricUnit() async {
     final prefs = await SharedPreferences.getInstance();
@@ -120,6 +135,48 @@ class SettingsService {
   static Future<void> setMetricUnit(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_kMetricUnit, value);
+  }
+
+  // ── Bahasa ────────────────────────────────────────────────────────────────
+  /// 'id' = Indonesia, 'en' = English, 'system' = Ikuti Sistem
+  static Future<String> getLanguage() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_kLanguage) ?? 'id';
+  }
+
+  static Future<void> setLanguage(String lang) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kLanguage, lang);
+  }
+
+  // ── Toggle Whistle Alarm ──────────────────────────────────────────────────
+  static Future<bool> getWhistleAlarm() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_kWhistleAlarm) ?? true;
+  }
+
+  static Future<void> setWhistleAlarm(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kWhistleAlarm, value);
+  }
+
+  // ── Toggle 18:00 Notif ────────────────────────────────────────────────────
+  static Future<bool> getNotif1800() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_kNotif1800) ?? true;
+  }
+
+  static Future<void> setNotif1800(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kNotif1800, value);
+  }
+
+  static String languageLabel(String code) {
+    switch (code) {
+      case 'en': return 'English';
+      case 'system': return 'Ikuti Sistem';
+      default: return 'Bahasa Indonesia';
+    }
   }
 
   /// Format jarak sesuai satuan yang dipilih user.

@@ -23,7 +23,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'corefit.db');
     return await openDatabase(
       path,
-      version: 8,
+      version: 10,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -81,7 +81,8 @@ class DatabaseHelper {
         workoutType TEXT,
         durationMinutes INTEGER,
         notes TEXT,
-        isCompleted INTEGER DEFAULT 0
+        isCompleted INTEGER DEFAULT 0,
+        status TEXT DEFAULT 'pending'
       )
     ''');
 
@@ -113,6 +114,27 @@ class DatabaseHelper {
         targetProtein REAL DEFAULT 0.0,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE workout_sets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        workout_id INTEGER NOT NULL,
+        exercise_name TEXT NOT NULL,
+        weight REAL NOT NULL,
+        reps INTEGER NOT NULL,
+        timestamp TEXT NOT NULL,
+        FOREIGN KEY (workout_id) REFERENCES workouts (id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE temp_tracking_points (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        lat REAL NOT NULL,
+        lng REAL NOT NULL,
+        timestamp TEXT NOT NULL
       )
     ''');
   }
@@ -176,6 +198,33 @@ class DatabaseHelper {
           )
         ''');
       } catch (_) {}
+    }
+    if (oldVersion < 9) {
+      try {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS workout_sets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            workout_id INTEGER NOT NULL,
+            exercise_name TEXT NOT NULL,
+            weight REAL NOT NULL,
+            reps INTEGER NOT NULL,
+            timestamp TEXT NOT NULL,
+            FOREIGN KEY (workout_id) REFERENCES workouts (id) ON DELETE CASCADE
+          )
+        ''');
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS temp_tracking_points (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            lat REAL NOT NULL,
+            lng REAL NOT NULL,
+            timestamp TEXT NOT NULL
+          )
+        ''');
+      } catch (_) {}
+    }
+    if (oldVersion < 10) {
+      try { await db.execute("ALTER TABLE schedule_events ADD COLUMN status TEXT DEFAULT 'pending'"); } catch (_) {}
+      try { await db.execute("UPDATE schedule_events SET status = 'done' WHERE isCompleted = 1"); } catch (_) {}
     }
   }
 
@@ -263,6 +312,43 @@ class DatabaseHelper {
     return maps.map((m) => ProteinEntry.fromMap(m)).toList();
   }
 
+  Future<List<ProteinEntry>> getProteinEntriesByMonth(int year, int month) async {
+    final db = await database;
+    final start = DateTime(year, month, 1).toIso8601String();
+    final end = DateTime(year, month + 1, 0, 23, 59, 59).toIso8601String();
+    final maps = await db.query(
+      'protein_entries',
+      where: 'date BETWEEN ? AND ?',
+      whereArgs: [start, end],
+      orderBy: 'date ASC',
+    );
+    return maps.map((m) => ProteinEntry.fromMap(m)).toList();
+  }
+
+  // Predictive search for frequent foods
+  Future<List<String>> getFrequentFoods({String? mealType, int limit = 10}) async {
+    final db = await database;
+    String whereClause = 'waterMl = 0'; // only solid foods
+    List<dynamic> whereArgs = [];
+    
+    if (mealType != null) {
+      whereClause += ' AND mealType = ?';
+      whereArgs.add(mealType);
+    }
+    
+    final maps = await db.query(
+      'protein_entries',
+      columns: ['foodName', 'COUNT(*) as freq'],
+      where: whereClause,
+      whereArgs: whereArgs,
+      groupBy: 'foodName',
+      orderBy: 'freq DESC',
+      limit: limit,
+    );
+    
+    return maps.map((m) => m['foodName'] as String).toList();
+  }
+
   Future<int> deleteProteinEntry(int id) async {
     final db = await database;
     return await db.delete('protein_entries', where: 'id = ?', whereArgs: [id]);
@@ -289,22 +375,40 @@ class DatabaseHelper {
 
   Future<List<ScheduleEvent>> getUpcomingEvents() async {
     final db = await database;
-    final now = DateTime.now().toIso8601String();
+    final now = DateTime.now();
+    // Fetch incomplete events from the last 3 days up to future
+    final limitDate = now.subtract(const Duration(days: 3)).toIso8601String();
     final maps = await db.query(
       'schedule_events',
       where: 'dateTime >= ? AND isCompleted = 0',
-      whereArgs: [now],
+      whereArgs: [limitDate],
       orderBy: 'dateTime ASC',
       limit: 10,
     );
     return maps.map((m) => ScheduleEvent.fromMap(m)).toList();
   }
 
+  Future<void> checkLateSchedules() async {
+    final db = await database;
+    // Anggap gagal jika lewat 2 jam
+    final limitTime = DateTime.now().subtract(const Duration(hours: 2)).toIso8601String();
+    
+    await db.update(
+      'schedule_events',
+      {'status': 'failed'},
+      where: 'status = ? AND dateTime < ?',
+      whereArgs: ['pending', limitTime],
+    );
+  }
+
   Future<int> updateScheduleEventCompletion(int id, bool isCompleted) async {
     final db = await database;
     return await db.update(
       'schedule_events',
-      {'isCompleted': isCompleted ? 1 : 0},
+      {
+        'isCompleted': isCompleted ? 1 : 0,
+        'status': isCompleted ? 'done' : 'pending'
+      },
       where: 'id = ?',
       whereArgs: [id],
     );

@@ -19,13 +19,15 @@ class WorkoutScreen extends StatefulWidget {
   WorkoutScreen({super.key});
 
   @override
-  State<WorkoutScreen> createState() => _WorkoutScreenState();
+  State<WorkoutScreen> createState() => WorkoutScreenState();
 }
 
-class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderStateMixin {
+class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderStateMixin {
   final _db = DatabaseHelper();
   List<Workout> _workouts = [];
   Map<String, double> _weeklyStats = {};
+  Map<String, int> _weeklySets = {};
+  Map<String, double> _weeklyPace = {};
   bool _isLoading = true;
   late TabController _tabController;
   String _activeTypeFilter = 'running';
@@ -47,12 +49,54 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     final workouts = await _db.getRecentWorkouts(limit: 50);
-    final weekly = await _db.getWeeklyWorkoutStats(_activeTypeFilter);
     final profile = await ProfileService.getProfile();
+    
+    final now = DateTime.now();
+    Map<String, double> weekly = {};
+    Map<String, int> weeklySets = {};
+    Map<String, double> weeklyPace = {};
+    Map<String, int> weeklyCount = {};
+    
+    for (int i = 6; i >= 0; i--) {
+      final dateStr = now.subtract(Duration(days: i)).toIso8601String().split('T')[0];
+      weekly[dateStr] = 0.0;
+      weeklySets[dateStr] = 0;
+      weeklyPace[dateStr] = 0.0;
+      weeklyCount[dateStr] = 0;
+    }
+    
+    for (var w in workouts) {
+      if (w.type == _activeTypeFilter) {
+        final dStr = w.date.toIso8601String().split('T')[0];
+        if (weekly.containsKey(dStr)) {
+          weeklyCount[dStr] = weeklyCount[dStr]! + 1;
+          if (_activeTypeFilter == 'weightlifting') {
+             double vol = (w.weight ?? 0) * (w.sets ?? 0) * (w.reps ?? 0);
+             if (vol == 0) vol = w.weight ?? 0;
+             weekly[dStr] = weekly[dStr]! + vol;
+             weeklySets[dStr] = weeklySets[dStr]! + (w.sets ?? 0);
+          } else {
+             weekly[dStr] = weekly[dStr]! + (w.distance ?? 0);
+             if (w.distance != null && w.distance! > 0) {
+               weeklyPace[dStr] = weeklyPace[dStr]! + (w.duration / w.distance!);
+             }
+          }
+        }
+      }
+    }
+    
+    for (var key in weeklyPace.keys) {
+      if (weeklyCount[key]! > 0) {
+         weeklyPace[key] = weeklyPace[key]! / weeklyCount[key]!;
+      }
+    }
+
     if (mounted) {
       setState(() {
         _workouts = workouts;
         _weeklyStats = weekly;
+        _weeklySets = weeklySets;
+        _weeklyPace = weeklyPace;
         _userName = profile[ProfileService.keyName] as String? ?? '';
         _isLoading = false;
       });
@@ -102,12 +146,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'workoutFab',
-        onPressed: () => _showWorkoutSelectionSheet(context),
-        backgroundColor: Color(0xFFFC5200),
-        child: Icon(Icons.add, color: Colors.white, size: 30),
-      ),
+      floatingActionButton: null, // FAB dipindah ke main.dart
       body: TabBarView(
         controller: _tabController,
         children: [
@@ -177,18 +216,20 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
 
           SizedBox(height: context.space2XL),
 
-          // Chart Section
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Past 7 Days (km)', style: TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.bold)),
+                Text(
+                  _activeTypeFilter == 'weightlifting' ? 'Past 7 Days (Volume kg)' : 'Past 7 Days (Distance km)',
+                  style: TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.bold)
+                ),
                 SizedBox(height: 24),
                 Container(
-                  height: 200,
+                  height: 240,
                   width: double.infinity,
-                  child: LineChart(_buildChartData()),
+                  child: _buildBarChart(),
                 ),
               ],
             ),
@@ -483,49 +524,122 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
     );
   }
 
-  LineChartData _buildChartData() {
-    List<FlSpot> spots = [];
+  Widget _buildBarChart() {
+    List<BarChartGroupData> barGroups = [];
     int i = 0;
-    _weeklyStats.forEach((date, val) {
-      spots.add(FlSpot(i.toDouble(), val));
+    
+    double target = _activeTypeFilter == 'weightlifting' ? 2000.0 : 5.0; // 2000kg or 5km
+    
+    final gradientColors = [
+      AppTheme.accentOrange, // Bottom (#FF9800)
+      AppTheme.accentRed,    // Top (#FF1744)
+    ];
+
+    _weeklyStats.forEach((dateStr, val) {
+      final dt = DateTime.parse(dateStr);
+      final dayName = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'][dt.weekday - 1];
+      
+      bool hitTarget = val >= target;
+      
+      barGroups.add(
+        BarChartGroupData(
+          x: i,
+          barRods: [
+            BarChartRodData(
+              toY: val,
+              gradient: LinearGradient(
+                colors: gradientColors,
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+              ),
+              width: 22,
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(6), topRight: Radius.circular(6)),
+              backDrawRodData: BackgroundBarChartRodData(
+                show: true,
+                toY: target * 1.5 > val ? target * 1.5 : val * 1.2,
+                color: AppTheme.surfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      );
       i++;
     });
 
-    return LineChartData(
-      gridData: FlGridData(show: true, drawVerticalLine: false, horizontalInterval: 5, getDrawingHorizontalLine: (v) => FlLine(color: Colors.grey[900]!, strokeWidth: 1)),
-      titlesData: FlTitlesData(
-        show: true,
-        rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        leftTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            reservedSize: 30,
-            getTitlesWidget: (v, m) => Text(v.toInt().toString(), style: TextStyle(color: Colors.grey, fontSize: 10)),
-          ),
-        ),
-        bottomTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            getTitlesWidget: (v, m) {
-              if (v.toInt() % 3 == 0) return Padding(padding: EdgeInsets.only(top: 8), child: Text('Day ${v.toInt()}', style: TextStyle(color: Colors.grey, fontSize: 10)));
-              return SizedBox();
+    return BarChart(
+      BarChartData(
+        alignment: BarChartAlignment.spaceAround,
+        maxY: target * 1.5,
+        barTouchData: BarTouchData(
+          enabled: true,
+          touchTooltipData: BarTouchTooltipData(
+            getTooltipColor: (group) => AppTheme.surface,
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+               final dateStr = _weeklyStats.keys.elementAt(group.x);
+               final dt = DateTime.parse(dateStr);
+               final dayName = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'][dt.weekday - 1];
+               
+               if (_activeTypeFilter == 'weightlifting') {
+                  int sets = _weeklySets[dateStr] ?? 0;
+                  return BarTooltipItem(
+                    '$dayName\n$sets Set | Volume: ${rod.toY.toInt()} kg',
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                  );
+               } else {
+                  double pace = _weeklyPace[dateStr] ?? 0.0;
+                  int pm = pace.truncate();
+                  int ps = ((pace - pm) * 60).truncate();
+                  String pStr = '$pm:${ps.toString().padLeft(2, '0')}';
+                  return BarTooltipItem(
+                    '$dayName\n${rod.toY.toStringAsFixed(1)} km | Pace: $pStr',
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                  );
+               }
             },
           ),
         ),
-      ),
-      borderData: FlBorderData(show: false),
-      lineBarsData: [
-        LineChartBarData(
-          spots: spots,
-          isCurved: true,
-          color: Color(0xFFFC5200),
-          barWidth: 3,
-          isStrokeCapRound: true,
-          dotData: FlDotData(show: true),
-          belowBarData: BarAreaData(show: true, color: Color(0xFFFC5200).withOpacity(0.2)),
+        titlesData: FlTitlesData(
+          show: true,
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (v, m) {
+                final dateStr = _weeklyStats.keys.elementAt(v.toInt());
+                final dt = DateTime.parse(dateStr);
+                final dayName = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'][dt.weekday - 1];
+                return Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Text(dayName, style: TextStyle(color: AppTheme.textMuted, fontSize: 11, fontWeight: FontWeight.w600)),
+                );
+              },
+            ),
+          ),
+          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
-      ],
+        gridData: FlGridData(show: false),
+        borderData: FlBorderData(show: false),
+        extraLinesData: ExtraLinesData(
+          horizontalLines: [
+            HorizontalLine(
+              y: target,
+              color: Colors.white.withOpacity(0.4),
+              strokeWidth: 1.5,
+              dashArray: [5, 5],
+              label: HorizontalLineLabel(
+                show: true,
+                alignment: Alignment.topRight,
+                padding: EdgeInsets.only(right: 4, bottom: 4),
+                style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                labelResolver: (_) => 'Target ${target.toInt()} ${_activeTypeFilter == 'weightlifting' ? 'kg' : 'km'}',
+              ),
+            ),
+          ],
+        ),
+      ),
+      swapAnimationDuration: Duration(milliseconds: 300),
+      swapAnimationCurve: Curves.easeInOut,
     );
   }
 
@@ -542,54 +656,95 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
     final tokenController = TextEditingController();
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Column(children: [
-          Text('', style: TextStyle(fontSize: 36)),
-          SizedBox(height: 8),
-          Text('Hubungkan Strava', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold, fontSize: 18)),
-        ]),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Color(0xFFFC5200).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Color(0xFFFC5200).withOpacity(0.3)),
-              ),
-              child: Text(
-                '1. Buka strava.com/settings/api\n2. Cari "Token Muat Ulang" (bukan Token Akses!)\n3. Salin & tempel di bawah ini',
-                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.6),
-              ),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: tokenController,
-              style: TextStyle(color: AppTheme.textPrimary, fontSize: 12),
-              maxLines: 2,
-              decoration: InputDecoration(
-                hintText: 'Tempel Refresh Token di sini...',
-                hintStyle: TextStyle(color: AppTheme.textMuted),
-                filled: true,
-                fillColor: AppTheme.background,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                contentPadding: EdgeInsets.all(12),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Batal', style: TextStyle(color: AppTheme.textMuted))),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Color(0xFFFC5200), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-            child: Text('Simpan & Sinkron', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFFFC5200).withOpacity(0.3)),
           ),
-        ],
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64, height: 64,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFC5200).withOpacity(0.12),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFFC5200).withOpacity(0.4), width: 2),
+                ),
+                child: const Icon(Icons.link_rounded, color: Color(0xFFFC5200), size: 32),
+              ),
+              const SizedBox(height: 16),
+              Text('Hubungkan ke Strava', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w800, fontSize: 20)),
+              const SizedBox(height: 8),
+              Text(
+                'Izinkan Corefit mengakses data aktivitas Strava kamu',
+                style: TextStyle(color: AppTheme.textMuted, fontSize: 13, height: 1.4),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              _buildStravaStep('1', 'Buka strava.com/settings/api di browser'),
+              const SizedBox(height: 8),
+              _buildStravaStep('2', 'Scroll ke bawah, cari bagian "Your API Application"'),
+              const SizedBox(height: 8),
+              _buildStravaStep('3', 'Salin nilai "Refresh Token" (BUKAN Access Token)'),
+              const SizedBox(height: 16),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.background,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFFC5200).withOpacity(0.4)),
+                ),
+                child: TextField(
+                  controller: tokenController,
+                  style: TextStyle(color: AppTheme.textPrimary, fontSize: 13),
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    hintText: 'Tempel Refresh Token di sini...',
+                    hintStyle: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                    prefixIcon: const Icon(Icons.vpn_key_rounded, color: Color(0xFFFC5200), size: 18),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: AppTheme.border),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: Text('Batal', style: TextStyle(color: AppTheme.textMuted, fontWeight: FontWeight.w600)),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton.icon(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      icon: const Icon(Icons.sync_rounded, color: Colors.white, size: 18),
+                      label: const Text('Hubungkan & Sinkron', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFC5200),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
 
@@ -597,10 +752,11 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
 
     showDialog(context: context, barrierDismissible: false, builder: (_) => AlertDialog(
       backgroundColor: AppTheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       content: Row(children: [
-        CircularProgressIndicator(color: Color(0xFFFC5200)),
-        SizedBox(width: 16),
-        Text('Memvalidasi token...', style: TextStyle(color: AppTheme.textPrimary)),
+        const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Color(0xFFFC5200), strokeWidth: 2.5)),
+        const SizedBox(width: 16),
+        Text('Menghubungkan ke Strava...', style: TextStyle(color: AppTheme.textPrimary)),
       ]),
     ));
 
@@ -615,12 +771,36 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
       await StravaService.clearAllTokens();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('❌ Token tidak valid! Salin "Token Muat Ulang", BUKAN "Token Akses" dari strava.com/settings/api'),
+          content: const Text('❌ Token tidak valid! Pastikan kamu menyalin "Refresh Token" dari strava.com/settings/api'),
           backgroundColor: AppTheme.accentRed,
           duration: Duration(seconds: 6),
+          behavior: SnackBarBehavior.floating,
         ),
       );
     }
+  }
+
+  Widget _buildStravaStep(String number, String text) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 22, height: 22,
+          decoration: BoxDecoration(
+            color: const Color(0xFFFC5200).withOpacity(0.15),
+            shape: BoxShape.circle,
+            border: Border.all(color: const Color(0xFFFC5200).withOpacity(0.5)),
+          ),
+          child: Center(
+            child: Text(number, style: const TextStyle(color: Color(0xFFFC5200), fontSize: 11, fontWeight: FontWeight.w800)),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(text, style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.4)),
+        ),
+      ],
+    );
   }
 
   Future<void> _doStravaSync(BuildContext context) async {
@@ -668,43 +848,73 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
     }
   }
 
-  void _showWorkoutSelectionSheet(BuildContext context) {
+  void showWorkoutSelectionSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (_) {
-        return Padding(
-          padding: EdgeInsets.only(bottom: 30, top: 20, left: 24, right: 24),
+        return Container(
+          decoration: BoxDecoration(
+            color: AppTheme.background,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(color: AppTheme.border, width: 1),
+          ),
+          padding: EdgeInsets.only(bottom: 30, top: 16, left: 20, right: 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppTheme.border, borderRadius: BorderRadius.circular(2)))),
               SizedBox(height: 24),
-              Text('Pilih Jenis Latihan', style: TextStyle(color: AppTheme.textPrimary, fontSize: 22, fontWeight: FontWeight.w900), textAlign: TextAlign.center),
+              Text('Pilih Jenis Latihan', style: TextStyle(color: AppTheme.textPrimary, fontSize: 24, fontWeight: FontWeight.w900), textAlign: TextAlign.center),
               SizedBox(height: 32),
-              _menuItem(context, 'Lari (GPS Tracker)', 'Pantau rute dan jarak tempuh aslimu', '', AppTheme.runningColor, () async {
-                Navigator.pop(context);
-                final profile = await ProfileService.getProfile();
-                final weight = profile[ProfileService.keyWeight] ?? 70.0;
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => RunningTrackerScreen(userWeight: weight))).then((_) => _loadData());
-              }),
-
+              
+              // 1. GPS Tracker (Run/Walk)
+              _buildBoldGatewayCard(
+                context,
+                title: 'Outdoor Activity',
+                subtitle: 'Lacak rute & pace secara real-time',
+                icon: Icons.directions_run_rounded,
+                accentColor: AppTheme.neonGreen,
+                onTap: () async {
+                  Navigator.pop(context);
+                  final profile = await ProfileService.getProfile();
+                  final weight = profile[ProfileService.keyWeight] ?? 70.0;
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => RunningTrackerScreen(userWeight: weight))).then((_) => _loadData());
+                },
+              ),
               SizedBox(height: 16),
-              _menuItem(context, 'Angkat Beban', 'Pilih Mode, Otot, & Gerakan', '', AppTheme.weightliftingColor, () async {
-                Navigator.pop(context);
-                final profile = await ProfileService.getProfile();
-                final weight = profile[ProfileService.keyWeight] ?? 70.0;
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => WorkoutSetupScreen(userWeight: weight),
-                )).then((_) => _loadData());
-              }),
+              
+              // 2. Gym Log (Weightlifting)
+              _buildBoldGatewayCard(
+                context,
+                title: 'Strength Training',
+                subtitle: 'Pilih Mode, Otot, & Gerakan',
+                icon: Icons.fitness_center_rounded,
+                accentColor: AppTheme.accentOrange,
+                onTap: () async {
+                  Navigator.pop(context);
+                  final profile = await ProfileService.getProfile();
+                  final weight = profile[ProfileService.keyWeight] ?? 70.0;
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => WorkoutSetupScreen(userWeight: weight))).then((_) => _loadData());
+                },
+              ),
               SizedBox(height: 16),
-              _menuItem(context, 'Import dari Strava', 'Sinkronkan data lari/sepeda dari cloud', '', Color(0xFFFC5200), () async {
-                Navigator.pop(context);
-                _importFromStrava(context);
-              }),
+              
+              // 3. Third Party
+              _buildBoldGatewayCard(
+                context,
+                title: 'Import dari Strava',
+                subtitle: 'Sinkronkan data dari cloud',
+                icon: Icons.sync_rounded,
+                accentColor: AppTheme.electricBlue,
+                isSmall: true,
+                onTap: () {
+                  Navigator.pop(context);
+                  _importFromStrava(context);
+                },
+              ),
             ],
           ),
         );
@@ -712,32 +922,54 @@ class _WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProvider
     );
   }
 
-  Widget _menuItem(BuildContext context, String title, String subtitle, String emoji, Color accent, VoidCallback onTap) {
+  Widget _buildBoldGatewayCard(BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color accentColor,
+    required VoidCallback onTap,
+    bool isSmall = false,
+  }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(color: AppTheme.cardBg, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppTheme.border)),
+        padding: EdgeInsets.all(isSmall ? 16 : 24),
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: accentColor.withOpacity(0.5), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: accentColor.withOpacity(0.1),
+              blurRadius: 10,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
         child: Row(
           children: [
             Container(
-              width: 55, height: 55,
-              decoration: BoxDecoration(color: accent.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
-              child: Center(child: Text(emoji, style: TextStyle(fontSize: 28))),
+              width: isSmall ? 40 : 60,
+              height: isSmall ? 40 : 60,
+              decoration: BoxDecoration(
+                color: accentColor.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Center(child: Icon(icon, color: accentColor, size: isSmall ? 20 : 32)),
             ),
             SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: TextStyle(color: accent, fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text(title, style: TextStyle(color: AppTheme.textPrimary, fontSize: isSmall ? 16 : 20, fontWeight: FontWeight.w900)),
                   SizedBox(height: 4),
-                  Text(subtitle, style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+                  Text(subtitle, style: TextStyle(color: AppTheme.textMuted, fontSize: isSmall ? 12 : 14)),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios_rounded, color: AppTheme.border, size: 20),
+            Icon(Icons.arrow_forward_rounded, color: accentColor, size: 24),
           ],
         ),
       ),

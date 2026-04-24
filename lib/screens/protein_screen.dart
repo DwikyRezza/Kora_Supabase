@@ -5,6 +5,8 @@ import '../services/profile_service.dart';
 import '../services/cloud_sync_service.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
+import 'package:liquid_progress_indicator_v2/liquid_progress_indicator.dart';
+import 'weekly_report_screen.dart';
 
 class ProteinScreen extends StatefulWidget {
   const ProteinScreen({super.key});
@@ -19,7 +21,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
   bool _isLoading = true;
   double _targetProtein = 150.0;
   final double _targetCalories = 2500.0; // Estimate
-  final int _targetWaterMl = 2000;
+  int _targetWaterMl = 2000;
 
   @override
   void initState() {
@@ -38,13 +40,15 @@ class _ProteinScreenState extends State<ProteinScreen> {
         _entries = entries;
         _targetProtein = profile[ProfileService.keyTargetProtein] ?? 150.0;
         if (_targetProtein == 0) _targetProtein = 150.0;
+        final weight = profile[ProfileService.keyWeight] ?? 70.0;
+        _targetWaterMl = (weight * 35).round();
         
         // Target adjustments based on goal can be added here
         
-        if (_totalProtein < _targetProtein) {
-          NotificationService().scheduleProteinReminder();
+        if (_totalProtein < _targetProtein * 0.9) {
+          NotificationService().scheduleNutritionReminders();
         } else {
-          NotificationService().cancelProteinReminder();
+          NotificationService().cancelNutritionReminders();
         }
 
         _isLoading = false;
@@ -69,6 +73,13 @@ class _ProteinScreenState extends State<ProteinScreen> {
         title: const Text(' Nutrition & Hydration', style: TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: AppTheme.background,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.local_fire_department_rounded, color: AppTheme.accentOrange, size: 28),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WeeklyReportScreen())),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'proteinFab',
@@ -235,7 +246,29 @@ class _ProteinScreenState extends State<ProteinScreen> {
                   Text('$_totalWater', style: TextStyle(color: AppTheme.electricBlue, fontSize: 28, fontWeight: FontWeight.w900)),
                   Text('dari $_targetWaterMl ml', style: TextStyle(color: AppTheme.electricBlue, fontSize: 11)),
                   const SizedBox(height: 12),
-                  LinearProgressIndicator(value: waterProgress, backgroundColor: AppTheme.electricBlue.withOpacity(0.2), valueColor: AlwaysStoppedAnimation<Color>(AppTheme.electricBlue), borderRadius: BorderRadius.circular(4)),
+                  SizedBox(
+                    height: 24,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: LiquidLinearProgressIndicator(
+                        value: waterProgress,
+                        valueColor: AlwaysStoppedAnimation(AppTheme.electricBlue.withOpacity(0.8)),
+                        backgroundColor: AppTheme.electricBlue.withOpacity(0.1),
+                        borderColor: Colors.transparent,
+                        borderWidth: 0,
+                        borderRadius: 12.0,
+                        direction: Axis.horizontal,
+                        center: Text(
+                          "${(waterProgress * 100).toInt()}%",
+                          style: TextStyle(
+                            color: waterProgress > 0.4 ? Colors.white : AppTheme.electricBlue,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -409,17 +442,31 @@ class _ProteinScreenState extends State<ProteinScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _AddNutritionSheet(onSaved: () {
-        Navigator.pop(context);
-        _loadData();
-      }),
+      builder: (_) => _AddNutritionSheet(
+        currentSugar: _totalSugar,
+        currentSalt: _totalSalt,
+        currentFat: _totalFat,
+        onSaved: () {
+          Navigator.pop(context);
+          _loadData();
+        }
+      ),
     );
   }
 }
 
 class _AddNutritionSheet extends StatefulWidget {
   final VoidCallback onSaved;
-  const _AddNutritionSheet({required this.onSaved});
+  final double currentSugar;
+  final double currentSalt;
+  final double currentFat;
+
+  const _AddNutritionSheet({
+    required this.onSaved,
+    required this.currentSugar,
+    required this.currentSalt,
+    required this.currentFat,
+  });
 
   @override
   State<_AddNutritionSheet> createState() => _AddNutritionSheetState();
@@ -438,13 +485,38 @@ class _AddNutritionSheetState extends State<_AddNutritionSheet> {
   ];
 
   Map<String, dynamic>? _selectedFood;
+  List<String> _frequentFoods = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _autoSelectMealType();
+    _loadFrequentFoods();
+  }
+
+  void _autoSelectMealType() {
+    final hour = DateTime.now().hour;
+    if (hour < 10) _selectedMealType = 'breakfast';
+    else if (hour < 15) _selectedMealType = 'lunch';
+    else if (hour < 20) _selectedMealType = 'dinner';
+    else _selectedMealType = 'snack';
+  }
+
+  Future<void> _loadFrequentFoods() async {
+    final freq = await _db.getFrequentFoods(mealType: _selectedMealType);
+    if (mounted) {
+      setState(() {
+        _frequentFoods = freq;
+      });
+    }
+  }
 
   Future<void> _save() async {
     if (_selectedFood == null) return;
     
     double qty = double.tryParse(_amountCtrl.text) ?? 1.0;
 
-    await _db.insertProteinEntry(ProteinEntry(
+    final entry = ProteinEntry(
       foodName: _selectedFood!['name'],
       proteinGrams: (_selectedFood!['protein'] as double) * qty,
       calories: (_selectedFood!['calories'] as double) * qty,
@@ -455,7 +527,44 @@ class _AddNutritionSheetState extends State<_AddNutritionSheet> {
       saltGrams: (_selectedFood!['salt'] as double? ?? 0.0) * qty,
       mealType: _selectedMealType,
       date: DateTime.now(),
-    ));
+    );
+
+    final totalSugar = widget.currentSugar + entry.sugarGrams;
+    final totalSalt = widget.currentSalt + entry.saltGrams;
+    final totalFat = widget.currentFat + entry.fatGrams;
+
+    if (totalSugar > 50 || totalSalt > 5 || totalFat > 67) {
+      final proceed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: AppTheme.surface,
+          title: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: AppTheme.accentRed),
+              const SizedBox(width: 8),
+              Text('Peringatan GGL!', style: TextStyle(color: AppTheme.textPrimary)),
+            ],
+          ),
+          content: Text(
+            'Makanan ini akan membuat total harianmu melampaui batas aman medis (Gula 50g, Garam 5g, atau Lemak 67g). Risiko lonjakan insulin dan kalori berlebih! Yakin ingin melanjutkan?',
+            style: TextStyle(color: AppTheme.textSecondary),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text('Batal', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text('Tetap Simpan', style: TextStyle(color: AppTheme.accentRed)),
+            ),
+          ],
+        )
+      );
+      if (proceed != true) return;
+    }
+
+    await _db.insertProteinEntry(entry);
     // Sync ke Firestore di background
     CloudSyncService.syncNutritionToCloud().catchError((_) {});
     widget.onSaved();
@@ -482,8 +591,25 @@ class _AddNutritionSheetState extends State<_AddNutritionSheet> {
           
           Autocomplete<Map<String, dynamic>>(
             optionsBuilder: (TextEditingValue textEditingValue) {
-              if (textEditingValue.text.isEmpty) return const Iterable<Map<String, dynamic>>.empty();
-              return ProteinFoodDatabase.foods.where((food) => (food['name'] as String).toLowerCase().contains(textEditingValue.text.toLowerCase()));
+              if (textEditingValue.text.isEmpty) {
+                 if (_frequentFoods.isNotEmpty) {
+                    final freqOptions = ProteinFoodDatabase.foods.where((f) => _frequentFoods.contains(f['name'])).take(5).toList();
+                    freqOptions.sort((a, b) => _frequentFoods.indexOf(a['name'] as String).compareTo(_frequentFoods.indexOf(b['name'] as String)));
+                    return freqOptions;
+                 }
+                 return const Iterable<Map<String, dynamic>>.empty();
+              }
+              final query = textEditingValue.text.toLowerCase();
+              final matches = ProteinFoodDatabase.foods.where((food) => (food['name'] as String).toLowerCase().contains(query)).toList();
+              matches.sort((a, b) {
+                final idxA = _frequentFoods.indexOf(a['name'] as String);
+                final idxB = _frequentFoods.indexOf(b['name'] as String);
+                if (idxA != -1 && idxB != -1) return idxA.compareTo(idxB);
+                if (idxA != -1) return -1;
+                if (idxB != -1) return 1;
+                return 0;
+              });
+              return matches;
             },
             displayStringForOption: (option) => option['name'],
             onSelected: (selection) => setState(() => _selectedFood = selection),
@@ -538,7 +664,10 @@ class _AddNutritionSheetState extends State<_AddNutritionSheet> {
                   style: TextStyle(color: AppTheme.textPrimary),
                   decoration: const InputDecoration(labelText: 'Waktu Makan'),
                   items: _mealTypes.map((m) => DropdownMenuItem(value: m['id'], child: Text(m['label']!))).toList(),
-                  onChanged: (v) => setState(() => _selectedMealType = v!),
+                  onChanged: (v) {
+                    setState(() => _selectedMealType = v!);
+                    _loadFrequentFoods();
+                  },
                 ),
               ),
             ],
@@ -551,10 +680,18 @@ class _AddNutritionSheetState extends State<_AddNutritionSheet> {
               onPressed: _selectedFood == null ? null : _save,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.neonGreen,
+                disabledBackgroundColor: AppTheme.neonGreen.withOpacity(0.35),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
-              child: const Text('Simpan Makanan', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
+              child: Text(
+                'Simpan Makanan',
+                style: TextStyle(
+                  color: _selectedFood == null ? Colors.black45 : Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
             ),
           ),
         ],
