@@ -60,7 +60,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ],
             ),
             content: Text(
-              'BMI Anda: ${bmi.toStringAsFixed(1)} — $status\n\nData profil Anda telah disimpan ke cloud. Selamat datang di Corefit! 🎉',
+              'BMI Anda: ${bmi.toStringAsFixed(1)} — $status\n\nData profil Anda telah disimpan ke cloud. Selamat datang di Kora! 🎉',
               style: TextStyle(color: AppTheme.textSecondary, height: 1.5),
             ),
             actions: [

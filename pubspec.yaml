@@ -1,5 +1,5 @@
-name: tubes
-description: "Corefit - Personal Digital Assistant for Athletes"
+name: kora
+description: "Kora - Personal Digital Assistant for Athletes"
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -36,6 +36,9 @@ dependencies:
   vibration: ^3.1.8
   wakelock_plus: ^1.5.2
   liquid_progress_indicator_v2: ^0.5.0
+  lottie: ^3.1.2
+  shimmer: ^3.0.0
+  quick_actions: ^1.0.9
 
 dev_dependencies:
   flutter_test:

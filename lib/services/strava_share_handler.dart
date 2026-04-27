@@ -6,7 +6,7 @@ import '../services/database_helper.dart';
 import '../services/profile_service.dart';
 
 /// Service untuk menangani incoming share dari Strava
-/// Skenario: User lari pakai Strava → tap Share → pilih Corefit → auto-import
+/// Skenario: User lari pakai Strava → tap Share → pilih Kora → auto-import
 class StravaShareHandler {
   static final StravaShareHandler _instance = StravaShareHandler._();
   StravaShareHandler._();
@@ -296,7 +296,7 @@ class _StravaShareOverlayState extends State<StravaShareOverlay> {
                     ),
                   ),
                   Text(
-                    'Corefit',
+                    'Kora',
                     style: TextStyle(
                       color: Color(0xFF39FF8F),
                       fontSize: 12,
@@ -366,7 +366,7 @@ class _StravaShareOverlayState extends State<StravaShareOverlay> {
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    'Aktivitas berhasil disimpan ke riwayat Corefit! ',
+                    'Aktivitas berhasil disimpan ke riwayat Kora! ',
                     style: TextStyle(color: Color(0xFF39FF8F), fontSize: 12),
                     textAlign: TextAlign.center,
                   ),
@@ -396,7 +396,7 @@ class _StravaShareOverlayState extends State<StravaShareOverlay> {
             const Text('', style: TextStyle(fontSize: 40)),
             const SizedBox(height: 12),
             const Text(
-              'Hubungkan akun Strava kamu terlebih dahulu agar Corefit bisa mengambil data aktivitas.',
+              'Hubungkan akun Strava kamu terlebih dahulu agar Kora bisa mengambil data aktivitas.',
               style: TextStyle(color: Color(0xFF8892A4), fontSize: 14, height: 1.6),
               textAlign: TextAlign.center,
             ),

@@ -39,8 +39,8 @@ class NotificationService {
   }) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-            'corefit_channel', 'Corefit Notifications',
-            channelDescription: 'Default channel for Corefit',
+            'Kora_channel', 'Kora Notifications',
+            channelDescription: 'Default channel for Kora',
             importance: Importance.max,
             priority: Priority.high,
             showWhen: false);
@@ -75,7 +75,7 @@ class NotificationService {
       tz.TZDateTime.from(notifTime, tz.local),
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'corefit_schedule', 'Schedule Reminders',
+          'Kora_schedule', 'Schedule Reminders',
           channelDescription: 'Notifikasi pengingat jadwal latihan',
           importance: Importance.high,
           priority: Priority.high,
@@ -124,7 +124,7 @@ class NotificationService {
       'Gimana progress nutrisimu? Jangan sampai kosong ya.',
       tz.TZDateTime.from(noonDate, tz.local),
       const NotificationDetails(
-        android: AndroidNotificationDetails('corefit_protein', 'Nutrition Reminders', channelDescription: 'Reminders', importance: Importance.defaultImportance),
+        android: AndroidNotificationDetails('Kora_protein', 'Nutrition Reminders', channelDescription: 'Reminders', importance: Importance.defaultImportance),
       ),
       matchDateTimeComponents: DateTimeComponents.time,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
@@ -142,7 +142,7 @@ class NotificationService {
       'Segera penuhi target protein/kalori kamu sekarang atau biarkan streak apimu padam malam ini. Disiplin adalah kunci!',
       tz.TZDateTime.from(eveningDate, tz.local),
       const NotificationDetails(
-        android: AndroidNotificationDetails('corefit_protein_strict', 'Strict Nutrition Reminders', channelDescription: 'Strict Reminders', importance: Importance.high, priority: Priority.high),
+        android: AndroidNotificationDetails('Kora_protein_strict', 'Strict Nutrition Reminders', channelDescription: 'Strict Reminders', importance: Importance.high, priority: Priority.high),
       ),
       matchDateTimeComponents: DateTimeComponents.time,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -178,11 +178,11 @@ class NotificationService {
     await flutterLocalNotificationsPlugin.zonedSchedule(
       998,
       ' Laporan Progress Mingguanmu!',
-      'Lihat seberapa jauh perkembanganmu minggu ini di Corefit.',
+      'Lihat seberapa jauh perkembanganmu minggu ini di Kora.',
       tz.TZDateTime.from(nextDate, tz.local),
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'corefit_progress', 'Weekly Progress',
+          'Kora_progress', 'Weekly Progress',
           channelDescription: 'Channel for weekly progress reports',
           importance: Importance.defaultImportance,
           priority: Priority.defaultPriority,

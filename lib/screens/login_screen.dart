@@ -149,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen>
                     shaderCallback: (bounds) =>
                         AppTheme.neonGreenGrad.createShader(bounds),
                     child: Text(
-                      'Corefit',
+                      'Kora',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: context.font3XL,

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:audioplayers/audioplayers.dart';
 import '../models/protein_entry.dart';
 import '../services/database_helper.dart';
 import '../services/profile_service.dart';
@@ -514,6 +516,12 @@ class _AddNutritionSheetState extends State<_AddNutritionSheet> {
   Future<void> _save() async {
     if (_selectedFood == null) return;
     
+    HapticFeedback.mediumImpact();
+    try {
+      final player = AudioPlayer();
+      await player.play(AssetSource('audio/click.mp3'));
+    } catch (_) {}
+
     double qty = double.tryParse(_amountCtrl.text) ?? 1.0;
 
     final entry = ProteinEntry(

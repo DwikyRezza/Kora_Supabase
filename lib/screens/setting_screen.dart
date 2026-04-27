@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../theme/app_theme.dart';
 import '../services/settings_service.dart';
@@ -33,7 +34,7 @@ class _SettingScreenState extends State<SettingScreen> {
   bool _stravaConnected = false;
   bool _stravaSyncing = false;
   int _advanceMinutes = 30;
-  String _dataSource = 'corefit';
+  String _dataSource = 'Kora';
   String _language = 'id';
 
   TimeOfDay _progressTime = const TimeOfDay(hour: 8, minute: 0);
@@ -312,6 +313,51 @@ class _SettingScreenState extends State<SettingScreen> {
 
   Future<void> _exportData() async {
     _showFeedback('Fitur ekspor data segera hadir di versi berikutnya!');
+  }
+
+  Future<void> _showBuyFreezeDialog() async {
+    final points = _profile[ProfileService.keyPoints] ?? 0;
+    const price = 500;
+    
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Beli Es Batu?', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w700)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('🧊', style: TextStyle(fontSize: 48)),
+            const SizedBox(height: 16),
+            Text('Es Batu akan menjaga apimu tetap menyala meskipun kamu lupa mencatat satu hari.', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.5), textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            Text('Harga: $price Poin', style: TextStyle(color: AppTheme.neonGreen, fontWeight: FontWeight.bold)),
+            Text('Poin Anda: $points', style: TextStyle(color: AppTheme.textMuted, fontSize: 11)),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Batal', style: TextStyle(color: AppTheme.textMuted))),
+          ElevatedButton(
+            onPressed: points >= price ? () => Navigator.pop(ctx, true) : null,
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.neonGreen),
+            child: Text(points >= price ? 'Beli' : 'Poin Kurang', style: const TextStyle(color: Colors.black)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      // Update logic (should be in a service but for brevity here)
+      final newPoints = points - price;
+      final newFreeze = (_profile[ProfileService.keyStreakFreezeCount] ?? 0) + 1;
+      
+      await ProfileService.updateProfileField(ProfileService.keyPoints, newPoints);
+      await ProfileService.updateProfileField(ProfileService.keyStreakFreezeCount, newFreeze);
+      
+      _loadAll();
+      _showFeedback('🧊 Es Batu berhasil ditambahkan!');
+    }
   }
 
   // ── Satuan ────────────────────────────────────────────────────────────────
@@ -599,6 +645,45 @@ class _SettingScreenState extends State<SettingScreen> {
                               subtitle: _notifWorkout ? 'Aktif (${SettingsService.advanceLabel(_advanceMinutes)})' : 'Nonaktif',
                               value: _notifWorkout,
                               onChanged: _onNotifWorkoutChanged),
+                        ]),
+                        const SizedBox(height: 24),
+
+                        // ━━━ 4. SISTEM PEMULIHAN (RECOVERY) ━━━━━━━━━━━━━━
+                        _sectionTitle('🧊  SISTEM PEMULIHAN (RECOVERY)'),
+                        const SizedBox(height: 8),
+                        _buildCard([
+                          ListTile(
+                            leading: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(color: Colors.lightBlueAccent.withOpacity(0.15), borderRadius: BorderRadius.circular(10)),
+                              child: const Icon(Icons.ac_unit_rounded, color: Colors.lightBlueAccent, size: 20),
+                            ),
+                            title: Text('Es Batu (Streak Freeze)', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600, fontSize: 14)),
+                            subtitle: Text('Tersedia: ${_profile[ProfileService.keyStreakFreezeCount] ?? 0}', style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+                            trailing: ElevatedButton(
+                              onPressed: () {
+                                HapticFeedback.mediumImpact();
+                                _showBuyFreezeDialog();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.lightBlueAccent.withOpacity(0.2),
+                                foregroundColor: Colors.lightBlueAccent,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                              ),
+                              child: const Text('Beli / Tukar', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                          _divider(),
+                          _navTile(
+                            icon: Icons.stars_rounded,
+                            iconColor: Colors.amber,
+                            title: 'Kora Points',
+                            subtitle: 'Poin Anda: ${_profile[ProfileService.keyPoints] ?? 0}',
+                            onTap: () => _showFeedback('Dapatkan poin dari setiap latihan!'),
+                          ),
                         ]),
                         const SizedBox(height: 24),
 

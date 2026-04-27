@@ -4,6 +4,7 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:quick_actions/quick_actions.dart';
 import 'theme/app_theme.dart';
 import 'utils/responsive.dart';
 import 'screens/landing_screen.dart';
@@ -60,13 +61,13 @@ void main() async {
   bool isLoggedIn = AuthService.isLoggedIn;
   bool onboarded = await ProfileService.isOnboarded();
 
-  runApp(CorefitApp(isLoggedIn: isLoggedIn, isOnboarded: onboarded));
+  runApp(Kora(isLoggedIn: isLoggedIn, isOnboarded: onboarded));
 }
 
-class CorefitApp extends StatelessWidget {
+class Kora extends StatelessWidget {
   final bool isLoggedIn;
   final bool isOnboarded;
-  const CorefitApp(
+  const Kora(
       {super.key, required this.isLoggedIn, required this.isOnboarded});
 
   @override
@@ -75,7 +76,7 @@ class CorefitApp extends StatelessWidget {
       valueListenable: AppTheme.themeNotifier,
       builder: (context, currentMode, _) {
         return MaterialApp(
-          title: 'Corefit',
+          title: 'Kora',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.theme,
           themeMode: currentMode,
@@ -130,6 +131,23 @@ class _MainNavigationState extends State<MainNavigation> with SingleTickerProvid
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
+
+    const QuickActions quickActions = QuickActions();
+    quickActions.initialize((String shortcutType) {
+      if (shortcutType == 'catat_telur') {
+        _goToTab(1); // Nutrisi
+      } else if (shortcutType == 'mulai_lari') {
+        _goToTab(2); // Latihan
+      } else if (shortcutType == 'lihat_jadwal') {
+        _goToTab(3); // Jadwal
+      }
+    });
+
+    quickActions.setShortcutItems(<ShortcutItem>[
+      const ShortcutItem(type: 'catat_telur', localizedTitle: 'Catat Telur', icon: 'icon_egg'),
+      const ShortcutItem(type: 'mulai_lari', localizedTitle: 'Mulai Lari', icon: 'icon_run'),
+      const ShortcutItem(type: 'lihat_jadwal', localizedTitle: 'Lihat Jadwal', icon: 'icon_calendar'),
+    ]);
   }
 
   @override

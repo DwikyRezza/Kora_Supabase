@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../models/workout.dart';
@@ -106,6 +107,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             actions: [
               ElevatedButton(
                 onPressed: () {
+                  HapticFeedback.vibrate();
                   WhistleblowerService.stopAlarm();
                   Navigator.pop(ctx);
                 },
@@ -168,11 +170,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           slivers: [
             _buildHomeHeader(context),
             if (_isLoading)
-              SliverFillRemaining(
-                child: Center(
-                  child: CircularProgressIndicator(color: AppTheme.neonGreen),
-                ),
-              )
+              _buildSkeletonLoader(context)
             else
               SliverPadding(
                 padding: EdgeInsets.fromLTRB(context.spaceLG, 0, context.spaceLG, 100),
@@ -258,7 +256,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           shaderCallback: (bounds) =>
                               AppTheme.neonGreenGrad.createShader(bounds),
                           child: Text(
-                            'Corefit',
+                            'Kora',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: context.font2XL,
@@ -1039,7 +1037,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ),
           ),
           GestureDetector(
-            onTap: widget.onGoToWorkout,
+            onTap: () {
+              HapticFeedback.heavyImpact();
+              widget.onGoToWorkout();
+            },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
@@ -1056,26 +1057,79 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Widget _buildEmptyState(String title, String subtitle, IconData icon) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 28),
+      padding: const EdgeInsets.symmetric(vertical: 40),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppTheme.surface.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.border.withOpacity(0.5)),
+      ),
       child: Column(
         children: [
-          Icon(icon, color: AppTheme.textMuted, size: 40),
-          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.textMuted.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: AppTheme.textMuted.withOpacity(0.5), size: 48),
+          ),
+          const SizedBox(height: 20),
           Text(
             title,
             style: TextStyle(
-              color: AppTheme.textSecondary,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
-            textAlign: TextAlign.center,
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              subtitle,
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.5),
+              textAlign: TextAlign.center,
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSkeletonLoader(BuildContext context) {
+    return SliverPadding(
+      padding: EdgeInsets.all(context.spaceLG),
+      sliver: SliverList(
+        delegate: SliverChildListDelegate([
+          _skeletonBox(height: 180), // Protein Summary
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(child: _skeletonBox(height: 120)),
+              const SizedBox(width: 12),
+              Expanded(child: _skeletonBox(height: 120)),
+            ],
+          ),
+          const SizedBox(height: 24),
+          _skeletonBox(height: 150), // Schedule
+          const SizedBox(height: 24),
+          _skeletonBox(height: 200), // Recommendations
+        ]),
+      ),
+    );
+  }
+
+  Widget _skeletonBox({required double height}) {
+    return Shimmer.fromColors(
+      baseColor: AppTheme.surface,
+      highlightColor: AppTheme.border,
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
       ),
     );
   }

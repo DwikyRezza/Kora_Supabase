@@ -20,7 +20,7 @@ class DatabaseHelper {
 
   Future<Database> _initDatabase() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'corefit.db');
+    final path = join(dbPath, 'Kora.db');
     return await openDatabase(
       path,
       version: 10,

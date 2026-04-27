@@ -16,6 +16,8 @@ class ProfileService {
   static const keyPhotoUrl = 'photoUrl';
   static const keyStatus = 'status'; // semester/kampus
   static const keyIsOnboarded = 'isOnboarded';
+  static const keyStreakFreezeCount = 'streakFreezeCount';
+  static const keyPoints = 'points';
 
   static final _firestore = FirebaseFirestore.instance;
 
@@ -132,6 +134,8 @@ class ProfileService {
             keyTargetProtein: (p['targetProtein'] as num?)?.toDouble() ?? 0.0,
             keyDailyBudget: p['dailyBudget'] ?? 50000,
             keyStatus: p['status'] ?? '',
+            keyStreakFreezeCount: p[keyStreakFreezeCount] ?? 0,
+            keyPoints: p[keyPoints] ?? 0,
             'photoUrl': p['photoUrl'] ?? AuthService.photoUrl,
             'email': p['email'] ?? AuthService.email,
           };
@@ -156,6 +160,8 @@ class ProfileService {
     keyTargetProtein: 0.0,
     keyDailyBudget: 50000,
     keyStatus: '',
+    keyStreakFreezeCount: 0,
+    keyPoints: 0,
     'photoUrl': AuthService.photoUrl,
     'email': AuthService.email,
   };

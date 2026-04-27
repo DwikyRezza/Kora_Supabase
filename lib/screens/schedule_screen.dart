@@ -142,7 +142,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'scheduleFab',
-        onPressed: () => _showAddEditEventSheet(),
+        onPressed: () {
+          HapticFeedback.lightImpact();
+          _showAddEditEventSheet();
+        },
         backgroundColor: AppTheme.neonGreen,
         foregroundColor: Colors.black,
         icon: Icon(Icons.add_rounded),
@@ -157,15 +160,26 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               backgroundColor: AppTheme.surface,
               child: _events.isEmpty
                   ? ListView(
-                      padding: EdgeInsets.all(32),
+                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 100),
                       children: [
-                        Center(
-                          child: Text(
-                            'Belum ada jadwal.\nTekan tombol di bawah untuk menyusun aktivitasmu.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                color: AppTheme.textMuted, fontSize: 16),
-                          ),
+                        Column(
+                          children: [
+                            Icon(Icons.event_seat_rounded, color: AppTheme.textMuted, size: 80),
+                            const SizedBox(height: 24),
+                            Text(
+                              'Belum ada agenda, Za.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: AppTheme.textPrimary, fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Mau buat jadwal baru atau lanjut istirahat?',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: AppTheme.textMuted, fontSize: 14),
+                            ),
+                          ],
                         )
                       ],
                     )

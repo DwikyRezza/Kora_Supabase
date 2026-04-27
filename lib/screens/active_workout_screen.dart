@@ -132,7 +132,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen>
 
   Future<void> _scheduleRestNotification(int delaySeconds) async {
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'corefit_rest_timer', 'Rest Timer',
+      'Kora_rest_timer', 'Rest Timer',
       channelDescription: 'Alarm saat istirahat selesai',
       importance: Importance.max,
       priority: Priority.high,
@@ -144,7 +144,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen>
     await _notificationsPlugin.zonedSchedule(
       777,
       '🔥 Waktu Istirahat Habis!',
-      'Ayo kembali ke CoreFit dan selesaikan set selanjutnya!',
+      'Ayo kembali ke Kora dan selesaikan set selanjutnya!',
       tz.TZDateTime.now(tz.local).add(Duration(seconds: delaySeconds)),
       platformDetails,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 import '../models/protein_entry.dart';
 import '../services/database_helper.dart';
 import '../services/profile_service.dart';
@@ -22,6 +23,8 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   int _currentStreak = 0;
   int _bestStreak = 0;
   double _consistencyScore = 0.0;
+  int _streakFreezeCount = 0;
+  List<int> _frozenDays = [];
   
   double _targetProtein = 150.0;
 
@@ -82,9 +85,14 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       }
     }
 
+    // Streak calculation with Freeze logic
     int currentStreak = 0;
     int bestStreak = 0;
     int successDays = 0;
+    int availableFreeze = profile[ProfileService.keyStreakFreezeCount] ?? 0;
+    List<int> frozenDays = [];
+
+    daysInMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
     int daysPassed = DateTime.now().day;
     if (_currentMonth.month != DateTime.now().month || _currentMonth.year != DateTime.now().year) {
       daysPassed = daysInMonth;
@@ -97,8 +105,16 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         successDays++;
         if (currentStreak > bestStreak) bestStreak = currentStreak;
       } else {
-        if (i < DateTime.now().day || _currentMonth.month != DateTime.now().month) {
-          currentStreak = 0; // reset
+        // Cek apakah bisa pakai Es Batu
+        if (availableFreeze > 0 && i < daysPassed) {
+          availableFreeze--;
+          frozenDays.add(i);
+          currentStreak++; // Streak tetap lanjut
+          if (currentStreak > bestStreak) bestStreak = currentStreak;
+        } else {
+          if (i < DateTime.now().day || _currentMonth.month != DateTime.now().month) {
+            currentStreak = 0; // reset
+          }
         }
       }
     }
@@ -108,6 +124,8 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         _dailyStats = stats;
         _currentStreak = currentStreak;
         _bestStreak = bestStreak;
+        _streakFreezeCount = availableFreeze;
+        _frozenDays = frozenDays;
         _consistencyScore = daysPassed > 0 ? (successDays / daysPassed) * 100 : 0.0;
         _isLoading = false;
       });
@@ -220,7 +238,15 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('🔥', style: TextStyle(fontSize: 48)),
+              SizedBox(
+                width: 80,
+                height: 80,
+                child: Lottie.asset(
+                  'assets/lottie/fire_streak.json',
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => const Text('🔥', style: TextStyle(fontSize: 48)),
+                ),
+              ),
               const SizedBox(width: 12),
               Text('$_currentStreak', style: TextStyle(color: AppTheme.textPrimary, fontSize: 64, fontWeight: FontWeight.w900)),
             ],
@@ -338,6 +364,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               final stat = _dailyStats[day]!;
               final progress = stat['protein'] / _targetProtein;
               final isSuccess = progress >= 0.9;
+              final isFrozen = _frozenDays.contains(day);
               final gglWarn = stat['sugar'] > 50 || stat['salt'] > 5 || stat['fat'] > 67;
 
               return GestureDetector(
@@ -345,21 +372,21 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    if (isSuccess)
+                    if (isSuccess || isFrozen)
                       Container(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: AppTheme.accentOrange.withOpacity(0.4),
+                              color: (isFrozen ? Colors.lightBlueAccent : AppTheme.accentOrange).withOpacity(0.4),
                               blurRadius: 15,
                               spreadRadius: 2,
                             ),
                           ],
                         ),
                         child: Text(
-                          '🔥',
-                          style: TextStyle(fontSize: 24, color: AppTheme.accentOrange.withOpacity(0.8)),
+                          isFrozen ? '🧊' : '🔥',
+                          style: const TextStyle(fontSize: 24),
                         ),
                       ),
                     Text(

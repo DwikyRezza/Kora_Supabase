@@ -108,7 +108,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text('Corefit', style: TextStyle(fontSize: context.fontXL, fontWeight: FontWeight.w900, color: AppTheme.textPrimary)),
+        title: Text('Kora', style: TextStyle(fontSize: context.fontXL, fontWeight: FontWeight.w900, color: AppTheme.textPrimary)),
         backgroundColor: AppTheme.background,
         actions: [
           GestureDetector(
@@ -507,7 +507,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
   Widget _shareButton() {
     return InkWell(
       onTap: () {
-        Share.share('Check out my activity progress on AthleteSync! I have a 10 week streak! ');
+        Share.share('Check out my activity progress on Kora! I have a 10 week streak! ');
       },
       borderRadius: BorderRadius.circular(20),
       child: Container(
@@ -681,7 +681,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
               Text('Hubungkan ke Strava', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w800, fontSize: 20)),
               const SizedBox(height: 8),
               Text(
-                'Izinkan Corefit mengakses data aktivitas Strava kamu',
+                'Izinkan Kora mengakses data aktivitas Strava kamu',
                 style: TextStyle(color: AppTheme.textMuted, fontSize: 13, height: 1.4),
                 textAlign: TextAlign.center,
               ),

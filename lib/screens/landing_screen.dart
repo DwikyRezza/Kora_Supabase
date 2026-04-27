@@ -213,7 +213,7 @@ class _LandingScreenState extends State<LandingScreen>
                     shaderCallback: (bounds) =>
                         AppTheme.neonGreenGrad.createShader(bounds),
                     child: Text(
-                      'Corefit',
+                      'Kora',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: context.font3XL,
