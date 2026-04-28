@@ -5,6 +5,7 @@ import '../models/protein_entry.dart';
 import '../services/database_helper.dart';
 import '../services/cloud_sync_service.dart';
 import '../theme/app_theme.dart';
+import '../secrets.dart'; // Import file rahasia
 
 class AiNutritionScreen extends StatefulWidget {
   const AiNutritionScreen({super.key});
@@ -19,9 +20,6 @@ class _AiNutritionScreenState extends State<AiNutritionScreen> {
   bool _isAnalyzing = false;
   List<_FoodResult>? _results;
   String? _errorMsg;
-
-  // ── Gemini API Key — ganti dengan key Anda ──
-  static const _apiKey = 'GEMINI_API_KEY_HERE';
 
   @override
   void initState() {
@@ -80,11 +78,12 @@ class _AiNutritionScreenState extends State<AiNutritionScreen> {
     try {
       final model = GenerativeModel(
         model: 'gemini-1.5-flash',
-        apiKey: _apiKey,
+        apiKey: geminiApiKey, // Menggunakan key dari secrets.dart
       );
 
       // Buat prompt daftar makanan
-      final foodList = foods.map((f) => '- ${f['name']} ${f['gram']}g').join('\n');
+      final foodList =
+          foods.map((f) => '- ${f['name']} ${f['gram']}g').join('\n');
       final prompt = '''
 Kamu adalah ahli gizi. Analisis kandungan nutrisi makanan berikut per porsi yang disebutkan.
 Berikan respons HANYA dalam format JSON array seperti contoh di bawah, tanpa teks lain.
@@ -247,7 +246,8 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                     const SizedBox(height: 2),
                     Text(
                       'Ketik nama makanan & beratnya. Tambah baris untuk beberapa makanan sekaligus.',
-                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+                      style: TextStyle(
+                          color: AppTheme.textSecondary, fontSize: 11),
                     ),
                   ],
                 ),
@@ -328,10 +328,12 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                   decoration: BoxDecoration(
                     color: AppTheme.accentRed.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppTheme.accentRed.withOpacity(0.4)),
+                    border:
+                        Border.all(color: AppTheme.accentRed.withOpacity(0.4)),
                   ),
                   child: Text(_errorMsg!,
-                      style: TextStyle(color: AppTheme.accentRed, fontSize: 13)),
+                      style:
+                          TextStyle(color: AppTheme.accentRed, fontSize: 13)),
                 ),
               ],
 
@@ -449,7 +451,8 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: const Color(0xFF4285F4), width: 2),
+                  borderSide:
+                      BorderSide(color: const Color(0xFF4285F4), width: 2),
                 ),
               ),
             ),
@@ -481,7 +484,8 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: const Color(0xFF4285F4), width: 2),
+                  borderSide:
+                      BorderSide(color: const Color(0xFF4285F4), width: 2),
                 ),
               ),
             ),
@@ -527,8 +531,8 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                     ],
                   ),
                   borderRadius: BorderRadius.circular(20),
-                  border:
-                      Border.all(color: const Color(0xFF4285F4).withOpacity(0.3)),
+                  border: Border.all(
+                      color: const Color(0xFF4285F4).withOpacity(0.3)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -547,14 +551,18 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                     const SizedBox(height: 14),
                     Row(
                       children: [
-                        _totalChip('Protein', '${totalProtein.toStringAsFixed(1)}g',
+                        _totalChip(
+                            'Protein',
+                            '${totalProtein.toStringAsFixed(1)}g',
                             const Color(0xFF4285F4)),
                         const SizedBox(width: 8),
-                        _totalChip('Kalori', '${totalCalories.toStringAsFixed(0)}kal',
+                        _totalChip(
+                            'Kalori',
+                            '${totalCalories.toStringAsFixed(0)}kal',
                             AppTheme.accentOrange),
                         const SizedBox(width: 8),
-                        _totalChip(
-                            'Karbo', '${totalCarbs.toStringAsFixed(1)}g', AppTheme.neonGreen),
+                        _totalChip('Karbo', '${totalCarbs.toStringAsFixed(1)}g',
+                            AppTheme.neonGreen),
                         const SizedBox(width: 8),
                         _totalChip('Lemak', '${totalFat.toStringAsFixed(1)}g',
                             const Color(0xFF9C27B0)),
@@ -597,8 +605,9 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   child: Text('Ulangi',
-                      style:
-                          TextStyle(color: AppTheme.textMuted, fontWeight: FontWeight.w600)),
+                      style: TextStyle(
+                          color: AppTheme.textMuted,
+                          fontWeight: FontWeight.w600)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -616,7 +625,8 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                     elevation: 0,
                   ),
                   child: const Text('Simpan Semua',
-                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                      style:
+                          TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
                 ),
               ),
             ],
@@ -641,8 +651,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
           Row(
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFF4285F4).withOpacity(0.12),
                   borderRadius: BorderRadius.circular(8),
@@ -806,8 +815,20 @@ class _GeminiPainter extends CustomPainter {
     }
   }
 
-  double _cos(double a) => (a == 0) ? 1 : (a == 1.5708) ? 0 : (a == 3.14159) ? -1 : 0;
-  double _sin(double a) => (a == 0) ? 0 : (a == 1.5708) ? 1 : (a == 3.14159) ? 0 : -1;
+  double _cos(double a) => (a == 0)
+      ? 1
+      : (a == 1.5708)
+          ? 0
+          : (a == 3.14159)
+              ? -1
+              : 0;
+  double _sin(double a) => (a == 0)
+      ? 0
+      : (a == 1.5708)
+          ? 1
+          : (a == 3.14159)
+              ? 0
+              : -1;
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
