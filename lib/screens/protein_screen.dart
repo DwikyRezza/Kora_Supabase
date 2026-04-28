@@ -9,6 +9,7 @@ import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import 'package:liquid_progress_indicator_v2/liquid_progress_indicator.dart';
 import 'weekly_report_screen.dart';
+import 'ai_nutrition_screen.dart';
 
 class ProteinScreen extends StatefulWidget {
   const ProteinScreen({super.key});
@@ -96,13 +97,46 @@ class _ProteinScreenState extends State<ProteinScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'proteinFab',
-        onPressed: _showAddProteinSheet,
-        backgroundColor: AppTheme.neonGreen,
-        foregroundColor: Colors.black,
-        icon: const Icon(Icons.restaurant_menu_rounded),
-        label: const Text('Catat Nutrisi', style: TextStyle(fontWeight: FontWeight.w800)),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Tombol kiri: AI Nutrition dengan logo Gemini
+            FloatingActionButton.extended(
+              heroTag: 'aiFab',
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AiNutritionScreen(),
+                  ),
+                );
+                // Jika ada data baru disimpan, reload
+                if (result == true) _loadData();
+              },
+              backgroundColor: AppTheme.surface,
+              foregroundColor: AppTheme.textPrimary,
+              elevation: 4,
+              icon: const _GeminiIcon(),
+              label: const Text(
+                'Catat AI',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+              ),
+            ),
+            // Tombol kanan: catat nutrisi manual
+            FloatingActionButton.extended(
+              heroTag: 'proteinFab',
+              onPressed: _showAddProteinSheet,
+              backgroundColor: AppTheme.neonGreen,
+              foregroundColor: Colors.black,
+              icon: const Icon(Icons.restaurant_menu_rounded),
+              label: const Text('Catat Nutrisi',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+            ),
+          ],
+        ),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: AppTheme.neonGreen))
@@ -729,3 +763,64 @@ class _AddNutritionSheetState extends State<_AddNutritionSheet> {
     );
   }
 }
+
+/// Widget logo Gemini 4-warna untuk tombol FAB
+class _GeminiIcon extends StatelessWidget {
+  const _GeminiIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 22,
+      height: 22,
+      child: CustomPaint(painter: _GeminiIconPainter()),
+    );
+  }
+}
+
+class _GeminiIconPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final r = size.width * 0.48;
+
+    final colors = [
+      const Color(0xFF4285F4),
+      const Color(0xFF9C27B0),
+      const Color(0xFFEA4335),
+      const Color(0xFFFBBC04),
+    ];
+
+    final angles = [
+      [-0.3, 0.3, 1.0, 0.0],    // kanan
+      [0.7, 1.3, 0.0, -1.0],    // bawah
+      [1.7, 2.3, -1.0, 0.0],    // kiri
+      [2.7, 3.3, 0.0, 1.0],     // atas
+    ];
+
+    for (int i = 0; i < 4; i++) {
+      final paint = Paint()..color = colors[i]..style = PaintingStyle.fill;
+      final dx = angles[i][2] * r;
+      final dy = angles[i][3] * r;
+      final path = Path()
+        ..moveTo(cx, cy)
+        ..lineTo(cx + dx + dy * 0.25, cy + dy - dx * 0.25)
+        ..lineTo(cx + dx * 1.1, cy + dy * 1.1)
+        ..lineTo(cx + dx - dy * 0.25, cy + dy + dx * 0.25)
+        ..close();
+      canvas.drawPath(path, paint);
+    }
+
+    // Lingkaran putih di tengah
+    canvas.drawCircle(
+      Offset(cx, cy),
+      size.width * 0.18,
+      Paint()..color = Colors.white.withOpacity(0.9),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
