@@ -77,8 +77,8 @@ class _AiNutritionScreenState extends State<AiNutritionScreen> {
 
     try {
       final model = GenerativeModel(
-        model: 'gemini-1.5-flash',
-        apiKey: geminiApiKey, // Menggunakan key dari secrets.dart
+        model: 'gemini-pro', // Gunakan gemini-pro yang lebih stabil di v1beta
+        apiKey: geminiApiKey, // Key dari secrets.dart
       );
 
       // Buat prompt daftar makanan
