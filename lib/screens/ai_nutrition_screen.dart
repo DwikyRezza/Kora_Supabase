@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 import '../models/protein_entry.dart';
 import '../services/database_helper.dart';
 import '../services/cloud_sync_service.dart';
 import '../theme/app_theme.dart';
-import '../secrets.dart'; // Import file rahasia
 
 class AiNutritionScreen extends StatefulWidget {
   const AiNutritionScreen({super.key});
@@ -76,10 +76,10 @@ class _AiNutritionScreenState extends State<AiNutritionScreen> {
     });
 
     try {
-      final model = GenerativeModel(
-        model: 'gemini-2.5-flash', // Gemini 2.5 Flash (dikonfirmasi tersedia)
-        apiKey: geminiApiKey, // Key dari secrets.dart
-      );
+      final apiKey = dotenv.env['GROQ_API_KEY'] ?? '';
+      if (apiKey.isEmpty) {
+        throw Exception('API key tidak valid. Periksa kembali GROQ_API_KEY di file .env.');
+      }
 
       // Buat prompt daftar makanan
       final foodList =
@@ -109,8 +109,27 @@ Format respons:
 Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan best estimate.
 ''';
 
-      final response = await model.generateContent([Content.text(prompt)]);
-      final text = response.text ?? '';
+      final res = await http.post(
+        Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $apiKey',
+        },
+        body: jsonEncode({
+          'model': 'llama-3.3-70b-versatile', // Model terbaru dari Groq
+          'messages': [
+            {'role': 'user', 'content': prompt}
+          ],
+          'temperature': 0,
+        }),
+      ).timeout(const Duration(seconds: 15));
+
+      if (res.statusCode != 200) {
+        throw Exception('API Error: ${res.statusCode} ${res.body}');
+      }
+
+      final resJson = jsonDecode(res.body);
+      final text = (resJson['choices'][0]['message']['content'] as String?) ?? '';
 
       // Ekstrak JSON dari respons
       final jsonStart = text.indexOf('[');
@@ -128,10 +147,10 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
     } catch (e) {
       String errorMsg;
       final errStr = e.toString();
-      if (errStr.contains('quota') || errStr.contains('RESOURCE_EXHAUSTED') || errStr.contains('rate limit')) {
-        errorMsg = 'Kuota API Gemini habis. Silakan coba lagi beberapa saat, atau ganti API key di Google AI Studio (aistudio.google.com).';
-      } else if (errStr.contains('API_KEY_INVALID') || errStr.contains('invalid')) {
-        errorMsg = 'API key tidak valid. Periksa kembali key di lib/secrets.dart.';
+      if (errStr.contains('quota') || errStr.contains('rate limit')) {
+        errorMsg = 'Kuota API Groq habis atau limit tercapai. Silakan coba lagi beberapa saat.';
+      } else if (errStr.contains('API_KEY_INVALID') || errStr.contains('401')) {
+        errorMsg = 'API key tidak valid. Periksa kembali GROQ_API_KEY di file .env.';
       } else if (errStr.contains('network') || errStr.contains('SocketException')) {
         errorMsg = 'Tidak ada koneksi internet. Pastikan perangkat terhubung ke internet.';
       } else {
@@ -212,7 +231,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
               ),
             ),
             const SizedBox(width: 8),
-            _GeminiLogo(),
+            _GroqLogo(),
           ],
         ),
       ),
@@ -240,14 +259,14 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
           ),
           child: Row(
             children: [
-              _GeminiLogo(size: 28),
+              _GroqLogo(size: 28),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Analisis Nutrisi dengan Gemini AI',
+                      'Analisis Nutrisi dengan Groq AI',
                       style: TextStyle(
                         color: AppTheme.textPrimary,
                         fontWeight: FontWeight.w700,
@@ -401,9 +420,9 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                       : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            _GeminiLogo(size: 22),
-                            const SizedBox(width: 10),
-                            const Text('Analisis dengan Gemini',
+                            _GroqLogo(size: 22),
+                            const SizedBox(width: 8),
+                            const Text('Analisis dengan Groq',
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w800,
@@ -550,9 +569,9 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                   children: [
                     Row(
                       children: [
-                        _GeminiLogo(size: 20),
+                        _GroqLogo(size: 20),
                         const SizedBox(width: 8),
-                        Text('Total ${results.length} Makanan',
+                        Text('Hasil Analisis Groq',
                             style: TextStyle(
                                 color: AppTheme.textPrimary,
                                 fontWeight: FontWeight.w800,
@@ -739,7 +758,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
   }
 }
 
-// ── Model hasil Gemini ───────────────────────────────────────────────────────
+// ── Model hasil Groq ─────────────────────────────────────────────────────────
 class _FoodResult {
   final String name;
   final double gram;
@@ -779,67 +798,42 @@ class _FoodResult {
   }
 }
 
-// ── Widget Logo Gemini ───────────────────────────────────────────────────────
-class _GeminiLogo extends StatelessWidget {
+// ── Widget Logo Groq ───────────────────────────────────────────────────────
+class _GroqLogo extends StatelessWidget {
   final double size;
-  const _GeminiLogo({this.size = 24});
+  const _GroqLogo({this.size = 24});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(painter: _GeminiPainter()),
+      child: CustomPaint(painter: _GroqPainter()),
     );
   }
 }
 
-class _GeminiPainter extends CustomPainter {
+class _GroqPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-
-    // Bintang Gemini 4-pointed
-    final colors = [
-      const Color(0xFF4285F4), // biru
-      const Color(0xFF9C27B0), // ungu
-      const Color(0xFFEA4335), // merah
-      const Color(0xFFFBBC04), // kuning
-    ];
-
-    for (int i = 0; i < 4; i++) {
-      final paint = Paint()
-        ..color = colors[i]
-        ..style = PaintingStyle.fill;
-      final angle = (i * 90) * (3.14159 / 180);
-      final cos = _cos(angle);
-      final sin = _sin(angle);
-      final r = size.width * 0.45;
-      final path = Path()
-        ..moveTo(cx, cy)
-        ..lineTo(cx + r * cos - r * 0.18 * sin, cy + r * sin + r * 0.18 * cos)
-        ..lineTo(cx + r * cos, cy + r * sin)
-        ..lineTo(cx + r * cos + r * 0.18 * sin, cy + r * sin - r * 0.18 * cos)
-        ..close();
-      canvas.drawPath(path, paint);
-    }
+    // Teks huruf "G" simple untuk logo Groq
+    final paint = Paint()
+      ..color = AppTheme.neonGreen
+      ..style = PaintingStyle.fill;
+    
+    final path = Path()
+      ..moveTo(size.width * 0.5, size.height * 0.1)
+      ..arcToPoint(Offset(size.width * 0.1, size.height * 0.5), radius: Radius.circular(size.width * 0.4), clockwise: false)
+      ..arcToPoint(Offset(size.width * 0.5, size.height * 0.9), radius: Radius.circular(size.width * 0.4), clockwise: false)
+      ..arcToPoint(Offset(size.width * 0.9, size.height * 0.5), radius: Radius.circular(size.width * 0.4), clockwise: false)
+      ..lineTo(size.width * 0.5, size.height * 0.5)
+      ..lineTo(size.width * 0.5, size.height * 0.65)
+      ..lineTo(size.width * 0.7, size.height * 0.65)
+      ..arcToPoint(Offset(size.width * 0.5, size.height * 0.75), radius: Radius.circular(size.width * 0.25))
+      ..arcToPoint(Offset(size.width * 0.25, size.height * 0.5), radius: Radius.circular(size.width * 0.25))
+      ..arcToPoint(Offset(size.width * 0.5, size.height * 0.25), radius: Radius.circular(size.width * 0.25));
+    canvas.drawPath(path, paint);
   }
-
-  double _cos(double a) => (a == 0)
-      ? 1
-      : (a == 1.5708)
-          ? 0
-          : (a == 3.14159)
-              ? -1
-              : 0;
-  double _sin(double a) => (a == 0)
-      ? 0
-      : (a == 1.5708)
-          ? 1
-          : (a == 3.14159)
-              ? 0
-              : -1;
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;

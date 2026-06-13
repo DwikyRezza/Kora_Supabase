@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,8 +10,8 @@ class StravaService {
   static const String _baseUrl = 'https://www.strava.com/api/v3';
   static const String _tokenUrl = 'https://www.strava.com/oauth/token';
 
-  static const String _clientId = '223195';
-  static const String _clientSecret = '15d386f56ea6dbb7f7b5d730d88f85567b3020d1';
+  static String get _clientId => dotenv.env['STRAVA_CLIENT_ID'] ?? '';
+  static String get _clientSecret => dotenv.env['STRAVA_CLIENT_SECRET'] ?? '';
 
   static const String _prefAccessTokenKey = 'strava_access_token';
   static const String _prefRefreshTokenKey = 'strava_refresh_token';

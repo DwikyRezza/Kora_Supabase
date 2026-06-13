@@ -103,7 +103,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Tombol kiri: AI Nutrition dengan logo Gemini
+            // Tombol kiri: AI Nutrition dengan logo Groq
             FloatingActionButton.extended(
               heroTag: 'aiFab',
               onPressed: () async {
@@ -119,7 +119,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
               backgroundColor: AppTheme.surface,
               foregroundColor: AppTheme.textPrimary,
               elevation: 4,
-              icon: const _GeminiIcon(),
+              icon: const _GroqIcon(),
               label: const Text(
                 'Catat AI',
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
@@ -764,60 +764,39 @@ class _AddNutritionSheetState extends State<_AddNutritionSheet> {
   }
 }
 
-/// Widget logo Gemini 4-warna untuk tombol FAB
-class _GeminiIcon extends StatelessWidget {
-  const _GeminiIcon();
+/// Widget logo Groq untuk tombol FAB
+class _GroqIcon extends StatelessWidget {
+  const _GroqIcon();
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 22,
       height: 22,
-      child: CustomPaint(painter: _GeminiIconPainter()),
+      child: CustomPaint(painter: _GroqIconPainter()),
     );
   }
 }
 
-class _GeminiIconPainter extends CustomPainter {
+class _GroqIconPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-    final r = size.width * 0.48;
-
-    final colors = [
-      const Color(0xFF4285F4),
-      const Color(0xFF9C27B0),
-      const Color(0xFFEA4335),
-      const Color(0xFFFBBC04),
-    ];
-
-    final angles = [
-      [-0.3, 0.3, 1.0, 0.0],    // kanan
-      [0.7, 1.3, 0.0, -1.0],    // bawah
-      [1.7, 2.3, -1.0, 0.0],    // kiri
-      [2.7, 3.3, 0.0, 1.0],     // atas
-    ];
-
-    for (int i = 0; i < 4; i++) {
-      final paint = Paint()..color = colors[i]..style = PaintingStyle.fill;
-      final dx = angles[i][2] * r;
-      final dy = angles[i][3] * r;
-      final path = Path()
-        ..moveTo(cx, cy)
-        ..lineTo(cx + dx + dy * 0.25, cy + dy - dx * 0.25)
-        ..lineTo(cx + dx * 1.1, cy + dy * 1.1)
-        ..lineTo(cx + dx - dy * 0.25, cy + dy + dx * 0.25)
-        ..close();
-      canvas.drawPath(path, paint);
-    }
-
-    // Lingkaran putih di tengah
-    canvas.drawCircle(
-      Offset(cx, cy),
-      size.width * 0.18,
-      Paint()..color = Colors.white.withOpacity(0.9),
-    );
+    final paint = Paint()
+      ..color = AppTheme.neonGreen
+      ..style = PaintingStyle.fill;
+    
+    final path = Path()
+      ..moveTo(size.width * 0.5, size.height * 0.1)
+      ..arcToPoint(Offset(size.width * 0.1, size.height * 0.5), radius: Radius.circular(size.width * 0.4), clockwise: false)
+      ..arcToPoint(Offset(size.width * 0.5, size.height * 0.9), radius: Radius.circular(size.width * 0.4), clockwise: false)
+      ..arcToPoint(Offset(size.width * 0.9, size.height * 0.5), radius: Radius.circular(size.width * 0.4), clockwise: false)
+      ..lineTo(size.width * 0.5, size.height * 0.5)
+      ..lineTo(size.width * 0.5, size.height * 0.65)
+      ..lineTo(size.width * 0.7, size.height * 0.65)
+      ..arcToPoint(Offset(size.width * 0.5, size.height * 0.75), radius: Radius.circular(size.width * 0.25))
+      ..arcToPoint(Offset(size.width * 0.25, size.height * 0.5), radius: Radius.circular(size.width * 0.25))
+      ..arcToPoint(Offset(size.width * 0.5, size.height * 0.25), radius: Radius.circular(size.width * 0.25));
+    canvas.drawPath(path, paint);
   }
 
   @override

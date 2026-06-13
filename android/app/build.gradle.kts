@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -5,6 +8,14 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
 }
+
+val envFile = file("../../.env")
+val envProperties = Properties()
+if (envFile.exists()) {
+    envProperties.load(FileInputStream(envFile))
+}
+val mapsApiKey = envProperties.getProperty("MAPS_API_KEY") ?: ""
+
 
 android {
     namespace = "com.tubes.apb"
@@ -33,6 +44,7 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         multiDexEnabled = true
+        manifestPlaceholders["mapsApiKey"] = mapsApiKey
     }
 
     buildTypes {
