@@ -386,23 +386,10 @@ class _LandingScreenState extends State<LandingScreen>
 class _GoogleGIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Image.asset(
+      'assets/icons/google.png',
       width: 22,
       height: 22,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Center(
-        child: Text(
-          'G',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: Colors.blue[700],
-          ),
-        ),
-      ),
     );
   }
 }
