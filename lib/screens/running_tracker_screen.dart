@@ -12,7 +12,6 @@ import '../services/cloud_sync_service.dart';
 import '../services/social_service.dart';
 import '../utils/responsive.dart';
 import '../utils/tab_visibility.dart';
-import 'strava_import_screen.dart';
 
 class RunningTrackerScreen extends StatefulWidget {
   final double userWeight;
@@ -1076,49 +1075,6 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
-              // Tombol import Strava
-              if (!_isRunning && !_hasStarted)
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const StravaImportScreen(),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFC5200),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFFC5200).withOpacity(0.4),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('', style: TextStyle(fontSize: 12)),
-                        SizedBox(width: 4),
-                        Text(
-                          'Strava',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
             ],
           ),
         ),

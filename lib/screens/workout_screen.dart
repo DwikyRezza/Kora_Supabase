@@ -5,7 +5,6 @@ import 'package:share_plus/share_plus.dart';
 import '../models/workout.dart';
 import '../services/database_helper.dart';
 import '../services/profile_service.dart';
-import '../services/strava_service.dart';
 import '../services/cloud_sync_service.dart';
 import 'running_tracker_screen.dart';
 import 'workout_setup_screen.dart';
@@ -121,14 +120,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
         ),
         backgroundColor: Colors.white,
         elevation: 0,
-        actions: [
-          IconButton(icon: const Icon(Icons.sync, color: Color(0xFF2F2F2F), size: 28), tooltip: 'Import Strava', onPressed: () => _importFromStrava(context)),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined, color: Color(0xFF2F2F2F), size: 28),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingScreen())),
-          ),
-          const SizedBox(width: 16),
-        ],
+        actions: const [],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(50),
           child: Column(
@@ -561,105 +553,6 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
     );
   }
 
-  Future<void> _importFromStrava(BuildContext context) async {
-    final hasToken = await StravaService.hasRefreshToken();
-    if (!hasToken) {
-      await _showRefreshTokenSetupDialog(context);
-      return;
-    }
-    await _doStravaSync(context);
-  }
-
-  Future<void> _showRefreshTokenSetupDialog(BuildContext context) async {
-    final tokenController = TextEditingController();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(26),
-          ),
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 64, height: 64,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFC5200),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.link_rounded, color: Colors.white, size: 32),
-              ),
-              const SizedBox(height: 24),
-              const Text('Strava Sync', style: TextStyle(color: Color(0xFF2F2F2F), fontWeight: FontWeight.bold, fontSize: 22)),
-              const SizedBox(height: 8),
-              const Text(
-                'Hubungkan aplikasi dengan token Strava.',
-                style: TextStyle(color: Colors.grey, fontSize: 14),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(26),
-                ),
-                child: TextField(
-                  controller: tokenController,
-                  style: const TextStyle(color: Color(0xFF2F2F2F), fontSize: 14),
-                  maxLines: 2,
-                  decoration: const InputDecoration(
-                    hintText: 'Tempel Refresh Token...',
-                    hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
-                    prefixIcon: Icon(Icons.vpn_key_rounded, color: Color(0xFFFC5200), size: 20),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(ctx, true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFC5200),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    elevation: 0,
-                  ),
-                  child: const Text('Hubungkan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-
-    if (confirmed != true || tokenController.text.trim().isEmpty) return;
-
-    try {
-      await StravaService.saveRefreshToken(tokenController.text.trim());
-      if (!mounted) return;
-      await _doStravaSync(context);
-    } catch (e) {
-      await StravaService.clearAllTokens();
-    }
-  }
-
-  Future<void> _doStravaSync(BuildContext context) async {
-    try {
-      await StravaService.importRecentActivities();
-      _loadData();
-    } catch (e) {
-      await StravaService.clearAllTokens();
-    }
-  }
-
   void showWorkoutSelectionSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -704,19 +597,6 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
                   final profile = await ProfileService.getProfile();
                   final weight = profile[ProfileService.keyWeight] ?? 70.0;
                   Navigator.of(context).push(MaterialPageRoute(builder: (_) => WorkoutSetupScreen(userWeight: weight))).then((_) => _loadData());
-                },
-              ),
-              const SizedBox(height: 16),
-              
-              _buildBoldGatewayCard(
-                context,
-                title: 'Import Strava',
-                subtitle: 'Sinkronisasi otomatis',
-                icon: Icons.sync_rounded,
-                accentColor: const Color(0xFF00A9DD),
-                onTap: () {
-                  Navigator.pop(context);
-                  _importFromStrava(context);
                 },
               ),
             ],
