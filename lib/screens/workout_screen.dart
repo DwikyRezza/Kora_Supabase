@@ -514,6 +514,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
         maxY: target * 1.5,
+        barGroups: barGroups, // <-- Ini yang terlupa
         barTouchData: BarTouchData(
           enabled: true,
           touchTooltipData: BarTouchTooltipData(
