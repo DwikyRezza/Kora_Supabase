@@ -250,22 +250,7 @@ class _LandingScreenState extends State<LandingScreen>
                     ),
                   ),
 
-                  const SizedBox(height: 32),
-
-                  // ── Feature list ─────────────────────────────────────
-                  _buildFeatureRow(Icons.directions_run_rounded,
-                      'Lacak aktivitas lari & angkat beban'),
-                  SizedBox(height: 20),
-                  _buildFeatureRow(
-                      Icons.restaurant_rounded, 'Monitor asupan nutrisi harian'),
-                  SizedBox(height: 20),
-                  _buildFeatureRow(
-                      Icons.calendar_month_rounded, 'Atur jadwal latihan tanpa repot'),
-                  SizedBox(height: 20),
-                  _buildFeatureRow(Icons.cloud_sync_rounded,
-                      'Data tersimpan di cloud dengan aman'),
-
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 48),
 
                   // ── Register Button ───────────────────────────────────
                   SizedBox(
@@ -375,35 +360,6 @@ class _LandingScreenState extends State<LandingScreen>
       ),
     ),
   );
-}
-
-  Widget _buildFeatureRow(IconData icon, String text) {
-    return Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5), // Fog
-            borderRadius: BorderRadius.circular(26), // pill radius
-          ),
-          child: Icon(icon,
-              color: const Color(0xFFFF5406), size: 20), // Ember Orange icon
-        ),
-        SizedBox(width: 24),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              color: const Color(0xFF2F2F2F), // Graphite
-              fontSize: 16,
-              fontWeight: FontWeight.w500, // Medium
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }
 
 /// Widget Google "G" icon kecil
