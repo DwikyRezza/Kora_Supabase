@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/workout.dart';
@@ -23,7 +24,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'Kora.db');
     return await openDatabase(
       path,
-      version: 10,
+      version: 11,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -137,6 +138,17 @@ class DatabaseHelper {
         timestamp TEXT NOT NULL
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE workout_photos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        workout_id INTEGER NOT NULL,
+        file_path TEXT NOT NULL,
+        sort_order INTEGER DEFAULT 0,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (workout_id) REFERENCES workouts (id) ON DELETE CASCADE
+      )
+    ''');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -226,6 +238,76 @@ class DatabaseHelper {
       try { await db.execute("ALTER TABLE schedule_events ADD COLUMN status TEXT DEFAULT 'pending'"); } catch (_) {}
       try { await db.execute("UPDATE schedule_events SET status = 'done' WHERE isCompleted = 1"); } catch (_) {}
     }
+    // ── v11: Normalisasi foto ke tabel terpisah (lazy loading) ──────────────
+    if (oldVersion < 11) {
+      try {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS workout_photos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            workout_id INTEGER NOT NULL,
+            file_path TEXT NOT NULL,
+            sort_order INTEGER DEFAULT 0,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (workout_id) REFERENCES workouts (id) ON DELETE CASCADE
+          )
+        ''');
+
+        // Migrasi data: pindahkan photoPath & photosJson ke tabel baru
+        final workouts = await db.query('workouts');
+        for (final w in workouts) {
+          final workoutId = w['id'] as int;
+          final now = DateTime.now().toIso8601String();
+          int order = 0;
+
+          // Migrasi photosJson (JSON array of file paths)
+          final photosJson = w['photosJson'] as String?;
+          if (photosJson != null && photosJson.isNotEmpty) {
+            try {
+              final List<dynamic> paths = _jsonDecodeSafe(photosJson);
+              for (final p in paths) {
+                if (p is String && p.isNotEmpty) {
+                  await db.insert('workout_photos', {
+                    'workout_id': workoutId,
+                    'file_path': p,
+                    'sort_order': order++,
+                    'created_at': now,
+                  });
+                }
+              }
+            } catch (_) {}
+          }
+
+          // Migrasi photoPath (single path, legacy)
+          final photoPath = w['photoPath'] as String?;
+          if (photoPath != null && photoPath.isNotEmpty) {
+            // Cek apakah sudah dipindahkan dari photosJson
+            final existing = await db.query(
+              'workout_photos',
+              where: 'workout_id = ? AND file_path = ?',
+              whereArgs: [workoutId, photoPath],
+            );
+            if (existing.isEmpty) {
+              await db.insert('workout_photos', {
+                'workout_id': workoutId,
+                'file_path': photoPath,
+                'sort_order': order,
+                'created_at': now,
+              });
+            }
+          }
+        }
+      } catch (_) {}
+    }
+  }
+
+  /// Helper: safe JSON decode untuk migrasi
+  static List<dynamic> _jsonDecodeSafe(String str) {
+    try {
+      final result = jsonDecode(str);
+      return result is List ? result : [];
+    } catch (_) {
+      return [];
+    }
   }
 
   // ---- WORKOUT METHODS ----
@@ -280,6 +362,8 @@ class DatabaseHelper {
 
   Future<int> deleteWorkout(int id) async {
     final db = await database;
+    // Hapus foto terkait dulu (FK cascade tidak aktif by default di SQLite)
+    await db.delete('workout_photos', where: 'workout_id = ?', whereArgs: [id]);
     return await db.delete('workouts', where: 'id = ?', whereArgs: [id]);
   }
 
@@ -291,6 +375,99 @@ class DatabaseHelper {
       where: 'id = ?',
       whereArgs: [workout.id],
     );
+  }
+
+  // ---- WORKOUT PHOTOS (LAZY LOADING) ----
+
+  /// Ambil semua foto workout berdasarkan workout_id.
+  /// Hanya dipanggil saat UI benar-benar butuh menampilkan foto (lazy).
+  Future<List<String>> getWorkoutPhotos(int workoutId) async {
+    final db = await database;
+    final maps = await db.query(
+      'workout_photos',
+      where: 'workout_id = ?',
+      whereArgs: [workoutId],
+      orderBy: 'sort_order ASC',
+    );
+    return maps.map((m) => m['file_path'] as String).toList();
+  }
+
+  /// Cek apakah workout memiliki foto (ringan — tanpa load data foto).
+  /// Berguna untuk thumbnail indicator di list view.
+  Future<bool> workoutHasPhotos(int workoutId) async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as cnt FROM workout_photos WHERE workout_id = ?',
+      [workoutId],
+    );
+    return (result.first['cnt'] as int) > 0;
+  }
+
+  /// Batch check: dari daftar workoutId, kembalikan Set ID yang punya foto.
+  /// Lebih efisien daripada N kali workoutHasPhotos() untuk list view.
+  Future<Set<int>> getWorkoutIdsWithPhotos(List<int> workoutIds) async {
+    if (workoutIds.isEmpty) return {};
+    final db = await database;
+    final placeholders = workoutIds.map((_) => '?').join(',');
+    final result = await db.rawQuery(
+      'SELECT DISTINCT workout_id FROM workout_photos WHERE workout_id IN ($placeholders)',
+      workoutIds,
+    );
+    return result.map((r) => r['workout_id'] as int).toSet();
+  }
+
+  /// Ambil file_path foto pertama (sort_order terendah) untuk thumbnail.
+  Future<String?> getFirstWorkoutPhoto(int workoutId) async {
+    final db = await database;
+    final result = await db.query(
+      'workout_photos',
+      columns: ['file_path'],
+      where: 'workout_id = ?',
+      whereArgs: [workoutId],
+      orderBy: 'sort_order ASC',
+      limit: 1,
+    );
+    if (result.isEmpty) return null;
+    return result.first['file_path'] as String?;
+  }
+
+  /// Tambah foto ke workout tertentu.
+  Future<int> addWorkoutPhoto(int workoutId, String filePath, {int? sortOrder}) async {
+    final db = await database;
+    // Auto-assign sort_order jika tidak diberikan
+    final order = sortOrder ?? await _getNextPhotoOrder(workoutId);
+    return await db.insert('workout_photos', {
+      'workout_id': workoutId,
+      'file_path': filePath,
+      'sort_order': order,
+      'created_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  /// Hapus satu foto berdasarkan ID.
+  Future<int> deleteWorkoutPhoto(int photoId) async {
+    final db = await database;
+    return await db.delete('workout_photos', where: 'id = ?', whereArgs: [photoId]);
+  }
+
+  /// Hapus semua foto milik workout tertentu.
+  Future<int> deleteAllWorkoutPhotos(int workoutId) async {
+    final db = await database;
+    return await db.delete(
+      'workout_photos',
+      where: 'workout_id = ?',
+      whereArgs: [workoutId],
+    );
+  }
+
+  /// Helper: dapatkan sort_order berikutnya untuk workout tertentu.
+  Future<int> _getNextPhotoOrder(int workoutId) async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT MAX(sort_order) as max_order FROM workout_photos WHERE workout_id = ?',
+      [workoutId],
+    );
+    return ((result.first['max_order'] as int?) ?? -1) + 1;
   }
 
   // ---- PROTEIN METHODS ----

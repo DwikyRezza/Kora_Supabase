@@ -32,6 +32,9 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
   String _userName = 'Atlet';
   String? _userPhotoUrl;
 
+  /// Incremented to force FutureBuilder to re-fetch photos from DB
+  int _photoRefreshKey = 0;
+
   @override
   void initState() {
     super.initState();
@@ -67,43 +70,15 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
       final fileName = '${DateTime.now().millisecondsSinceEpoch}_${p.basename(pickedFile.path)}';
       final savedImage = await File(pickedFile.path).copy('${appDir.path}/$fileName');
 
-      List<String> currentPhotos = [];
-      if (_workout.photosJson != null && _workout.photosJson!.isNotEmpty) {
-        try {
-          currentPhotos = List<String>.from(jsonDecode(_workout.photosJson!));
-        } catch (_) {}
-      } else if (_workout.photoPath != null) {
-        currentPhotos = [_workout.photoPath!];
+      // Simpan ke tabel terpisah workout_photos (lazy loading)
+      if (_workout.id != null) {
+        await DatabaseHelper().addWorkoutPhoto(_workout.id!, savedImage.path);
       }
-      currentPhotos.add(savedImage.path);
-
-      final updatedWorkout = Workout(
-        id: _workout.id,
-        type: _workout.type,
-        duration: _workout.duration,
-        distance: _workout.distance,
-        sets: _workout.sets,
-        reps: _workout.reps,
-        weight: _workout.weight,
-        caloriesBurned: _workout.caloriesBurned,
-        proteinNeeded: _workout.proteinNeeded,
-        notes: _workout.notes,
-        date: _workout.date,
-        movingTime: _workout.movingTime,
-        elevationGain: _workout.elevationGain,
-        maxElevation: _workout.maxElevation,
-        photoPath: _workout.photoPath, // keep for compatibility
-        splitsStr: _workout.splitsStr,
-        polyline: _workout.polyline,
-        title: _workout.title,
-        photosJson: jsonEncode(currentPhotos),
-      );
-
-      await DatabaseHelper().updateWorkout(updatedWorkout);
 
       setState(() {
-        _workout = updatedWorkout;
         _isLoading = false;
+        // Trigger rebuild — FutureBuilder akan re-fetch foto dari DB
+        _photoRefreshKey++;
       });
     }
   }
@@ -159,8 +134,8 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                 proteinNeeded: _workout.proteinNeeded, notes: _workout.notes,
                 date: _workout.date, movingTime: _workout.movingTime,
                 elevationGain: _workout.elevationGain, maxElevation: _workout.maxElevation,
-                photoPath: _workout.photoPath, splitsStr: _workout.splitsStr,
-                polyline: _workout.polyline, title: newTitle, photosJson: _workout.photosJson,
+                splitsStr: _workout.splitsStr,
+                polyline: _workout.polyline, title: newTitle,
               );
               await DatabaseHelper().updateWorkout(updated);
               setState(() => _workout = updated);
@@ -206,14 +181,6 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
       } catch (e) {
         // ignore
       }
-    }
-    List<String> photos = [];
-    if (_workout.photosJson != null && _workout.photosJson!.isNotEmpty) {
-      try {
-        photos = List<String>.from(jsonDecode(_workout.photosJson!));
-      } catch (_) {}
-    } else if (_workout.photoPath != null) {
-      photos = [_workout.photoPath!];
     }
 
     return Scaffold(
@@ -430,7 +397,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                     const SizedBox(height: 28),
                   ],
 
-                  // --- FOTO LATIHAN ---
+                  // --- FOTO LATIHAN (Lazy Loading dari tabel terpisah) ---
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -442,27 +409,43 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  if (photos.isNotEmpty)
-                    SizedBox(
-                      height: 200,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: photos.length,
-                        itemBuilder: (context, i) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: Image.file(
-                                File(photos[i]),
-                                width: 300,
-                                height: 200,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
+                  if (_workout.id != null)
+                    FutureBuilder<List<String>>(
+                      key: ValueKey('photos_$_photoRefreshKey'),
+                      future: DatabaseHelper().getWorkoutPhotos(_workout.id!),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const SizedBox(
+                            height: 80,
+                            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
                           );
-                        },
-                      ),
+                        }
+                        final photos = snapshot.data ?? [];
+                        if (photos.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return SizedBox(
+                          height: 200,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: photos.length,
+                            itemBuilder: (context, i) {
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 12),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Image.file(
+                                    File(photos[i]),
+                                    width: 300,
+                                    height: 200,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
                     ),
                   const SizedBox(height: 48),
                 ],

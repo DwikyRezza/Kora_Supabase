@@ -80,6 +80,27 @@ class CloudSyncService {
       }
       await batch.commit();
       print('[CloudSync] ✅ Workouts synced: ${workouts.length}');
+
+      // Sync workout_photos (subcollection per workout)
+      final db = await _db.database;
+      for (final w in workouts) {
+        if (w.id == null) continue;
+        final photos = await db.query(
+          'workout_photos',
+          where: 'workout_id = ?',
+          whereArgs: [w.id],
+        );
+        if (photos.isEmpty) continue;
+        final photoBatch = _firestore.batch();
+        for (final p in photos) {
+          photoBatch.set(
+            _userDoc.collection('workouts').doc(w.id.toString()).collection('photos').doc(p['id'].toString()),
+            Map<String, dynamic>.from(p)..remove('id'),
+          );
+        }
+        await photoBatch.commit();
+      }
+      print('[CloudSync] ✅ Workout photos synced');
     } catch (e) {
       print('[CloudSync] ⚠️ Workout sync failed: $e');
     }
@@ -89,7 +110,17 @@ class CloudSyncService {
   static Future<void> deleteWorkout(int workoutId) async {
     if (!AuthService.isLoggedIn) return;
     try {
-      await _userDoc.collection('workouts').doc(workoutId.toString()).delete();
+      final workoutRef = _userDoc.collection('workouts').doc(workoutId.toString());
+      // Hapus photos subcollection dulu
+      final photosSnap = await workoutRef.collection('photos').get();
+      if (photosSnap.docs.isNotEmpty) {
+        final batch = _firestore.batch();
+        for (final p in photosSnap.docs) {
+          batch.delete(p.reference);
+        }
+        await batch.commit();
+      }
+      await workoutRef.delete();
       print('[CloudSync] ✅ Workout $workoutId deleted from Firestore');
     } catch (e) {
       print('[CloudSync] ⚠️ Delete workout failed: $e');
@@ -235,14 +266,28 @@ class CloudSyncService {
       if (snapshot.docs.isEmpty) return;
 
       await db.delete('workouts');
+      // Also clean workout_photos table
+      await db.delete('workout_photos');
+
       for (final doc in snapshot.docs) {
         final map = Map<String, dynamic>.from(doc.data());
         map.remove('id');
         try {
-          await db.insert('workouts', map);
+          final localId = await db.insert('workouts', map);
+
+          // Restore photos subcollection for this workout
+          final photosSnap = await doc.reference.collection('photos').get();
+          for (final photoDoc in photosSnap.docs) {
+            final photoMap = Map<String, dynamic>.from(photoDoc.data());
+            photoMap.remove('id');
+            photoMap['workout_id'] = localId; // Relink ke ID lokal baru
+            try {
+              await db.insert('workout_photos', photoMap);
+            } catch (_) {}
+          }
         } catch (_) {}
       }
-      print('[CloudSync] ✅ Workouts restored from Firestore');
+      print('[CloudSync] ✅ Workouts + photos restored from Firestore');
     } catch (e) {
       print('[CloudSync] ⚠️ Workouts restore failed: $e');
     }

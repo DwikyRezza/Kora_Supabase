@@ -91,11 +91,11 @@ class Workout {
       'movingTime': movingTime,
       'elevationGain': elevationGain,
       'maxElevation': maxElevation,
-      'photoPath': photoPath,
       'splitsStr': splitsStr,
       'polyline': polyline,
       'title': title,
-      'photosJson': photosJson,
+      // photoPath & photosJson TIDAK dimasukkan lagi —
+      // foto sekarang disimpan di tabel terpisah 'workout_photos' (lazy loading)
     };
   }
 
@@ -115,6 +115,9 @@ class Workout {
       movingTime: map['movingTime'],
       elevationGain: map['elevationGain'],
       maxElevation: map['maxElevation'],
+      // Legacy fields — tetap dibaca untuk backward compat, tapi tidak
+      // lagi digunakan sebagai sumber utama foto. Gunakan DatabaseHelper
+      // .getWorkoutPhotos(id) untuk lazy loading foto.
       photoPath: map['photoPath'],
       splitsStr: map['splitsStr'],
       polyline: map['polyline'],

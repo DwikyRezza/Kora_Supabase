@@ -28,6 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int _followingCount = 0;
   int _activitiesCount = 0;
   List<Workout> _activitiesList = [];
+  Set<int> _workoutsWithPhotos = {};  // Lazy-loading: Set ID workout yang punya foto
 
   // State untuk Fitur Sosial (Lokal/Simulasi)
   final Map<int, int> _likesCount = {};
@@ -61,6 +62,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Load activities
     final allWorkouts = await DatabaseHelper().getAllWorkouts();
     
+    // Batch check: workout mana saja yang punya foto (lazy — tanpa load data foto)
+    final workoutIds = allWorkouts.map((w) => w.id).where((id) => id != null).cast<int>().toList();
+    final idsWithPhotos = await DatabaseHelper().getWorkoutIdsWithPhotos(workoutIds);
+    
     if (!mounted) return;
     setState(() {
       _profile = profile;
@@ -68,6 +73,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _followingCount = following;
       _activitiesList = allWorkouts;
       _activitiesCount = allWorkouts.length;
+      _workoutsWithPhotos = idsWithPhotos;
       _isLoading = false;
     });
   }
@@ -471,7 +477,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       separatorBuilder: (context, index) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
         final workout = _activitiesList[index];
-        final hasPhoto = workout.photoPath != null && workout.photoPath!.isNotEmpty;
+        final hasPhoto = workout.id != null && _workoutsWithPhotos.contains(workout.id);
         final dateStr = DateFormat('dd MMM yyyy • HH.mm').format(workout.date);
 
         final typeLower = workout.type.toLowerCase();
@@ -629,7 +635,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: AspectRatio(
                     aspectRatio: 4 / 3,
                     child: hasPhoto 
-                      ? Image.file(File(workout.photoPath!), fit: BoxFit.cover)
+                      ? FutureBuilder<String?>(
+                          future: DatabaseHelper().getFirstWorkoutPhoto(workout.id!),
+                          builder: (context, snap) {
+                            if (snap.connectionState == ConnectionState.waiting) {
+                              return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+                            }
+                            final path = snap.data;
+                            if (path != null && File(path).existsSync()) {
+                              return Image.file(File(path), fit: BoxFit.cover);
+                            }
+                            // Fallback jika file hilang
+                            return ((typeLower == 'running' || typeLower == 'lari') && workout.polyline != null && workout.polyline!.isNotEmpty)
+                                ? _buildMap(workout.polyline!)
+                                : Image.network(defaultImage, fit: BoxFit.cover);
+                          },
+                        )
                       : ((typeLower == 'running' || typeLower == 'lari') && workout.polyline != null && workout.polyline!.isNotEmpty)
                           ? _buildMap(workout.polyline!)
                           : Image.network(defaultImage, fit: BoxFit.cover),
