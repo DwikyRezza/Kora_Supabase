@@ -16,6 +16,7 @@ class AiNutritionScreen extends StatefulWidget {
 class _AiNutritionScreenState extends State<AiNutritionScreen> {
   final List<Map<String, TextEditingController>> _rows = [];
   bool _isAnalyzing = false;
+  bool _isSaving = false;
   List<_FoodResult>? _results;
   String? _errorMsg;
 
@@ -159,13 +160,17 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
   }
 
   Future<void> _saveAll() async {
-    if (_results == null || _results!.isEmpty) return;
+    if (_results == null || _results!.isEmpty || _isSaving) return;
+
+    setState(() => _isSaving = true);
 
     final db = DatabaseHelper();
     final now = DateTime.now();
+    final mealType = _detectMealType(now);
 
-    for (final result in _results!) {
-      final entry = ProteinEntry(
+    // Offline-first: batch ALL SQLite writes in parallel for instant feel
+    await Future.wait(_results!.map((result) => db.insertProteinEntry(
+      ProteinEntry(
         foodName: result.name,
         proteinGrams: result.protein,
         calories: result.calories,
@@ -175,14 +180,15 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
         sugarGrams: result.sugar,
         saltGrams: result.salt,
         waterMl: 0,
-        mealType: _detectMealType(now),
+        mealType: mealType,
         date: now,
-      );
-      await db.insertProteinEntry(entry);
-    }
+      ),
+    )));
 
+    // Non-blocking cloud sync (fire-and-forget)
     CloudSyncService.syncNutritionToCloud().catchError((_) {});
 
+    // Immediately show success + close — user feels zero lag
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -192,7 +198,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
-    Navigator.pop(context, true); 
+    Navigator.pop(context, true);
   }
 
   String _detectMealType(DateTime dt) {
@@ -358,36 +364,24 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                     borderRadius: BorderRadius.circular(26)),
                 elevation: 0,
               ),
-              child: _isAnalyzing
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 3),
-                        ),
-                        SizedBox(width: 12),
-                        Text('Menganalisis...',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16)),
-                      ],
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (_isAnalyzing)
+                    const SizedBox(
+                      width: 22, height: 22,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
                     )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        _GroqLogo(size: 24, isWhite: true),
-                        SizedBox(width: 12),
-                        Text('Analisis',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16)),
-                      ],
-                    ),
+                  else
+                    const _GroqLogo(size: 24, isWhite: true),
+                  const SizedBox(width: 12),
+                  Text(_isAnalyzing ? 'Menganalisis...' : 'Analisis',
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16)),
+                ],
+              ),
             ),
           ),
         ),
@@ -543,17 +537,22 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
               Expanded(
                 flex: 2,
                 child: ElevatedButton(
-                  onPressed: _saveAll,
+                  onPressed: _isSaving ? null : _saveAll,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFF5406),
+                    disabledBackgroundColor: const Color(0xFFFF5406).withOpacity(0.5),
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(26)),
                     elevation: 0,
                   ),
-                  child: const Text('Simpan',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                  child: _isSaving
+                      ? const SizedBox(
+                          width: 22, height: 22,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                        )
+                      : const Text('Simpan',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
                 ),
               ),
             ],

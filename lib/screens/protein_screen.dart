@@ -450,6 +450,7 @@ class _AddNutritionSheet extends StatefulWidget {
 class _AddNutritionSheetState extends State<_AddNutritionSheet> {
   final _db = DatabaseHelper();
   final _amountCtrl = TextEditingController(text: '1');
+  bool _isSaving = false;
   
   String _selectedMealType = 'lunch';
   final _mealTypes = [
@@ -483,9 +484,11 @@ class _AddNutritionSheetState extends State<_AddNutritionSheet> {
   }
 
   Future<void> _save() async {
-    if (_selectedFood == null) return;
-    
+    if (_selectedFood == null || _isSaving) return;
+
     HapticFeedback.mediumImpact();
+    setState(() => _isSaving = true);
+
     try {
       final player = AudioPlayer();
       await player.play(AssetSource('audio/click.mp3'));
@@ -506,8 +509,13 @@ class _AddNutritionSheetState extends State<_AddNutritionSheet> {
       date: DateTime.now(),
     );
 
+    // Offline-first: await ONLY SQLite write for instant feel
     await _db.insertProteinEntry(entry);
+
+    // Non-blocking cloud sync (fire-and-forget)
     CloudSyncService.syncNutritionToCloud().catchError((_) {});
+
+    // Immediately close sheet — user feels zero lag
     widget.onSaved();
   }
 
@@ -622,7 +630,7 @@ class _AddNutritionSheetState extends State<_AddNutritionSheet> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _selectedFood == null ? null : _save,
+              onPressed: (_selectedFood == null || _isSaving) ? null : _save,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF5406),
                 disabledBackgroundColor: const Color(0xFFFF5406).withOpacity(0.3),
@@ -630,14 +638,19 @@ class _AddNutritionSheetState extends State<_AddNutritionSheet> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
                 elevation: 0,
               ),
-              child: Text(
-                'Simpan Makanan',
-                style: TextStyle(
-                  color: _selectedFood == null ? Colors.white54 : Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
+              child: _isSaving
+                  ? const SizedBox(
+                      width: 22, height: 22,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                    )
+                  : Text(
+                      'Simpan Makanan',
+                      style: TextStyle(
+                        color: _selectedFood == null ? Colors.white54 : Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
             ),
           ),
         ],
