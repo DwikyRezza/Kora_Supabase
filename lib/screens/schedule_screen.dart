@@ -231,7 +231,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                                               fontWeight: FontWeight.bold)),
                                       SizedBox(height: 4),
                                       Text(
-                                          '${DateFormat('d MMM yyyy â€¢ HH:mm').format(event.dateTime)}',
+                                          '${DateFormat('d MMM yyyy • HH:mm').format(event.dateTime)}',
                                           style: TextStyle(
                                               color: Color(0xFF00A9DD),
                                               fontWeight: FontWeight.bold, fontSize: 12)),

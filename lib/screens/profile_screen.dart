@@ -482,7 +482,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       itemBuilder: (context, index) {
         final workout = _activitiesList[index];
         final hasPhoto = workout.id != null && _workoutsWithPhotos.contains(workout.id);
-        final dateStr = DateFormat('dd MMM yyyy â€¢ HH.mm').format(workout.date);
+        final dateStr = DateFormat('dd MMM yyyy • HH.mm').format(workout.date);
 
         final typeLower = workout.type.toLowerCase();
         String defaultImage;
