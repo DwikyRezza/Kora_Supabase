@@ -375,11 +375,31 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   // ── 2. Dynamic Metrics ───────────────────────────────────────────────────
   Widget _buildDynamicMetrics() {
     final m = _computeWeekMetrics();
+    final isAll = _selectedFilter == 'all';
     final isCardio =
         _selectedFilter == 'running' || _selectedFilter == 'walking';
-    final accent = _filterColors[_selectedFilter]!;
+    final accent = isAll ? const Color(0xFFFF5406) : _filterColors[_selectedFilter]!;
 
-    if (isCardio) {
+    if (isAll) {
+      // "Semua" — aggregate global metrics
+      final totalSessions =
+          _weekWorkouts.values.fold(0, (s, list) => s + list.length);
+      final activeDays =
+          _weekWorkouts.values.where((list) => list.isNotEmpty).length;
+      return Row(children: [
+        Expanded(
+            child: _metricBox('Total Sesi', '$totalSessions',
+                Icons.fitness_center, accent)),
+        const SizedBox(width: 12),
+        Expanded(
+            child: _metricBox('Durasi', '${m.duration.round()} m',
+                Icons.timer_outlined, accent)),
+        const SizedBox(width: 12),
+        Expanded(
+            child: _metricBox('Hari Aktif', '$activeDays / 7',
+                Icons.calendar_today_outlined, accent)),
+      ]);
+    } else if (isCardio) {
       return Row(children: [
         Expanded(
             child: _metricBox('Jarak', '${m.distance.toStringAsFixed(2)} km',
@@ -447,7 +467,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     final isCardio =
         _selectedFilter == 'running' || _selectedFilter == 'walking';
     final isAll = _selectedFilter == 'all';
-    final accent = _filterColors[_selectedFilter]!;
+    final accent = isAll ? const Color(0xFFFF5406) : _filterColors[_selectedFilter]!;
 
     // Build per-day values
     List<double> values = [];
@@ -579,6 +599,62 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
   // ── 4. Summary Card ──────────────────────────────────────────────────────
   Widget _buildSummaryCard() {
+    final m = _computeWeekMetrics();
+    final isAll = _selectedFilter == 'all';
+    final totalSessions =
+        _weekWorkouts.values.fold(0, (s, list) => s + list.length);
+
+    if (isAll) {
+      // 3-column layout for "Semua"
+      return Container(
+        padding: const EdgeInsets.all(28),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(26),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: _summaryMetric(
+                label: 'Streak',
+                value: '$_currentStreak',
+                suffix: 'Hari 🔥',
+                color: const Color(0xFFFF5406),
+              ),
+            ),
+            Container(width: 1, height: 50, color: const Color(0xFFE8E8E8)),
+            Expanded(
+              child: _summaryMetric(
+                label: 'Aktivitas',
+                value: '$totalSessions',
+                suffix: 'sesi',
+                color: const Color(0xFF00B33F),
+                align: TextAlign.center,
+              ),
+            ),
+            Container(width: 1, height: 50, color: const Color(0xFFE8E8E8)),
+            Expanded(
+              child: _summaryMetric(
+                label: 'Durasi',
+                value: '${m.duration.round()}',
+                suffix: 'menit',
+                color: const Color(0xFF0099F9),
+                align: TextAlign.right,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Default 2-column layout for filtered types
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
@@ -624,12 +700,23 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     required Color color,
     TextAlign align = TextAlign.left,
   }) {
+    CrossAxisAlignment crossAxis;
+    MainAxisAlignment mainAxis;
+    if (align == TextAlign.right) {
+      crossAxis = CrossAxisAlignment.end;
+      mainAxis = MainAxisAlignment.end;
+    } else if (align == TextAlign.center) {
+      crossAxis = CrossAxisAlignment.center;
+      mainAxis = MainAxisAlignment.center;
+    } else {
+      crossAxis = CrossAxisAlignment.start;
+      mainAxis = MainAxisAlignment.start;
+    }
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Column(
-        crossAxisAlignment: align == TextAlign.right
-            ? CrossAxisAlignment.end
-            : CrossAxisAlignment.start,
+        crossAxisAlignment: crossAxis,
         children: [
           Text(label.toUpperCase(),
               style: const TextStyle(
@@ -639,24 +726,25 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                   letterSpacing: 1.2)),
           const SizedBox(height: 8),
           Row(
-            mainAxisAlignment: align == TextAlign.right
-                ? MainAxisAlignment.end
-                : MainAxisAlignment.start,
+            mainAxisAlignment: mainAxis,
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
               Text(value,
                   style: TextStyle(
-                      fontSize: 36,
+                      fontSize: 32,
                       fontWeight: FontWeight.w900,
                       color: color,
                       height: 1)),
-              const SizedBox(width: 4),
-              Text(suffix,
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: color.withOpacity(0.75))),
+              const SizedBox(width: 3),
+              Flexible(
+                child: Text(suffix,
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: color.withOpacity(0.75)),
+                    overflow: TextOverflow.ellipsis),
+              ),
             ],
           ),
         ],
