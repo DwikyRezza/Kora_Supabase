@@ -681,13 +681,25 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   OutlinedButton.icon(
-                    onPressed: () => _addRestTime(20),
-                    icon: const Icon(Icons.add_rounded, size: 22),
-                    label: const Text('+20s', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    onPressed: () => _addRestTime(-10),
+                    icon: const Icon(Icons.remove_rounded, size: 20),
+                    label: const Text('10s', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFFFFB830),
-                      side: const BorderSide(color: Color(0xFFFFB830), width: 2),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      foregroundColor: Colors.white70,
+                      side: const BorderSide(color: Colors.white24, width: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  OutlinedButton.icon(
+                    onPressed: () => _addRestTime(20),
+                    icon: const Icon(Icons.add_rounded, size: 20),
+                    label: const Text('20s', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white70,
+                      side: const BorderSide(color: Colors.white24, width: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
                   ),
@@ -699,13 +711,15 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen>
               GestureDetector(
                 onTap: _skipRest,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
+                  padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 20),
                   decoration: BoxDecoration(
-                    color: AppTheme.surfaceVariant,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.border),
+                    color: const Color(0xFFFFB830),
+                    borderRadius: BorderRadius.circular(32),
+                    boxShadow: [
+                      BoxShadow(color: const Color(0xFFFFB830).withOpacity(0.3), blurRadius: 24, offset: const Offset(0, 8))
+                    ]
                   ),
-                  child: Text('Lewati Istirahat →', style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: const Text('LEWATI ISTIRAHAT', style: TextStyle(color: Color(0xFF09141D), fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
                 ),
               ),
             ],
