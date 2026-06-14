@@ -485,8 +485,13 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
   Widget _buildBarChart() {
     List<BarChartGroupData> barGroups = [];
     int i = 0;
+    double maxVal = 0;
+    _weeklyStats.forEach((_, val) {
+      if (val > maxVal) maxVal = val;
+    });
     
     double target = _activeTypeFilter == 'weightlifting' ? 2000.0 : 5.0;
+    double chartMaxY = maxVal > target ? maxVal * 1.2 : target * 1.2;
     
     _weeklyStats.forEach((dateStr, val) {
       barGroups.add(
@@ -500,8 +505,8 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
               borderRadius: BorderRadius.circular(8),
               backDrawRodData: BackgroundBarChartRodData(
                 show: true,
-                toY: target * 1.5 > val ? target * 1.5 : val * 1.2,
-                color: Colors.white, // background track for bar
+                toY: chartMaxY,
+                color: const Color(0xFFE0E0E0), // Abu-abu agar terlihat track-nya
               ),
             ),
           ],
@@ -513,7 +518,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
-        maxY: target * 1.5,
+        maxY: chartMaxY,
         barGroups: barGroups, // <-- Ini yang terlupa
         barTouchData: BarTouchData(
           enabled: true,
@@ -532,6 +537,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
+              reservedSize: 30, // Ditambahkan agar teks hari tidak terpotong
               getTitlesWidget: (v, m) {
                 final dateStr = _weeklyStats.keys.elementAt(v.toInt());
                 final dt = DateTime.parse(dateStr);
