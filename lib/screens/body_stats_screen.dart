@@ -263,12 +263,15 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _AddMeasurementSheet(
-        latestMeasurement: _measurements.isNotEmpty ? _measurements.first : null,
-        onSaved: () {
-          Navigator.pop(context);
-          _loadData();
-        }
+      builder: (_) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: _AddMeasurementSheet(
+          latestMeasurement: _measurements.isNotEmpty ? _measurements.first : null,
+          onSaved: () {
+            Navigator.pop(context);
+            _loadData();
+          }
+        ),
       ),
     );
   }
@@ -332,7 +335,7 @@ class _AddMeasurementSheetState extends State<_AddMeasurementSheet> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(color: AppTheme.surface, borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
-      padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(context).viewInsets.bottom + 24),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
