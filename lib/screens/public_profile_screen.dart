@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import '../services/social_service.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
@@ -56,6 +57,21 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Widget _buildAvatar(String? photoUrl) {
+    if (photoUrl != null && photoUrl.isNotEmpty) {
+      try {
+        if (photoUrl.startsWith('data:image')) {
+          final parts = photoUrl.split(',');
+          if (parts.length > 1) {
+            return ClipOval(child: Image.memory(base64Decode(parts[1]), fit: BoxFit.cover));
+          }
+        }
+        return ClipOval(child: Image.network(photoUrl, fit: BoxFit.cover, errorBuilder: (c, e, s) => const Icon(Icons.person, size: 48, color: Colors.grey)));
+      } catch (_) {}
+    }
+    return const Icon(Icons.person, size: 48, color: Colors.grey);
   }
 
   Future<void> _toggleFollow() async {
@@ -122,11 +138,14 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: Column(
                   children: [
-                    CircleAvatar(
-                      radius: 48,
-                      backgroundColor: const Color(0xFFF5F5F5),
-                      backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
-                      child: photoUrl == null ? const Icon(Icons.person, size: 48, color: Colors.grey) : null,
+                    Container(
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFFF5F5F5),
+                      ),
+                      child: _buildAvatar(photoUrl),
                     ),
                     const SizedBox(height: 16),
                     Text(

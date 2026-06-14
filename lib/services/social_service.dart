@@ -416,9 +416,18 @@ class SocialService {
       final snap = await _firestore
           .collection('feed_posts')
           .where('uid', isEqualTo: uid)
-          .orderBy('timestamp', descending: true)
           .get();
-      return snap.docs.map((d) => d.data()).toList();
+      
+      final posts = snap.docs.map((d) => d.data()).toList();
+      
+      // Sort lokal agar tidak perlu composite index di Firestore
+      posts.sort((a, b) {
+        final aTime = a['timestamp']?.toDate() ?? DateTime.now();
+        final bTime = b['timestamp']?.toDate() ?? DateTime.now();
+        return bTime.compareTo(aTime); // descending
+      });
+      
+      return posts;
     } catch (e) {
       print('[SocialService] Error getUserPosts: $e');
       return [];
