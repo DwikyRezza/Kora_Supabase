@@ -179,7 +179,9 @@ class SocialService {
       final userDoc = await _firestore.collection('users').doc(uid).get();
       if (!userDoc.exists) return;
       
-      final userData = userDoc.data()!;
+      final docData = userDoc.data()!;
+      final userData = docData.containsKey('profile') ? Map<String, dynamic>.from(docData['profile'] as Map) : <String, dynamic>{};
+      
       final name = userData['name'] ?? 'Athlete';
       final username = userData['username'] ?? 'athlete';
       final photoUrl = userData['photoUrl'];

@@ -25,6 +25,9 @@ class _FeedPostCardState extends State<FeedPostCard> {
   late int _likesCount;
   late int _commentsCount;
   bool _isLiking = false;
+  
+  String _authorName = 'Athlete';
+  String? _photoUrl;
 
   @override
   void initState() {
@@ -46,6 +49,28 @@ class _FeedPostCardState extends State<FeedPostCard> {
     _isLiked = likedBy.contains(currentUid);
     _likesCount = likedBy.length;
     _commentsCount = widget.post['commentsCount'] as int? ?? 0;
+    
+    _authorName = widget.post['authorName'] ?? 'Athlete';
+    _photoUrl = widget.post['authorPhotoUrl'];
+    
+    _fetchLatestProfile();
+  }
+
+  Future<void> _fetchLatestProfile() async {
+    try {
+      final uid = widget.post['uid'] as String?;
+      if (uid == null) return;
+      
+      final profile = await SocialService.getUserProfile(uid);
+      if (profile != null && mounted) {
+        setState(() {
+          _authorName = profile['name'] ?? _authorName;
+          _photoUrl = profile['photoUrl'] ?? _photoUrl;
+        });
+      }
+    } catch (e) {
+      print('[FeedPostCard] Error fetching profile: $e');
+    }
   }
 
   Future<void> _toggleLike() async {
@@ -95,8 +120,6 @@ class _FeedPostCardState extends State<FeedPostCard> {
 
   @override
   Widget build(BuildContext context) {
-    final authorName = widget.post['authorName'] ?? 'Athlete';
-    final photoUrl = widget.post['authorPhotoUrl'];
     final workoutData = widget.post['workoutData'] as Map<String, dynamic>? ?? {};
     final type = workoutData['type'] ?? 'workout';
     final title = workoutData['title'] ?? 'Aktivitas Latihan';
@@ -129,15 +152,15 @@ class _FeedPostCardState extends State<FeedPostCard> {
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
-                  child: photoUrl == null ? const Icon(Icons.person, color: Colors.grey) : null,
+                  backgroundImage: _photoUrl != null ? NetworkImage(_photoUrl!) : null,
+                  child: _photoUrl == null ? const Icon(Icons.person, color: Colors.grey) : null,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(authorName, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2F2F2F), fontSize: 16)),
+                      Text(_authorName, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2F2F2F), fontSize: 16)),
                       Text(_formatTime(widget.post['timestamp']), style: const TextStyle(color: Colors.grey, fontSize: 11)),
                     ],
                   ),
