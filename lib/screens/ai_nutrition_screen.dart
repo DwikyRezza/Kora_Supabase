@@ -63,7 +63,7 @@ class _AiNutritionScreenState extends State<AiNutritionScreen> {
     }
 
     if (foods.isEmpty) {
-      setState(() => _errorMsg = 'Masukkan minimal 1 nama makanan.');
+      setState(() => _errorMsg = 'Tulis minimal 1 menu makanan yang kamu makan.');
       return;
     }
 
@@ -222,7 +222,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
         ),
         title: Row(
           children: const [
-            Text('Catat AI', style: TextStyle(color: Color(0xFFFF5406), fontWeight: FontWeight.w900, fontSize: 24, letterSpacing: -0.5)),
+            Text('Catat Makanan', style: TextStyle(color: Color(0xFFFF5406), fontWeight: FontWeight.w900, fontSize: 24, letterSpacing: -0.5)),
           ],
         ),
       ),
@@ -249,7 +249,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
                     Text(
-                      'Analisis Groq AI',
+                      'Catat Apa yang Kamu Makan',
                       style: TextStyle(
                         color: Color(0xFF2F2F2F),
                         fontWeight: FontWeight.bold,
@@ -258,7 +258,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Ketik nama makanan & beratnya.',
+                      'Tulis menu makananmu secara natural.',
                       style: TextStyle(
                           color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold),
                     ),
@@ -279,7 +279,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                   children: const [
                     Expanded(
                       flex: 5,
-                      child: Text('Nama Makanan',
+                      child: Text('Menu Makanan',
                           style: TextStyle(
                               color: Colors.grey,
                               fontSize: 13,
@@ -375,7 +375,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                   else
                     const _GroqLogo(size: 24, isWhite: true),
                   const SizedBox(width: 12),
-                  Text(_isAnalyzing ? 'Menganalisis...' : 'Analisis',
+                  Text(_isAnalyzing ? 'Menganalisis...' : 'Catat Makanan',
                       style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -401,7 +401,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
               style: const TextStyle(color: Color(0xFF2F2F2F), fontSize: 16),
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
-                hintText: 'Ayam Pop',
+                hintText: '2 butir telur, nasi goreng...',
                 hintStyle: const TextStyle(color: Colors.grey, fontSize: 16),
                 filled: true,
                 fillColor: const Color(0xFFF5F5F5),
@@ -478,7 +478,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                       children: const [
                         _GroqLogo(size: 24),
                         SizedBox(width: 12),
-                        Text('Hasil Analisis Groq',
+                        Text('Hasil Analisis',
                             style: TextStyle(
                                 color: Color(0xFF2F2F2F),
                                 fontWeight: FontWeight.bold,

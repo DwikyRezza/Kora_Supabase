@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:audioplayers/audioplayers.dart';
 import '../models/protein_entry.dart';
 import '../services/database_helper.dart';
 import '../services/profile_service.dart';
 import '../services/cloud_sync_service.dart';
 import '../services/notification_service.dart';
-import '../theme/app_theme.dart';
 import 'weekly_report_screen.dart';
 import 'ai_nutrition_screen.dart';
 
@@ -23,7 +21,6 @@ class _ProteinScreenState extends State<ProteinScreen> {
   bool _isLoading = true;
   double _targetProtein = 150.0;
   final double _targetCalories = 2500.0; 
-  int _targetWaterMl = 2000;
 
   @override
   void initState() {
@@ -52,8 +49,6 @@ class _ProteinScreenState extends State<ProteinScreen> {
         _entries = entries;
         _targetProtein = profile[ProfileService.keyTargetProtein] ?? 150.0;
         if (_targetProtein == 0) _targetProtein = 150.0;
-        final weight = profile[ProfileService.keyWeight] ?? 70.0;
-        _targetWaterMl = (weight * 35).round();
         
         if (_totalProtein < _targetProtein * 0.9) {
           NotificationService().scheduleNutritionReminders();
@@ -70,10 +65,6 @@ class _ProteinScreenState extends State<ProteinScreen> {
   double get _totalCalories => _entries.fold(0, (sum, e) => sum + e.calories);
   double get _totalCarbs => _entries.fold(0, (sum, e) => sum + e.carbsGrams);
   double get _totalFat => _entries.fold(0, (sum, e) => sum + e.fatGrams);
-  double get _totalFiber => _entries.fold(0, (sum, e) => sum + e.fiberGrams);
-  double get _totalSugar => _entries.fold(0, (sum, e) => sum + e.sugarGrams);
-  double get _totalSalt => _entries.fold(0, (sum, e) => sum + e.saltGrams);
-  int get _totalWater => _entries.fold(0, (sum, e) => sum + e.waterMl);
 
   @override
   Widget build(BuildContext context) {
@@ -306,46 +297,30 @@ class _ProteinScreenState extends State<ProteinScreen> {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-      child: Row(
-        children: [
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () async {
-                final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => const AiNutritionScreen()));
-                if (result == true) _loadData();
-              },
-              icon: const _GroqIcon(),
-              label: const Text('Catat AI', style: TextStyle(color: Color(0xFF2F2F2F), fontWeight: FontWeight.bold, fontSize: 16)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF5F5F5),
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-              ),
-            ),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: () async {
+            final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => const AiNutritionScreen()));
+            if (result == true) _loadData();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFFF5406),
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 2,
-            child: ElevatedButton(
-              onPressed: _showAddProteinSheet,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF5406), // Ember Orange
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Text('Catat Makanan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                  SizedBox(width: 8),
-                  Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
-                ],
-              ),
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              _GroqIcon(),
+              SizedBox(width: 10),
+              Text('Catat Makanan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+              SizedBox(width: 8),
+              Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -412,260 +387,6 @@ class _ProteinScreenState extends State<ProteinScreen> {
     );
   }
 
-  void _showAddProteinSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _AddNutritionSheet(
-        currentSugar: _totalSugar,
-        currentSalt: _totalSalt,
-        currentFat: _totalFat,
-        onSaved: () {
-          Navigator.pop(context);
-          _loadData();
-        }
-      ),
-    );
-  }
-}
-
-class _AddNutritionSheet extends StatefulWidget {
-  final VoidCallback onSaved;
-  final double currentSugar;
-  final double currentSalt;
-  final double currentFat;
-
-  const _AddNutritionSheet({
-    required this.onSaved,
-    required this.currentSugar,
-    required this.currentSalt,
-    required this.currentFat,
-  });
-
-  @override
-  State<_AddNutritionSheet> createState() => _AddNutritionSheetState();
-}
-
-class _AddNutritionSheetState extends State<_AddNutritionSheet> {
-  final _db = DatabaseHelper();
-  final _amountCtrl = TextEditingController(text: '1');
-  bool _isSaving = false;
-  
-  String _selectedMealType = 'lunch';
-  final _mealTypes = [
-    {'id': 'breakfast', 'label': 'Sarapan'},
-    {'id': 'lunch', 'label': 'Makan Siang'},
-    {'id': 'dinner', 'label': 'Makan Malam'},
-    {'id': 'snack', 'label': 'Cemilan'},
-  ];
-
-  Map<String, dynamic>? _selectedFood;
-  List<String> _frequentFoods = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _autoSelectMealType();
-    _loadFrequentFoods();
-  }
-
-  void _autoSelectMealType() {
-    final hour = DateTime.now().hour;
-    if (hour < 10) _selectedMealType = 'breakfast';
-    else if (hour < 15) _selectedMealType = 'lunch';
-    else if (hour < 20) _selectedMealType = 'dinner';
-    else _selectedMealType = 'snack';
-  }
-
-  Future<void> _loadFrequentFoods() async {
-    final freq = await _db.getFrequentFoods(mealType: _selectedMealType);
-    if (mounted) setState(() => _frequentFoods = freq);
-  }
-
-  Future<void> _save() async {
-    if (_selectedFood == null || _isSaving) return;
-
-    HapticFeedback.mediumImpact();
-    setState(() => _isSaving = true);
-
-    try {
-      final player = AudioPlayer();
-      await player.play(AssetSource('audio/click.mp3'));
-    } catch (_) {}
-
-    double qty = double.tryParse(_amountCtrl.text) ?? 1.0;
-
-    final entry = ProteinEntry(
-      foodName: _selectedFood!['name'],
-      proteinGrams: (_selectedFood!['protein'] as double) * qty,
-      calories: (_selectedFood!['calories'] as double) * qty,
-      carbsGrams: (_selectedFood!['carbs'] as double? ?? 0.0) * qty,
-      fatGrams: (_selectedFood!['fat'] as double? ?? 0.0) * qty,
-      fiberGrams: (_selectedFood!['fiber'] as double? ?? 0.0) * qty,
-      sugarGrams: (_selectedFood!['sugar'] as double? ?? 0.0) * qty,
-      saltGrams: (_selectedFood!['salt'] as double? ?? 0.0) * qty,
-      mealType: _selectedMealType,
-      date: DateTime.now(),
-    );
-
-    // Offline-first: await ONLY SQLite write for instant feel
-    await _db.insertProteinEntry(entry);
-
-    // Non-blocking cloud sync (fire-and-forget)
-    CloudSyncService.syncNutritionToCloud().catchError((_) {});
-
-    // Immediately close sheet — user feels zero lag
-    widget.onSaved();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
-      ),
-      padding: EdgeInsets.fromLTRB(32, 24, 32, MediaQuery.of(context).viewInsets.bottom + 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Center(
-            child: Container(width: 40, height: 4, decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(2))),
-          ),
-          const SizedBox(height: 24),
-          const Text('Catat Makanan', style: TextStyle(color: Color(0xFF2F2F2F), fontSize: 22, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 24),
-          
-          Autocomplete<Map<String, dynamic>>(
-            optionsBuilder: (TextEditingValue textEditingValue) {
-              if (textEditingValue.text.isEmpty) {
-                 if (_frequentFoods.isNotEmpty) {
-                    final freqOptions = ProteinFoodDatabase.foods.where((f) => _frequentFoods.contains(f['name'])).take(5).toList();
-                    freqOptions.sort((a, b) => _frequentFoods.indexOf(a['name'] as String).compareTo(_frequentFoods.indexOf(b['name'] as String)));
-                    return freqOptions;
-                 }
-                 return const Iterable<Map<String, dynamic>>.empty();
-              }
-              final query = textEditingValue.text.toLowerCase();
-              return ProteinFoodDatabase.foods.where((food) => (food['name'] as String).toLowerCase().contains(query)).toList();
-            },
-            displayStringForOption: (option) => option['name'],
-            onSelected: (selection) => setState(() => _selectedFood = selection),
-            fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
-              return TextField(
-                controller: controller,
-                focusNode: focusNode,
-                style: const TextStyle(color: Color(0xFF2F2F2F)),
-                decoration: InputDecoration(
-                  labelText: 'Cari Makanan', 
-                  hintText: 'Mis: Nasi, Ayam...',
-                  filled: true,
-                  fillColor: const Color(0xFFF5F5F5),
-                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(26), borderSide: BorderSide.none),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-          
-          if (_selectedFood != null) ...[
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(26)),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _macroMini('Pro', _selectedFood!['protein'], const Color(0xFFBD4BE5)),
-                  _macroMini('Carb', _selectedFood!['carbs'] ?? 0.0, const Color(0xFF00A9DD)),
-                  _macroMini('Fat', _selectedFood!['fat'] ?? 0.0, const Color(0xFF00B33F)),
-                  _macroMini('Cal', _selectedFood!['calories'], const Color(0xFFFF3400)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-          ],
-
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _amountCtrl,
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(color: Color(0xFF2F2F2F)),
-                  decoration: InputDecoration(
-                    labelText: 'Porsi',
-                    filled: true,
-                    fillColor: const Color(0xFFF5F5F5),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(26), borderSide: BorderSide.none),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                flex: 2,
-                child: DropdownButtonFormField<String>(
-                  initialValue: _selectedMealType,
-                  dropdownColor: Colors.white,
-                  style: const TextStyle(color: Color(0xFF2F2F2F)),
-                  decoration: InputDecoration(
-                    labelText: 'Waktu',
-                    filled: true,
-                    fillColor: const Color(0xFFF5F5F5),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(26), borderSide: BorderSide.none),
-                  ),
-                  items: _mealTypes.map((m) => DropdownMenuItem(value: m['id'], child: Text(m['label']!))).toList(),
-                  onChanged: (v) {
-                    setState(() => _selectedMealType = v!);
-                    _loadFrequentFoods();
-                  },
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: (_selectedFood == null || _isSaving) ? null : _save,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF5406),
-                disabledBackgroundColor: const Color(0xFFFF5406).withOpacity(0.3),
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-                elevation: 0,
-              ),
-              child: _isSaving
-                  ? const SizedBox(
-                      width: 22, height: 22,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                    )
-                  : Text(
-                      'Simpan Makanan',
-                      style: TextStyle(
-                        color: _selectedFood == null ? Colors.white54 : Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _macroMini(String label, double val, Color c) {
-    return Column(
-      children: [
-        Text('${val.toStringAsFixed(0)}g', style: TextStyle(color: c, fontWeight: FontWeight.bold, fontSize: 16)),
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
-      ],
-    );
-  }
 }
 
 class _GroqIcon extends StatelessWidget {
