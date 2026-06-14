@@ -48,9 +48,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         return;
       }
 
-      double bmi = _weight / ((_height / 100) * (_height / 100));
-      String status = ProfileService.getBMIStatus(bmi);
-
       // Simpan ke lokal + Firestore
       await ProfileService.saveProfile(
         name: _name.isNotEmpty ? _name : AuthService.displayName,
@@ -67,41 +64,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
       if (mounted) {
         setState(() => _isSaving = false);
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (ctx) => AlertDialog(
-            backgroundColor: const Color(0xFFFFFFFF), // Paper White
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: Row(
-              children: [
-                Icon(Icons.check_circle_rounded, color: const Color(0xFF00B33F), size: 28), // Verdant Green
-                const SizedBox(width: 10),
-                Text('Profil Tersimpan!',
-                    style: TextStyle(color: const Color(0xFF00B33F), fontWeight: FontWeight.w800)),
-              ],
-            ),
-            content: Text(
-              'BMI Anda: ${bmi.toStringAsFixed(1)} — $status\n\nData profil Anda telah disimpan ke cloud. Selamat datang di Kora! 🎉',
-              style: TextStyle(color: const Color(0xFF2F2F2F), height: 1.5), // Graphite
-            ),
-            actions: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const MainNavigation()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF5406), // Ember Orange
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                child: const Text('Mulai Sekarang',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-              ),
-            ],
-          ),
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const MainNavigation()),
         );
       }
     }
