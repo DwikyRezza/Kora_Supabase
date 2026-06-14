@@ -702,6 +702,7 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
           ),
         ),
       ),
+    ),
     );
   }
 }
