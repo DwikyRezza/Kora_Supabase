@@ -48,3 +48,6 @@ app.*.map.json
 build_locked*/
 
 .env
+
+# Documentation (local only, do not push)
+TECHNICAL_DOCUMENTATION.md
