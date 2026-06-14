@@ -221,27 +221,25 @@ class _MainNavigationState extends State<MainNavigation>
                 behavior: HitTestBehavior.opaque,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 48,
-                      height: 48,
-                      margin: const EdgeInsets.only(bottom: 4),
+                      width: 44,
+                      height: 44,
+                      margin: const EdgeInsets.only(bottom: 2),
                       decoration: BoxDecoration(
                         color: AppTheme.textPrimary,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.add_rounded, color: AppTheme.background, size: 24),
+                      child: Icon(Icons.add_rounded, color: AppTheme.background, size: 22),
                     ),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        'TRAINING',
-                        style: TextStyle(
-                          color: AppTheme.textMuted,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
-                        ),
+                    Text(
+                      'TRAINING',
+                      style: TextStyle(
+                        color: AppTheme.textMuted,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ],
