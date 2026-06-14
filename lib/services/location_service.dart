@@ -8,11 +8,11 @@ class LocationService {
   static void initialize() {
     FlutterForegroundTask.init(
       androidNotificationOptions: AndroidNotificationOptions(
-        channelId: 'running_tracker_channel_v2',
+        channelId: 'running_tracker_channel_v3',
         channelName: 'Running Tracker',
         channelDescription: 'Notifikasi aktif selama sesi lari berlangsung.',
-        channelImportance: NotificationChannelImportance.DEFAULT,
-        priority: NotificationPriority.DEFAULT,
+        channelImportance: NotificationChannelImportance.HIGH,
+        priority: NotificationPriority.HIGH,
         onlyAlertOnce: true,
       ),
       iosNotificationOptions: const IOSNotificationOptions(
