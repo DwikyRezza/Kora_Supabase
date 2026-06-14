@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -629,7 +629,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     ),
-                    child: const Text('MULAI', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                    child: Text('MULAI', style: TextStyle(color: AppTheme.surface, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
                   ),
                 ],
               ),

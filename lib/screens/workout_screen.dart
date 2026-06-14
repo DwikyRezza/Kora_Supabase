@@ -253,7 +253,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
                 const SizedBox(height: 24),
                 Row(
                   children: [
-                    _streakStat('Konsistensi', '10 Minggu', showFire: true),
+                    _streakStat('Konsistensi', '${_calculateCurrentStreak()} Hari', showFire: true),
                     const SizedBox(width: 48),
                     _streakStat('Total Aktivitas', _workouts.length.toString()),
                   ],
@@ -437,6 +437,33 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
     );
   }
 
+  int _calculateCurrentStreak() {
+    if (_workouts.isEmpty) return 0;
+    
+    final dates = _workouts.map((w) => DateTime(w.date.year, w.date.month, w.date.day)).toSet().toList();
+    dates.sort((a, b) => b.compareTo(a));
+    
+    int streak = 0;
+    DateTime today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    DateTime yesterday = today.subtract(const Duration(days: 1));
+    
+    bool hasToday = dates.contains(today);
+    bool hasYesterday = dates.contains(yesterday);
+    
+    if (!hasToday && !hasYesterday) return 0;
+    
+    DateTime checkDate = hasToday ? today : yesterday;
+    
+    for (int i = 0; i < dates.length; i++) {
+      if (dates.contains(checkDate.subtract(Duration(days: i)))) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    return streak;
+  }
+
   Widget _streakStat(String label, String value, {bool showFire = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -446,8 +473,8 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
           children: [
             Text(value, style: TextStyle(color: AppTheme.textPrimary, fontSize: 20, fontWeight: FontWeight.bold)),
             if (showFire) ...[
-              SizedBox(width: 4),
-              Text('ðŸ”¥', style: TextStyle(fontSize: 18)),
+              const SizedBox(width: 4),
+              const Text('🔥', style: TextStyle(fontSize: 18)),
             ],
           ],
         ),

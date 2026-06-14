@@ -111,10 +111,23 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     FlutterForegroundTask.addTaskDataCallback(_onReceiveTaskData);
     _createLocationMarker();
     _initGps();
+    AppTheme.themeNotifier.addListener(_onThemeChanged);
+  }
+
+  void _onThemeChanged() async {
+    if (_mapController.isCompleted) {
+      final controller = await _mapController.future;
+      if (AppTheme.isDarkMode) {
+        controller.setMapStyle(_mapStyleDark);
+      } else {
+        controller.setMapStyle(null);
+      }
+    }
   }
 
   @override
   void dispose() {
+    AppTheme.themeNotifier.removeListener(_onThemeChanged);
     WidgetsBinding.instance.removeObserver(this);
     TabVisibility.instance.removeListener(_onTabVisibilityChanged);
     FlutterForegroundTask.removeTaskDataCallback(_onReceiveTaskData);
@@ -1024,6 +1037,11 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
               zoom: 17.0,
             ),
             onMapCreated: (controller) async {
+              if (AppTheme.isDarkMode) {
+                controller.setMapStyle(_mapStyleDark);
+              } else {
+                controller.setMapStyle(null);
+              }
               _mapController.complete(controller);
               if (_currentLocation != null) {
                 _animateCameraToLocation(_currentLocation!);
@@ -1142,7 +1160,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                   ),
                 ),
               Container(
-                color: Colors.white,
+                color: AppTheme.surface,
                 padding: EdgeInsets.fromLTRB(context.spaceLG, context.space2XL, context.spaceLG, context.spaceLG),
                 child: Column(
                   children: [
@@ -1188,7 +1206,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                 ),
               ),
               Container(
-                color: Colors.white,
+                color: AppTheme.surface,
                 padding: EdgeInsets.fromLTRB(context.spaceLG, context.spaceMD, context.spaceLG, context.spaceXL),
                 child: Row(
                   children: [

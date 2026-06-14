@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -317,21 +317,21 @@ class _FeedPostCardState extends State<FeedPostCard> {
           const SizedBox(height: 24),
           
           // Gambar/Visual Aktivitas
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(26),
-              color: AppTheme.surfaceVariant,
+          if (hasMap) ...[
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(26),
+                color: AppTheme.surfaceVariant,
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: AspectRatio(
+                aspectRatio: 4 / 3,
+                child: _buildMap(polylineStr!),
+              ),
             ),
-            clipBehavior: Clip.antiAlias,
-            child: AspectRatio(
-              aspectRatio: 4 / 3,
-              child: hasMap
-                  ? _buildMap(polylineStr!)
-                  : Image.network(defaultImage, fit: BoxFit.cover),
-            ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
+          ],
           
           // Aksi (Like & Komen)
           Container(

@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import '../utils/tab_visibility.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:intl/intl.dart';
@@ -406,7 +407,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: _goToEditProfile,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.textPrimary, // Graphite
-                    foregroundColor: Colors.white,
+                    foregroundColor: AppTheme.surface,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(26),
