@@ -159,14 +159,14 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => SocialScreen(initialTab: 'followers', username: username)));
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => SocialScreen(initialTab: 'followers', username: username, uid: widget.uid)));
                           },
                           child: _buildStat('Pengikut', _followersCount),
                         ),
                         Container(width: 1, height: 24, color: Colors.grey.shade300),
                         GestureDetector(
                           onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => SocialScreen(initialTab: 'following', username: username)));
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => SocialScreen(initialTab: 'following', username: username, uid: widget.uid)));
                           },
                           child: _buildStat('Mengikuti', _followingCount),
                         ),

@@ -324,7 +324,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: GestureDetector(
                             onTap: () async {
                               final username = _profile[ProfileService.keyUsername] ?? _profile[ProfileService.keyName] ?? 'user';
-                              await Navigator.push(context, MaterialPageRoute(builder: (_) => SocialScreen(initialTab: 'followers', username: username)));
+                              await Navigator.push(context, MaterialPageRoute(builder: (_) => SocialScreen(initialTab: 'followers', username: username, uid: AuthService.uid)));
                               _loadData();
                             },
                             child: _buildStatColumn(_followersCount.toString(), 'Pengikut'),
@@ -334,7 +334,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: GestureDetector(
                             onTap: () async {
                               final username = _profile[ProfileService.keyUsername] ?? _profile[ProfileService.keyName] ?? 'user';
-                              await Navigator.push(context, MaterialPageRoute(builder: (_) => SocialScreen(initialTab: 'following', username: username)));
+                              await Navigator.push(context, MaterialPageRoute(builder: (_) => SocialScreen(initialTab: 'following', username: username, uid: AuthService.uid)));
                               _loadData();
                             },
                             child: _buildStatColumn(_followingCount.toString(), 'Mengikuti'),

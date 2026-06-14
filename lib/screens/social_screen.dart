@@ -8,12 +8,14 @@ import 'public_profile_screen.dart';
 class SocialScreen extends StatefulWidget {
   final String initialTab; // 'followers' atau 'following'
   final String username;
+  final String uid;
   
   const SocialScreen({
-    Key? key, 
+    super.key, 
     this.initialTab = 'followers',
     required this.username,
-  }) : super(key: key);
+    required this.uid,
+  });
 
   @override
   State<SocialScreen> createState() => _SocialScreenState();
@@ -32,7 +34,7 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
     _tabController = TabController(
       length: 2, 
       vsync: this, 
-      initialIndex: widget.initialTab == 'followers' ? 1 : 0
+      initialIndex: widget.initialTab == 'followers' ? 0 : 1
     );
     _loadData();
   }
@@ -40,7 +42,7 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     if (AuthService.isLoggedIn) {
-      final uid = AuthService.uid;
+      final uid = widget.uid;
       final followingData = await SocialService.getFollowing(uid);
       final followersData = await SocialService.getFollowers(uid);
       
@@ -147,29 +149,30 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
               ),
             ),
             const SizedBox(width: 8),
-            isFollowersTab
-                ? ElevatedButton(
-                    onPressed: () => _handleRemoveFollower(user['uid']),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFF5F5F5), // Abu-abu terang (Fog)
-                      foregroundColor: const Color(0xFF2F2F2F), // Graphite
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            if (widget.uid == AuthService.uid)
+              isFollowersTab
+                  ? ElevatedButton(
+                      onPressed: () => _handleRemoveFollower(user['uid']),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFF5F5F5), // Abu-abu terang (Fog)
+                        foregroundColor: const Color(0xFF2F2F2F), // Graphite
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                      ),
+                      child: const Text('Hapus', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                    )
+                  : ElevatedButton(
+                      onPressed: () => _handleUnfollow(user['uid']),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFF5F5F5), // Abu-abu
+                        foregroundColor: const Color(0xFF2F2F2F),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      ),
+                      child: const Text('Mengikuti', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                     ),
-                    child: const Text('Hapus', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-                  )
-                : ElevatedButton(
-                    onPressed: () => _handleUnfollow(user['uid']),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFF5F5F5), // Abu-abu
-                      foregroundColor: const Color(0xFF2F2F2F),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    ),
-                    child: const Text('Mengikuti', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-                  ),
           ],
         ),
       ),
@@ -241,8 +244,8 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
                 labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, letterSpacing: 0.05),
                 dividerColor: Colors.transparent,
                 tabs: const [
-                  Tab(text: 'Mengikuti'),
                   Tab(text: 'Pengikut'),
+                  Tab(text: 'Mengikuti'),
                 ],
               ),
             ),
@@ -251,8 +254,8 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
             child: TabBarView(
               controller: _tabController,
               children: [
-                _buildList(_following, false),
                 _buildList(_followers, true),
+                _buildList(_following, false),
               ],
             ),
           ),
