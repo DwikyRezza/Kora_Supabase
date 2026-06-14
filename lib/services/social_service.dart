@@ -61,10 +61,13 @@ class SocialService {
       final currentUserDoc = await _firestore.collection('users').doc(currentUid).get();
       if (currentUserDoc.exists) {
         final data = currentUserDoc.data()!;
-        final name = data['name'] ?? 'Seseorang';
-        final username = data['username'];
+        final profile = data.containsKey('profile')
+            ? Map<String, dynamic>.from(data['profile'] as Map)
+            : data;
+        final name = profile['name'] ?? 'Seseorang';
+        final username = profile['username'];
         final display = username != null ? '$name (@$username)' : name;
-        final photoUrl = data['photoUrl'];
+        final photoUrl = profile['photoUrl'];
 
         await NotificationService.addNotification(
           targetUid,
@@ -180,9 +183,12 @@ class SocialService {
       if (!userDoc.exists) return;
       
       final userData = userDoc.data()!;
-      final name = userData['name'] ?? 'Athlete';
-      final username = userData['username'] ?? 'athlete';
-      final photoUrl = userData['photoUrl'];
+      final profile = userData.containsKey('profile')
+          ? Map<String, dynamic>.from(userData['profile'] as Map)
+          : userData;
+      final name = profile['name'] ?? 'Athlete';
+      final username = profile['username'] ?? 'athlete';
+      final photoUrl = profile['photoUrl'];
 
       // Generate postId (bisa pakai ID workout ditambah UID atau auto-id)
       final docRef = _firestore.collection('feed_posts').doc();
@@ -270,14 +276,17 @@ class SocialService {
             final myDoc = await _firestore.collection('users').doc(uid).get();
             if (myDoc.exists) {
               final myData = myDoc.data()!;
-              final myName = myData['name'] ?? 'Seseorang';
+              final myProfile = myData.containsKey('profile')
+                  ? Map<String, dynamic>.from(myData['profile'] as Map)
+                  : myData;
+              final myName = myProfile['name'] ?? 'Seseorang';
               await NotificationService.addNotification(
                 authorUid,
                 title: 'Suka Baru',
                 body: '$myName menyukai aktivitas Anda.',
                 type: 'like',
                 relatedUid: uid,
-                relatedPhotoUrl: myData['photoUrl'],
+                relatedPhotoUrl: myProfile['photoUrl'],
               );
             }
           }
@@ -298,8 +307,11 @@ class SocialService {
       if (!userDoc.exists) return;
       
       final userData = userDoc.data()!;
-      final name = userData['name'] ?? 'Athlete';
-      final photoUrl = userData['photoUrl'];
+      final profile = userData.containsKey('profile')
+          ? Map<String, dynamic>.from(userData['profile'] as Map)
+          : userData;
+      final name = profile['name'] ?? 'Athlete';
+      final photoUrl = profile['photoUrl'];
 
       final commentRef = _firestore.collection('feed_posts').doc(postId).collection('comments').doc();
       

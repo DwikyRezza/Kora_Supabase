@@ -15,6 +15,9 @@ import '../theme/app_theme.dart';
 import 'dart:async';
 import 'search_screen.dart';
 import 'notification_screen.dart';
+import 'workout_detail_screen.dart';
+import 'running_tracker_screen.dart';
+import 'workout_setup_screen.dart';
 import '../widgets/feed_post_card.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -165,11 +168,29 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
   }
 
-  Future<void> _toggleEventCompletion(ScheduleEvent event, bool? value) async {
-    if (value == null) return;
-    HapticFeedback.lightImpact();
-    await _db.updateScheduleEventCompletion(event.id!, value);
-    _loadData();
+  Future<void> _navigateByWorkoutType(ScheduleEvent event) async {
+    final profile = await ProfileService.getProfile();
+    final weight = profile[ProfileService.keyWeight] ?? 70.0;
+    if (!mounted) return;
+
+    switch (event.workoutType) {
+      case 'running':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => RunningTrackerScreen(userWeight: weight)),
+        ).then((_) => _loadData());
+        break;
+      case 'weightlifting':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => WorkoutSetupScreen(userWeight: weight)),
+        ).then((_) => _loadData());
+        break;
+      default:
+        // Fallback: go to Workout tab
+        widget.onGoToWorkout();
+        break;
+    }
   }
 
   @override
@@ -593,7 +614,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     ],
                   ),
                   ElevatedButton(
-                    onPressed: () => _toggleEventCompletion(heroEvent, true),
+                    onPressed: () => _navigateByWorkoutType(heroEvent),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF2F2F2F), // graphite
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
@@ -646,36 +667,45 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           const Center(child: Text('Belum ada latihan hari ini.', style: TextStyle(color: Colors.grey)))
         else
           ..._todayWorkouts.map((w) {
-            return Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F5),
-                borderRadius: BorderRadius.circular(26),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 48, height: 48,
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(26)),
-                    child: const Icon(Icons.task_alt, color: Color(0xFF00B33F)),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(w.type.substring(0, 1).toUpperCase() + w.type.substring(1), style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2F2F2F), fontSize: 16)),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Selesai • ${DateFormat('HH:mm').format(w.date)} WIB',
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.grey, letterSpacing: 0.5),
-                        ),
-                      ],
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => WorkoutDetailScreen(workout: w)),
+                ).then((_) => _loadData());
+              },
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(26),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48, height: 48,
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(26)),
+                      child: const Icon(Icons.task_alt, color: Color(0xFF00B33F)),
                     ),
-                  ),
-                  const Icon(Icons.chevron_right, color: Colors.grey),
-                ],
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(w.type.substring(0, 1).toUpperCase() + w.type.substring(1), style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2F2F2F), fontSize: 16)),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Selesai • ${DateFormat('HH:mm').format(w.date)} WIB',
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.grey, letterSpacing: 0.5),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, color: Colors.grey),
+                  ],
+                ),
               ),
             );
           }),
