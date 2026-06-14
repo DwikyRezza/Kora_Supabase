@@ -159,7 +159,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
           
           // Input field
           Container(
-            padding: EdgeInsets.fromLTRB(24, 16, 24, MediaQuery.of(context).viewInsets.bottom + 16),
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
             decoration: const BoxDecoration(
               color: Colors.white,
               border: Border(top: BorderSide(color: Color(0xFFF5F5F5))),

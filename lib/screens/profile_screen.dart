@@ -119,8 +119,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _CommentBottomSheet(
-        comments: _comments[index] ?? [],
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: _CommentBottomSheet(
+          comments: _comments[index] ?? [],
         onCommentAdded: (text) {
           setState(() {
             if (_comments[index] == null) _comments[index] = [];
@@ -726,7 +728,6 @@ class _CommentBottomSheetState extends State<_CommentBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     return Container(
       margin: const EdgeInsets.only(top: kToolbarHeight),
       decoration: const BoxDecoration(
@@ -785,7 +786,7 @@ class _CommentBottomSheetState extends State<_CommentBottomSheet> {
                   ),
           ),
           Container(
-            padding: EdgeInsets.fromLTRB(16, 8, 16, bottomInset + 8),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border(top: BorderSide(color: Colors.grey[200]!)),
