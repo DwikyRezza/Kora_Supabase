@@ -163,6 +163,7 @@ class DatabaseHelper {
   Future<void> clearAllData() async {
     final db = await database;
     await db.delete('workouts');
+    await db.delete('workout_photos');
     await db.delete('protein_entries');
     await db.delete('schedule_events');
     await db.delete('body_measurements');
