@@ -369,6 +369,33 @@ class DatabaseHelper {
     return maps.map((m) => Workout.fromMap(m)).toList();
   }
 
+  /// Fetch workouts within a date range, optionally filtered by type.
+  Future<List<Workout>> getWorkoutsByDateRange({
+    required DateTime start,
+    required DateTime end,
+    String? type,
+  }) async {
+    final db = await database;
+    final startStr = start.toIso8601String();
+    final endStr = end.toIso8601String();
+    if (type != null && type.isNotEmpty) {
+      final maps = await db.query(
+        'workouts',
+        where: 'date BETWEEN ? AND ? AND type = ?',
+        whereArgs: [startStr, endStr, type],
+        orderBy: 'date ASC',
+      );
+      return maps.map((m) => Workout.fromMap(m)).toList();
+    }
+    final maps = await db.query(
+      'workouts',
+      where: 'date BETWEEN ? AND ?',
+      whereArgs: [startStr, endStr],
+      orderBy: 'date ASC',
+    );
+    return maps.map((m) => Workout.fromMap(m)).toList();
+  }
+
   Future<List<Workout>> getAllWorkouts() async {
     final db = await database;
     final maps = await db.query('workouts', orderBy: 'date DESC');
