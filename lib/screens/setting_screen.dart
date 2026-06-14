@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import '../services/settings_service.dart';
 import 'landing_screen.dart';
 import 'edit_profile_screen.dart';
+import 'qna_screen.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -19,7 +20,6 @@ class _SettingScreenState extends State<SettingScreen> {
   final int _koraPoints = 2450; // Mock data for now
 
   // Custom Colors
-  static const Color primaryColor = Color(0xFFA83300);
   static const Color errorColor = Color(0xFFBA1A1A);
 
   @override
@@ -39,6 +39,8 @@ class _SettingScreenState extends State<SettingScreen> {
 
   void _toggleDarkMode(bool value) async {
     setState(() => _darkMode = value);
+    // Instant global theme switch — updates all ValueListenableBuilder listeners
+    AppTheme.themeNotifier.value = value ? ThemeMode.dark : ThemeMode.light;
     await SettingsService.setDarkMode(value);
   }
 
@@ -83,13 +85,13 @@ class _SettingScreenState extends State<SettingScreen> {
         backgroundColor: AppTheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: primaryColor),
+          icon: Icon(Icons.arrow_back_rounded, color: AppTheme.accentOrange),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Pengaturan',
           style: TextStyle(
-            color: primaryColor,
+            color: AppTheme.accentOrange,
             fontSize: 22,
             fontWeight: FontWeight.w700,
           ),
@@ -107,7 +109,7 @@ class _SettingScreenState extends State<SettingScreen> {
               _buildListItem(
                 icon: Icons.ads_click_rounded,
                 title: 'Target',
-                iconColor: primaryColor,
+                iconColor: AppTheme.accentOrange,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -127,20 +129,36 @@ class _SettingScreenState extends State<SettingScreen> {
                 title: 'Notifikasi',
                 value: _notifEnabled,
                 onChanged: _toggleNotif,
-                iconColor: primaryColor,
+                iconColor: AppTheme.accentOrange,
               ),
               _buildDivider(),
               _buildSwitchItem(
-                icon: Icons.dark_mode_rounded,
-                title: 'Mode Gelap',
+                icon: _darkMode ? Icons.nights_stay_rounded : Icons.wb_sunny_rounded,
+                title: 'Mode',
                 value: _darkMode,
                 onChanged: _toggleDarkMode,
-                iconColor: primaryColor,
+                iconColor: AppTheme.accentOrange,
               ),
             ]),
             const SizedBox(height: 32),
 
-
+            // Group: Bantuan
+            _buildSectionTitle('BANTUAN'),
+            const SizedBox(height: 16),
+            _buildContainer([
+              _buildListItem(
+                icon: Icons.help_outline_rounded,
+                title: 'Tanya Jawab (Q&A)',
+                iconColor: AppTheme.accentOrange,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const QnaScreen()),
+                  );
+                },
+              ),
+            ]),
+            const SizedBox(height: 32),
 
             // Group: Zona Bahaya
             _buildSectionTitle('ZONA BAHAYA', color: errorColor),
@@ -164,8 +182,8 @@ class _SettingScreenState extends State<SettingScreen> {
                   _buildListItem(
                     icon: Icons.delete_forever_rounded,
                     title: 'Hapus Akun',
-                    titleColor: const Color(0xFF656464), // on-secondary-container
-                    iconColor: const Color(0xFF656464),
+                    titleColor: AppTheme.textMuted,
+                    iconColor: AppTheme.textMuted,
                     showChevron: false,
                     onTap: () async {
                       final confirm = await showDialog<bool>(
@@ -206,7 +224,7 @@ class _SettingScreenState extends State<SettingScreen> {
       child: Text(
         title,
         style: TextStyle(
-          color: color ?? const Color(0xFF5F5E5E), // secondary
+          color: color ?? AppTheme.textMuted,
           fontSize: 14,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.5,
@@ -218,7 +236,7 @@ class _SettingScreenState extends State<SettingScreen> {
   Widget _buildContainer(List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5), // fog
+        color: AppTheme.surfaceVariant,
         borderRadius: BorderRadius.circular(26),
       ),
       child: Column(children: children),
@@ -226,7 +244,7 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   Widget _buildDivider() {
-    return const Divider(color: Color(0x4DE5BEB2), height: 1); // outline-variant/30
+    return Divider(color: AppTheme.border.withOpacity(0.3), height: 1);
   }
 
   Widget _buildListItem({
@@ -248,7 +266,7 @@ class _SettingScreenState extends State<SettingScreen> {
           padding: const EdgeInsets.all(24), // card-padding = 32px di html, sesuaikan
           child: Row(
             children: [
-              Icon(icon, color: iconColor ?? primaryColor, size: 24),
+              Icon(icon, color: iconColor ?? AppTheme.accentOrange, size: 24),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -268,8 +286,8 @@ class _SettingScreenState extends State<SettingScreen> {
                       const SizedBox(height: 2),
                       Text(
                         subtitle,
-                        style: const TextStyle(
-                          color: Color(0xFF5F5E5E), // secondary
+                        style: TextStyle(
+                          color: AppTheme.textMuted,
                           fontSize: 12,
                         ),
                       ),
@@ -283,8 +301,8 @@ class _SettingScreenState extends State<SettingScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: Text(
                       trailingText,
-                      style: const TextStyle(
-                        color: Color(0xFF5F5E5E),
+                      style: TextStyle(
+                        color: AppTheme.textMuted,
                         fontSize: 15,
                       ),
                       maxLines: 1,
@@ -294,7 +312,7 @@ class _SettingScreenState extends State<SettingScreen> {
                   ),
                 ),
               if (showChevron)
-                const Icon(Icons.chevron_right_rounded, color: Color(0xFF5F5E5E)),
+                Icon(Icons.chevron_right_rounded, color: AppTheme.textMuted),
             ],
           ),
         ),
@@ -313,7 +331,7 @@ class _SettingScreenState extends State<SettingScreen> {
       padding: const EdgeInsets.all(24),
       child: Row(
         children: [
-          Icon(icon, color: iconColor ?? primaryColor, size: 24),
+          Icon(icon, color: iconColor ?? AppTheme.accentOrange, size: 24),
           const SizedBox(width: 16),
           Expanded(
             child: Text(
@@ -327,8 +345,8 @@ class _SettingScreenState extends State<SettingScreen> {
           ),
           CupertinoSwitch(
             value: value,
-            activeColor: const Color(0xFFA83300), // primary
-            trackColor: const Color(0xFFE4E2E1), // secondary-fixed
+            activeTrackColor: AppTheme.accentOrange,
+            inactiveTrackColor: AppTheme.surfaceVariant,
             onChanged: onChanged,
           ),
         ],
