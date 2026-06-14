@@ -61,7 +61,12 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1080,
+      maxHeight: 1080,
+      imageQuality: 75,
+    );
 
     if (pickedFile != null) {
       setState(() => _isLoading = true);
