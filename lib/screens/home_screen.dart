@@ -15,6 +15,7 @@ import '../theme/app_theme.dart';
 import 'dart:async';
 import 'search_screen.dart';
 import 'notification_screen.dart';
+import 'profile_screen.dart';
 import 'workout_detail_screen.dart';
 import 'running_tracker_screen.dart';
 import 'workout_setup_screen.dart';
@@ -304,7 +305,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ],
             ),
             const SizedBox(width: 8),
-            _buildAvatar(),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                ).then((_) => _loadData());
+              },
+              child: _buildAvatar(),
+            ),
           ],
         ),
       ],
