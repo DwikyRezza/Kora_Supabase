@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -53,6 +53,13 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     'weightlifting': Color(0xFFFF5406),
   };
 
+  // ── Apple Fitness-style progress section state ───────────────────────────
+  // 'run' | 'walk'
+  String _progressFilter = 'run';
+  // 12 data points — satu per minggu, 12 minggu ke belakang
+  List<_WeekPoint> _twelveWeekData = [];
+  bool _twelveWeekLoading = true;
+
   // ── Lifecycle ────────────────────────────────────────────────────────────
   @override
   void initState() {
@@ -60,6 +67,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     _playFireSound();
     _loadData();
     _loadWorkoutData();
+    _loadTwelveWeekData();
   }
 
   @override
@@ -166,6 +174,57 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  // ── 12-week data loader ──────────────────────────────────────────────────
+  Future<void> _loadTwelveWeekData() async {
+    setState(() => _twelveWeekLoading = true);
+    final now = DateTime.now();
+    // Mulai dari awal minggu saat ini (Senin)
+    final todayMidnight = DateTime(now.year, now.month, now.day);
+    final thisMonday = todayMidnight.subtract(
+        Duration(days: (todayMidnight.weekday - 1) % 7));
+
+    final List<_WeekPoint> points = [];
+    for (int w = 11; w >= 0; w--) {
+      final weekStart = thisMonday.subtract(Duration(days: w * 7));
+      final weekEnd = weekStart
+          .add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59));
+
+      final dbType = (_progressFilter == 'walk') ? null : 'running';
+      final workouts = await _db.getWorkoutsByDateRange(
+        start: weekStart,
+        end: weekEnd,
+        type: dbType,
+      );
+
+      double distKm = 0;
+      for (final wk in workouts) {
+        if (_progressFilter == 'walk') {
+          // Hanya hitung sesi running berjarak pendek sebagai walking
+          if (wk.type == 'running' && (wk.distance ?? 0) <= 2.0) {
+            distKm += wk.distance ?? 0;
+          }
+        } else {
+          distKm += wk.distance ?? 0;
+        }
+      }
+
+      points.add(_WeekPoint(weekStart: weekStart, distanceKm: distKm));
+    }
+
+    if (mounted) {
+      setState(() {
+        _twelveWeekData = points;
+        _twelveWeekLoading = false;
+      });
+    }
+  }
+
+  void _onProgressFilterChanged(String f) {
+    if (_progressFilter == f) return;
+    setState(() => _progressFilter = f);
+    _loadTwelveWeekData();
   }
 
   Future<void> _loadWorkoutData() async {
@@ -294,7 +353,11 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 16),
+                  // ── Apple Fitness-style Progress Section ─────────────────
+                  _buildAppleFitnessProgressSection(),
+                  Divider(height: 1, thickness: 1, color: AppTheme.divider),
+                  SizedBox(height: 24),
+                  // ── Existing Sections ─────────────────────────────────────
                   _buildFilterChips(),
                   SizedBox(height: 24),
                   Padding(
@@ -336,6 +399,393 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 ],
               ),
             ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // APPLE FITNESS-STYLE PROGRESS SECTION
+  // ══════════════════════════════════════════════════════════════════════════
+
+  Widget _buildAppleFitnessProgressSection() {
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppTheme.themeNotifier,
+      builder: (context, _, __) {
+        return Container(
+          color: AppTheme.surface,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Filter pills: Run | Walk ─────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Row(
+                  children: [
+                    _buildProgressPill(
+                      label: 'Lari',
+                      icon: Icons.directions_run_rounded,
+                      key: 'run',
+                    ),
+                    const SizedBox(width: 10),
+                    _buildProgressPill(
+                      label: 'Jalan',
+                      icon: Icons.directions_walk_rounded,
+                      key: 'walk',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              // ── Date range & stats ─────────────────────────────────────
+              _buildProgressStats(),
+
+              const SizedBox(height: 8),
+
+              // ── 12-week line chart ─────────────────────────────────────
+              _buildTwelveWeekChart(),
+
+              // ── See more button ─────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF5406),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(50)),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Lihat lebih banyak progres',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.2),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildProgressPill({
+    required String label,
+    required IconData icon,
+    required String key,
+  }) {
+    final isActive = _progressFilter == key;
+    return GestureDetector(
+      onTap: () => _onProgressFilterChanged(key),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: isActive
+              ? Colors.transparent
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(50),
+          border: Border.all(
+            color: isActive ? const Color(0xFFFF5406) : AppTheme.border,
+            width: 2,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: isActive ? const Color(0xFFFF5406) : AppTheme.textSecondary,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: isActive ? const Color(0xFFFF5406) : AppTheme.textSecondary,
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProgressStats() {
+    // Hitung stats untuk minggu yang sedang dipilih (minggu ini)
+    final currentWeekPoint = _twelveWeekData.isNotEmpty
+        ? _twelveWeekData.last
+        : null;
+    final now = DateTime.now();
+    final thisMonday = now.subtract(Duration(days: (now.weekday - 1) % 7));
+    final thisSunday = thisMonday.add(const Duration(days: 6));
+
+    // Format tanggal range
+    final monthStart = DateFormat('MMM d').format(thisMonday);
+    final yearEnd = DateFormat('MMM d, yyyy').format(thisSunday);
+
+    // Hitung total jarak & durasi minggu ini dari _weekWorkouts
+    final m = _computeWeekMetrics();
+    final distStr = m.distance < 0.01
+        ? '0 km'
+        : '${m.distance.toStringAsFixed(2)} km';
+    final timeStr = m.duration < 1
+        ? '0m'
+        : m.duration >= 60
+            ? '${(m.duration ~/ 60)}h ${(m.duration % 60).round()}m'
+            : '${m.duration.round()}m';
+    final elevStr = '${m.elevation.round()} m';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$monthStart - $yearEnd',
+            style: TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _progressStatItem('Distance', distStr),
+              const SizedBox(width: 24),
+              _progressStatItem('Time', timeStr),
+              const SizedBox(width: 24),
+              _progressStatItem('Elev Gain', elevStr),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _progressStatItem(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+              color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: TextStyle(
+            color: AppTheme.textPrimary,
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.5,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTwelveWeekChart() {
+    if (_twelveWeekLoading || _twelveWeekData.isEmpty) {
+      return const SizedBox(
+        height: 200,
+        child: Center(
+            child: CircularProgressIndicator(
+                color: Color(0xFFFF5406), strokeWidth: 2)),
+      );
+    }
+
+    // Nilai max untuk skala Y
+    final maxKm = _twelveWeekData.fold(0.0,
+        (m, p) => p.distanceKm > m ? p.distanceKm : m);
+    final yMax = maxKm < 1.0 ? 2.0 : (maxKm * 1.4).ceilToDouble();
+    // Y-axis labels: 0, yMax/2, yMax — dibulatkan ke 0.5 terdekat
+    final yMid = (yMax / 2).roundToDouble();
+
+    // Buat spot untuk LineChart
+    final spots = List.generate(
+      _twelveWeekData.length,
+      (i) => FlSpot(i.toDouble(), _twelveWeekData[i].distanceKm),
+    );
+
+    // Indeks minggu saat ini (index ke-11, terakhir)
+    const currentWeekX = 11.0;
+
+    // Cari bulan-bulan yang muncul di 12 minggu ini (untuk label X)
+    final Set<int> shownMonths = {};
+    final Map<int, String> monthLabels = {};
+    for (int i = 0; i < _twelveWeekData.length; i++) {
+      final month = _twelveWeekData[i].weekStart.month;
+      if (!shownMonths.contains(month)) {
+        shownMonths.add(month);
+        monthLabels[i] = DateFormat('MMM').format(_twelveWeekData[i].weekStart).toUpperCase();
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12, bottom: 8),
+      child: SizedBox(
+        height: 220,
+        child: Stack(
+          children: [
+            // ── LineChart ─────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.only(right: 44),
+              child: LineChart(
+                LineChartData(
+                  minX: 0,
+                  maxX: 11,
+                  minY: 0,
+                  maxY: yMax,
+                  clipData: const FlClipData.all(),
+                  backgroundColor: AppTheme.surface,
+
+                  // Grid — hanya 2 garis horizontal
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    horizontalInterval: yMid,
+                    getDrawingHorizontalLine: (_) => FlLine(
+                      color: AppTheme.textPrimary.withOpacity(0.08),
+                      strokeWidth: 1,
+                    ),
+                  ),
+
+                  borderData: FlBorderData(show: false),
+
+                  // Titles
+                  titlesData: FlTitlesData(
+                    show: true,
+                    topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false)),
+                    leftTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false)),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 28,
+                        interval: 1,
+                        getTitlesWidget: (value, meta) {
+                          final idx = value.toInt();
+                          if (!monthLabels.containsKey(idx)) return const SizedBox();
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Text(
+                              monthLabels[idx]!,
+                              style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+
+                  // Extra lines: garis vertikal untuk "minggu ini"
+                  extraLinesData: ExtraLinesData(
+                    verticalLines: [
+                      VerticalLine(
+                        x: currentWeekX,
+                        color: AppTheme.textPrimary.withOpacity(0.45),
+                        strokeWidth: 1.5,
+                        dashArray: null,
+                      ),
+                    ],
+                  ),
+
+                  lineTouchData: LineTouchData(
+                    enabled: true,
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipColor: (_) => AppTheme.surfaceVariant,
+                      getTooltipItems: (spots) => spots.map((s) {
+                        return LineTooltipItem(
+                          '${s.y.toStringAsFixed(2)} km',
+                          const TextStyle(
+                              color: Color(0xFFFF5406),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: spots,
+                      isCurved: false,
+                      color: const Color(0xFFFF5406),
+                      barWidth: 2,
+                      isStrokeCapRound: true,
+                      dotData: FlDotData(
+                        show: true,
+                        getDotPainter: (spot, pct, bar, idx) =>
+                            FlDotCirclePainter(
+                          radius: 4,
+                          color: const Color(0xFFFF5406),
+                          strokeWidth: 0,
+                        ),
+                      ),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            const Color(0xFFFF5406).withOpacity(0.35),
+                            const Color(0xFFFF5406).withOpacity(0.0),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // ── Y-axis labels di kanan (0 km, yMid km, yMax km) ──────────
+            Positioned(
+              right: 0,
+              top: 0,
+              bottom: 28,
+              width: 48,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${yMax.toStringAsFixed(yMax == yMax.truncate() ? 0 : 1)} km',
+                    style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.w500),
+                  ),
+                  Text(
+                    '${yMid.toStringAsFixed(yMid == yMid.truncate() ? 0 : 1)} km',
+                    style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.w500),
+                  ),
+                  Text(
+                    '0 km',
+                    style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1259,6 +1709,14 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       ),
     );
   }
+}
+
+/// Data point untuk 12-week line chart — satu per minggu.
+class _WeekPoint {
+  final DateTime weekStart;
+  final double distanceKm;
+
+  const _WeekPoint({required this.weekStart, required this.distanceKm});
 }
 
 /// Simple data holder for weekly workout metrics.
