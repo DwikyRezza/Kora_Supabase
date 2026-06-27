@@ -80,14 +80,13 @@ class RunningTaskHandler extends TaskHandler {
     // Cek watchdog setiap tick — restart stream jika GPS freeze terdeteksi
     _tickWatchdog();
 
-    // Update notifikasi setiap detik — format: Nama User · Durasi · Jarak
+    // Update notifikasi setiap detik — format: Berlari / Waktu · Pace · Jarak
     FlutterForegroundTask.updateService(
-      notificationTitle:
-          '$_userName · ${_formattedTime()} · ${_distanceKm.toStringAsFixed(2)} km',
-      notificationText: 'Pace: ${_buildPaceStr()} /km',
+      notificationTitle: 'Berlari',
+      notificationText: '${_formattedTime()} Waktu  ·  ${_buildPaceStr()} Pace  ·  ${_distanceKm.toStringAsFixed(2)} Jarak (km)',
       notificationButtons: const [
         NotificationButton(id: 'pause_btn', text: 'Pause'),
-        NotificationButton(id: 'finish_btn', text: 'Stop'),
+        NotificationButton(id: 'finish_btn', text: 'Finish'),
       ],
     );
 
@@ -179,12 +178,11 @@ class RunningTaskHandler extends TaskHandler {
     _gpsWatchdog = null;
     print('⏸️ [SERVICE] Paused at ${_elapsedSeconds}s, dist: ${_distanceKm.toStringAsFixed(3)} km');
     FlutterForegroundTask.updateService(
-      notificationTitle:
-          '$_userName (Paused) · ${_formattedTime()}',
-      notificationText: '${_distanceKm.toStringAsFixed(2)} km',
+      notificationTitle: 'Di-pause',
+      notificationText: '${_formattedTime()} Waktu  ·  ${_buildPaceStr()} Pace  ·  ${_distanceKm.toStringAsFixed(2)} Jarak (km)',
       notificationButtons: const [
         NotificationButton(id: 'resume_btn', text: 'Resume'),
-        NotificationButton(id: 'finish_btn', text: 'Stop'),
+        NotificationButton(id: 'finish_btn', text: 'Finish'),
       ],
     );
   }
@@ -200,12 +198,11 @@ class RunningTaskHandler extends TaskHandler {
     _lastGpsUpdateTime = DateTime.now();
     print('▶️ [SERVICE] Resumed, elapsed so far: ${_elapsedAtPause}s');
     FlutterForegroundTask.updateService(
-      notificationTitle:
-          '$_userName · ${_formattedTime()} · ${_distanceKm.toStringAsFixed(2)} km',
-      notificationText: 'Pace: ${_buildPaceStr()} /km',
+      notificationTitle: 'Berlari',
+      notificationText: '${_formattedTime()} Waktu  ·  ${_buildPaceStr()} Pace  ·  ${_distanceKm.toStringAsFixed(2)} Jarak (km)',
       notificationButtons: const [
         NotificationButton(id: 'pause_btn', text: 'Pause'),
-        NotificationButton(id: 'finish_btn', text: 'Stop'),
+        NotificationButton(id: 'finish_btn', text: 'Finish'),
       ],
     );
   }

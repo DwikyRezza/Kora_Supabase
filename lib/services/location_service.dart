@@ -21,6 +21,11 @@ class LocationService {
         showWhen: false,
         // Tampil di atas lockscreen — penting untuk Xiaomi MIUI
         visibility: NotificationVisibility.VISIBILITY_PUBLIC,
+        iconData: const NotificationIconData(
+          resType: ResourceType.drawable,
+          resPrefix: ResourcePrefix.ic,
+          name: 'stat_logo',
+        ),
       ),
       iosNotificationOptions: const IOSNotificationOptions(
         showNotification: false,
@@ -141,11 +146,11 @@ class LocationService {
   static Future<dynamic> _doStartService() async {
     return await FlutterForegroundTask.startService(
       serviceId: 256,
-      notificationTitle: 'Run · 0:00 · 0.00 km',
-      notificationText: 'GPS aktif — layar mati tetap berjalan',
+      notificationTitle: 'Berlari',
+      notificationText: '00:00 Waktu  ·  --:-- Pace  ·  0.00 Jarak (km)',
       notificationButtons: const [
         NotificationButton(id: 'pause_btn', text: 'Pause'),
-        NotificationButton(id: 'finish_btn', text: 'Stop'),
+        NotificationButton(id: 'finish_btn', text: 'Finish'),
       ],
       callback: startRunningTaskCallback,
     );
