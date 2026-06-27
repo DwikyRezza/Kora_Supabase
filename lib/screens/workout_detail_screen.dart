@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -286,60 +286,91 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                 width: double.infinity,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(0),
-                  child: GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: routePoints[routePoints.length ~/ 2],
-                      zoom: 14.0,
-                    ),
-                    style: '''[
-                      {"elementType":"geometry","stylers":[{"color":"#212121"}]},
-                      {"elementType":"labels.icon","stylers":[{"visibility":"off"}]},
-                      {"elementType":"labels.text.fill","stylers":[{"color":"#757575"}]},
-                      {"elementType":"labels.text.stroke","stylers":[{"color":"#212121"}]},
-                      {"featureType":"road","elementType":"geometry.fill","stylers":[{"color":"#2c2c2c"}]},
-                      {"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#373737"}]},
-                      {"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#3c3c3c"}]},
-                      {"featureType":"water","elementType":"geometry","stylers":[{"color":"#000000"}]},
-                      {"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#181818"}]}
-                    ]''',
-                    myLocationEnabled: false,
-                    myLocationButtonEnabled: false,
-                    zoomControlsEnabled: false,
-                    scrollGesturesEnabled: false,
-                    zoomGesturesEnabled: false,
-                    rotateGesturesEnabled: false,
-                    tiltGesturesEnabled: false,
-                    mapToolbarEnabled: false,
-                    polylines: {
-                      Polyline(
-                        polylineId: const PolylineId('route'),
-                        points: routePoints,
-                        color: const Color(0xFFFC5200),
-                        width: 5,
-                        startCap: Cap.roundCap,
-                        endCap: Cap.roundCap,
-                        jointType: JointType.round,
-                      ),
-                    },
-                    markers: {
-                      if (routePoints.isNotEmpty)
-                        Marker(
-                          markerId: const MarkerId('start'),
-                          position: routePoints.first,
-                          icon: BitmapDescriptor.defaultMarkerWithHue(
-                            BitmapDescriptor.hueGreen,
-                          ),
+                  child: ValueListenableBuilder<ThemeMode>(
+                    valueListenable: AppTheme.themeNotifier,
+                    builder: (context, _, __) {
+                      return GoogleMap(
+                        initialCameraPosition: CameraPosition(
+                          target: routePoints[routePoints.length ~/ 2],
+                          zoom: 14.0,
                         ),
-                      if (routePoints.length > 1)
-                        Marker(
-                          markerId: const MarkerId('end'),
-                          position: routePoints.last,
-                          icon: BitmapDescriptor.defaultMarkerWithHue(
-                            BitmapDescriptor.hueRed,
+                        style: AppTheme.isDarkMode ? '''[
+                          {"elementType":"geometry","stylers":[{"color":"#212121"}]},
+                          {"elementType":"labels.icon","stylers":[{"visibility":"off"}]},
+                          {"elementType":"labels.text.fill","stylers":[{"color":"#757575"}]},
+                          {"elementType":"labels.text.stroke","stylers":[{"color":"#212121"}]},
+                          {"featureType":"road","elementType":"geometry.fill","stylers":[{"color":"#2c2c2c"}]},
+                          {"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#373737"}]},
+                          {"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#3c3c3c"}]},
+                          {"featureType":"water","elementType":"geometry","stylers":[{"color":"#000000"}]},
+                          {"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#181818"}]}
+                        ]''' : null,
+                        myLocationEnabled: false,
+                        myLocationButtonEnabled: false,
+                        zoomControlsEnabled: true,
+                        scrollGesturesEnabled: true,
+                        zoomGesturesEnabled: true,
+                        rotateGesturesEnabled: true,
+                        tiltGesturesEnabled: true,
+                        mapToolbarEnabled: true,
+                        polylines: {
+                          Polyline(
+                            polylineId: const PolylineId('route'),
+                            points: routePoints,
+                            color: const Color(0xFFFF5406),
+                            width: 5,
+                            startCap: Cap.roundCap,
+                            endCap: Cap.roundCap,
+                            jointType: JointType.round,
                           ),
-                        ),
-                    },
-                    mapType: MapType.normal,
+                        },
+                        markers: {
+                          if (routePoints.isNotEmpty)
+                            Marker(
+                              markerId: const MarkerId('start'),
+                              position: routePoints.first,
+                              icon: BitmapDescriptor.defaultMarkerWithHue(
+                                BitmapDescriptor.hueGreen,
+                              ),
+                            ),
+                          if (routePoints.length > 1)
+                            Marker(
+                              markerId: const MarkerId('end'),
+                              position: routePoints.last,
+                              icon: BitmapDescriptor.defaultMarkerWithHue(
+                                BitmapDescriptor.hueRed,
+                              ),
+                            ),
+                        },
+                        mapType: MapType.normal,
+                        onMapCreated: (controller) {
+                          // Gunakan LatLngBounds untuk memposisikan rute tepat di tengah layar dengan padding
+                          Future.delayed(const Duration(milliseconds: 150), () {
+                            if (routePoints.isNotEmpty) {
+                              double minLat = routePoints.first.latitude;
+                              double maxLat = routePoints.first.latitude;
+                              double minLng = routePoints.first.longitude;
+                              double maxLng = routePoints.first.longitude;
+                              for (final p in routePoints) {
+                                if (p.latitude < minLat) minLat = p.latitude;
+                                if (p.latitude > maxLat) maxLat = p.latitude;
+                                if (p.longitude < minLng) minLng = p.longitude;
+                                if (p.longitude > maxLng) maxLng = p.longitude;
+                              }
+                              controller.animateCamera(
+                                CameraUpdate.newLatLngBounds(
+                                  LatLngBounds(
+                                    southwest: LatLng(minLat, minLng),
+                                    northeast: LatLng(maxLat, maxLng),
+                                  ),
+                                  50.0, // padding
+                                ),
+                              );
+                            }
+                          });
+                        },
+                      );
+                    }
                   ),
                 ),
               ),
