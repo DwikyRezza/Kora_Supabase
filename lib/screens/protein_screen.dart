@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'package:flutter/services.dart';
 import '../models/protein_entry.dart';
@@ -164,21 +164,6 @@ class _ProteinScreenState extends State<ProteinScreen> {
                     borderRadius: BorderRadius.circular(26)),
                 child: Icon(Icons.water_drop,
                     color: Color(0xFF00A9DD), size: 24),
-              ),
-            ),
-            SizedBox(width: 8),
-            GestureDetector(
-              onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const WeeklyReportScreen())),
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                    color: AppTheme.surfaceVariant,
-                    borderRadius: BorderRadius.circular(26)),
-                child: Icon(Icons.calendar_month,
-                    color: AppTheme.textPrimary, size: 24),
               ),
             ),
           ],
