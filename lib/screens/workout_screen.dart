@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../theme/app_theme.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -326,7 +328,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
         },
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: AppTheme.surfaceVariant,
             borderRadius: BorderRadius.circular(26),
@@ -335,39 +337,97 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    width: 40, height: 40,
-                    decoration: BoxDecoration(color: AppTheme.surface, shape: BoxShape.circle),
-                    child: Icon(workout.typeIcon, size: 20, color: const Color(0xFF00B33F)),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
                     children: [
-                      Text(_userName.isNotEmpty ? _userName : 'Atlet', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold)),
-                      Text(
-                        '${DateFormat('dd MMM yyyy').format(workout.date)}',
-                        style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold),
+                      Container(
+                        width: 32, height: 32,
+                        decoration: BoxDecoration(color: AppTheme.surface, shape: BoxShape.circle),
+                        child: Icon(workout.typeIcon, size: 16, color: const Color(0xFFFF5406)),
+                      ),
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            workout.title ?? (workout.type == 'running' ? 'Lari' : (workout.type == 'walking' ? 'Jalan' : 'Latihan')),
+                            style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold, fontSize: 14),
+                          ),
+                          Text(
+                            DateFormat('dd MMM yyyy • HH:mm').format(workout.date),
+                            style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
-              const SizedBox(height: 20),
-              Text(workout.type.substring(0, 1).toUpperCase() + workout.type.substring(1), style: TextStyle(color: AppTheme.textPrimary, fontSize: 20, fontWeight: FontWeight.w900)),
               const SizedBox(height: 16),
               Row(
                 children: [
-                  if (workout.distance != null && workout.distance! > 0) _actStat('Jarak', '${workout.distance!.toStringAsFixed(2)} km'),
-                  if (workout.type == 'running') _actStat('Pace', '${_calcPace(workout)} /km'),
-                  _actStat('Waktu', _formatMins(workout.duration)),
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (workout.distance != null && workout.distance! > 0)
+                          _miniCardStat('Jarak', '${workout.distance!.toStringAsFixed(2)} km'),
+                        if (workout.type == 'running')
+                          _miniCardStat('Pace', '${_calcPace(workout)} /km'),
+                        _miniCardStat('Waktu', _formatMins(workout.duration)),
+                      ],
+                    ),
+                  ),
+                  if (workout.polyline != null && workout.polyline!.isNotEmpty) ...[
+                    const SizedBox(width: 16),
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: AppTheme.surface.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: CustomPaint(
+                          painter: MiniRoutePainter(
+                            _parsePolyline(workout.polyline!),
+                            routeColor: const Color(0xFFFF5406),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  List<LatLng> _parsePolyline(String polylineStr) {
+    try {
+      final List<dynamic> decoded = jsonDecode(polylineStr);
+      return decoded.map((p) => LatLng(
+        (p[0] as num).toDouble(),
+        (p[1] as num).toDouble(),
+      )).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Widget _miniCardStat(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 2),
+        Text(value, style: TextStyle(color: AppTheme.textPrimary, fontSize: 13, fontWeight: FontWeight.bold)),
+      ],
     );
   }
 
@@ -678,5 +738,83 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
         ),
       ),
     );
+  }
+}
+
+class MiniRoutePainter extends CustomPainter {
+  final List<LatLng> points;
+  final Color routeColor;
+
+  MiniRoutePainter(this.points, {this.routeColor = const Color(0xFFFF5406)});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (points.isEmpty) return;
+
+    double minLat = points.first.latitude;
+    double maxLat = points.first.latitude;
+    double minLng = points.first.longitude;
+    double maxLng = points.first.longitude;
+
+    for (final p in points) {
+      if (p.latitude < minLat) minLat = p.latitude;
+      if (p.latitude > maxLat) maxLat = p.latitude;
+      if (p.longitude < minLng) minLng = p.longitude;
+      if (p.longitude > maxLng) maxLng = p.longitude;
+    }
+
+    final latRange = maxLat - minLat;
+    final lngRange = maxLng - minLng;
+
+    if (latRange == 0 || lngRange == 0) return;
+
+    const padding = 8.0;
+    final usableWidth = size.width - (padding * 2);
+    final usableHeight = size.height - (padding * 2);
+
+    final scale = usableWidth / lngRange < usableHeight / latRange
+        ? usableWidth / lngRange
+        : usableHeight / latRange;
+
+    final xOffset = padding + (usableWidth - lngRange * scale) / 2;
+    final yOffset = padding + (usableHeight - latRange * scale) / 2;
+
+    Offset getOffset(LatLng p) {
+      final x = xOffset + (p.longitude - minLng) * scale;
+      final y = size.height - (yOffset + (p.latitude - minLat) * scale);
+      return Offset(x, y);
+    }
+
+    final paint = Paint()
+      ..color = routeColor
+      ..strokeWidth = 3.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final path = Path();
+    path.moveTo(getOffset(points.first).dx, getOffset(points.first).dy);
+    for (int i = 1; i < points.length; i++) {
+      final off = getOffset(points[i]);
+      path.lineTo(off.dx, off.dy);
+    }
+    canvas.drawPath(path, paint);
+
+    final startPaint = Paint()
+      ..color = const Color(0xFF00B33F)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(getOffset(points.first), 4.5, startPaint);
+
+    if (points.length > 1) {
+      final endPaint = Paint()
+        ..color = const Color(0xFFFF3400)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(getOffset(points.last), 4.5, endPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant MiniRoutePainter oldDelegate) {
+    return oldDelegate.points != points || oldDelegate.routeColor != routeColor;
   }
 }
