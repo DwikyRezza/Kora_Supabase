@@ -1425,50 +1425,25 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     );
   }
 
-  // ── 7. Monthly Protein Trend (existing, kept) ────────────────────────────
+  // ── 7. Monthly Protein Trend (Line Chart style) ─────────────────────────
   Widget _buildMonthlyLinearChart() {
     int daysInMonth =
         DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
-    List<BarChartGroupData> barGroups = [];
-
+    
+    final List<FlSpot> spots = [];
     for (int i = 1; i <= daysInMonth; i++) {
-      final stat = _dailyStats[i]!;
-      final progress = (stat['protein'] / _targetProtein).clamp(0.0, 1.2);
-      final gglWarn =
-          stat['sugar'] > 50 || stat['salt'] > 5 || stat['fat'] > 67;
-
-      Color barColor;
-      if (progress < 0.9 || gglWarn) {
-        barColor = const Color(0xFFFF3400);
-      } else if (progress >= 1.0) {
-        barColor = const Color(0xFF00B33F);
-      } else {
-        barColor = Colors.yellow[600]!;
-      }
-
-      barGroups.add(BarChartGroupData(
-        x: i,
-        barRods: [
-          BarChartRodData(
-            toY: progress,
-            color: barColor,
-            width: 12,
-            borderRadius: BorderRadius.circular(6),
-            backDrawRodData: BackgroundBarChartRodData(
-              show: true,
-              toY: 1.2,
-              color: AppTheme.surfaceVariant,
-            ),
-          ),
-        ],
-      ));
+      final stat = _dailyStats[i] ?? {'protein': 0.0};
+      spots.add(FlSpot(i.toDouble(), stat['protein']));
     }
+
+    final double yMax = _targetProtein * 1.4;
+    final double yMid = _targetProtein;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Text('Tren Protein Bulanan',
               style: TextStyle(
                   color: AppTheme.textPrimary,
@@ -1477,80 +1452,139 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         ),
         SizedBox(height: 24),
         SizedBox(
-          height: 180,
+          height: 200,
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: SizedBox(
-              width: daysInMonth * 24.0,
-              child: BarChart(
-                BarChartData(
-                  alignment: BarChartAlignment.spaceAround,
-                  maxY: 1.2,
-                  barTouchData: BarTouchData(
-                    enabled: true,
-                    touchTooltipData: BarTouchTooltipData(
-                      getTooltipColor: (_) => AppTheme.textPrimary,
-                      getTooltipItem: (group, gi, rod, ri) {
-                        return BarTooltipItem(
-                          'Tgl ${group.x}\n${(rod.toY * 100).toInt()}%',
-                          TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
-                        );
-                      },
+              width: daysInMonth * 26.0,
+              child: LineChart(
+                LineChartData(
+                  minX: 1,
+                  maxX: daysInMonth.toDouble(),
+                  minY: 0,
+                  maxY: yMax,
+                  clipData: const FlClipData.all(),
+                  backgroundColor: AppTheme.surface,
+                  
+                  // Grid
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    horizontalInterval: yMid / 2,
+                    getDrawingHorizontalLine: (_) => FlLine(
+                      color: AppTheme.textPrimary.withOpacity(0.06),
+                      strokeWidth: 1,
                     ),
                   ),
+
+                  borderData: FlBorderData(show: false),
+
+                  // Tooltip/Touch data
+                  lineTouchData: LineTouchData(
+                    enabled: true,
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipColor: (_) => AppTheme.surfaceVariant,
+                      getTooltipItems: (spots) => spots.map((s) {
+                        return LineTooltipItem(
+                          'Tgl ${s.x.toInt()}\n${s.y.toStringAsFixed(1)}g',
+                          TextStyle(
+                              color: AppTheme.textPrimary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+
+                  // Axis Titles
                   titlesData: FlTitlesData(
                     show: true,
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          if (value % 5 != 0 &&
-                              value != 1 &&
-                              value != daysInMonth) return SizedBox();
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 12),
-                            child: Text(value.toInt().toString(),
-                                style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold)),
-                          );
-                        },
-                      ),
-                    ),
+                    topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false)),
                     leftTitles: const AxisTitles(
                         sideTitles: SideTitles(showTitles: false)),
                     rightTitles: const AxisTitles(
                         sideTitles: SideTitles(showTitles: false)),
-                    topTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false)),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 28,
+                        interval: 1,
+                        getTitlesWidget: (value, meta) {
+                          final day = value.toInt();
+                          // Hanya tampilkan label hari ke-1, 5, 10, 15, 20, 25, atau hari terakhir
+                          if (day % 5 != 0 && day != 1 && day != daysInMonth) {
+                            return const SizedBox();
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              day.toString(),
+                              style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                   ),
-                  gridData: const FlGridData(show: false),
-                  borderData: FlBorderData(show: false),
+
+                  // Horizontal dashed line for Target Protein
                   extraLinesData: ExtraLinesData(
                     horizontalLines: [
                       HorizontalLine(
-                        y: 0.9,
-                        color: Colors.grey.withOpacity(0.3),
+                        y: _targetProtein,
+                        color: const Color(0xFFFF5406).withOpacity(0.6),
                         strokeWidth: 2,
                         dashArray: [5, 5],
                         label: HorizontalLineLabel(
                           show: true,
                           alignment: Alignment.topRight,
-                          padding: const EdgeInsets.only(right: 4, bottom: 4),
+                          padding: const EdgeInsets.only(right: 8, bottom: 4),
                           style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold),
-                          labelResolver: (_) => 'Target',
+                            color: const Color(0xFFFF5406),
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            backgroundColor: AppTheme.surface.withOpacity(0.8),
+                          ),
+                          labelResolver: (line) => 'Target: ${_targetProtein.round()}g',
                         ),
                       ),
                     ],
                   ),
-                  barGroups: barGroups,
+
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: spots,
+                      isCurved: false,
+                      color: const Color(0xFFFF5406),
+                      barWidth: 2,
+                      isStrokeCapRound: true,
+                      dotData: FlDotData(
+                        show: true,
+                        getDotPainter: (spot, pct, bar, idx) =>
+                            FlDotCirclePainter(
+                          radius: 3,
+                          color: const Color(0xFFFF5406),
+                          strokeWidth: 0,
+                        ),
+                      ),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            const Color(0xFFFF5406).withOpacity(0.3),
+                            const Color(0xFFFF5406).withOpacity(0.0),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
