@@ -26,7 +26,7 @@ class RunningTrackerScreen extends StatefulWidget {
 }
 
 class _RunningTrackerScreenState extends State<RunningTrackerScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, TickerProviderStateMixin {
   // ── Google Maps controller ────────────────────────────────────────────
   final Completer<GoogleMapController> _mapController = Completer();
   static const String _mapStyleDark = '''[
@@ -106,9 +106,34 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
   final ValueNotifier<double> _distanceNotifier = ValueNotifier<double>(0.0);
   final ValueNotifier<String> _paceNotifier = ValueNotifier<String>('--:--');
 
+  // ── Marker Animation ──────────────────────────────────────────────────
+  AnimationController? _markerAnimController;
+  Animation<double>? _markerAnimation;
+  LatLng? _oldLocation;
+  LatLng? _animatedLocation;
+
   @override
   void initState() {
     super.initState();
+    _markerAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _markerAnimation = CurvedAnimation(
+      parent: _markerAnimController!,
+      curve: Curves.linear,
+    )..addListener(() {
+        if (_oldLocation != null && _currentLocation != null && _isMapVisible) {
+          final t = _markerAnimation!.value;
+          final lat = _oldLocation!.latitude +
+              (_currentLocation!.latitude - _oldLocation!.latitude) * t;
+          final lng = _oldLocation!.longitude +
+              (_currentLocation!.longitude - _oldLocation!.longitude) * t;
+          setState(() {
+            _animatedLocation = LatLng(lat, lng);
+          });
+        }
+      });
     WidgetsBinding.instance.addObserver(this);
     TabVisibility.instance.addListener(_onTabVisibilityChanged);
     FlutterForegroundTask.addTaskDataCallback(_onReceiveTaskData);
@@ -139,6 +164,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     _elapsedNotifier.dispose();
     _distanceNotifier.dispose();
     _paceNotifier.dispose();
+    _markerAnimController?.dispose();
     super.dispose();
   }
 
@@ -213,10 +239,12 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
 
       final newLoc = LatLng(lat, lng);
       if (!mounted) return;
-      // Simpan lokasi tanpa setState saat tab hidden — hemat rebuild
+      
+      _oldLocation = _currentLocation ?? newLoc;
       _currentLocation = newLoc;
+      
       if (_isMapVisible) {
-        if (mounted) setState(() {});
+        _markerAnimController?.forward(from: 0.0);
         if (_isRunning) _animateCameraToLocation(newLoc);
       }
     } else if (type == 'update') {
@@ -700,8 +728,38 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     // Stream ini tetap jalan dan menggerakkan marker DAN menghitung jarak
     final started = await LocationService.startService();
     if (!started && mounted) {
-      _showSnackBar('⚠️ Gagal memulai background tracking. Coba lagi.');
       debugPrint('❌ [UI] Foreground service gagal start!');
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: AppTheme.surface,
+          title: Row(
+            children: [
+              const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+              const SizedBox(width: 8),
+              Text('Izin Diperlukan', style: TextStyle(color: AppTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Text(
+            'Gagal memulai background tracking. Pastikan izin Notifikasi, Lokasi Latar Belakang (Izinkan sepanjang waktu), dan Optimasi Baterai telah diberikan di Pengaturan.',
+            style: TextStyle(color: AppTheme.textSecondary, height: 1.5),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                Geolocator.openAppSettings();
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00B33F)),
+              child: const Text('Buka Pengaturan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      );
     }
   }
 
@@ -1032,7 +1090,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
     if (_currentLocation != null) {
       markers.add(Marker(
         markerId: const MarkerId('current_location'),
-        position: _currentLocation!,
+        position: _animatedLocation ?? _currentLocation!,
         icon: _locationMarker ??
             BitmapDescriptor.defaultMarkerWithHue(
               BitmapDescriptor.hueAzure,

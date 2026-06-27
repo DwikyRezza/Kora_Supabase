@@ -26,7 +26,7 @@ import 'services/settings_service.dart';
 import 'services/cloud_sync_service.dart';
 import 'services/notification_service.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
 

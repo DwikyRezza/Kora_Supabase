@@ -238,7 +238,7 @@ class RunningTaskHandler extends TaskHandler {
 
     final locationSettings = AndroidSettings(
       accuracy: LocationAccuracy.high,
-      distanceFilter: 1,
+      distanceFilter: 0, // Ubah dari 1 ke 0 agar GPS merekam pergerakan mikro
       intervalDuration: const Duration(seconds: 1),
 
       // ── KRITIS #1: forceLocationManager = true ──────────────────────────
@@ -379,8 +379,14 @@ class RunningTaskHandler extends TaskHandler {
       return;
     }
 
-    // Threshold 0.5m (lebih sensitif dari sebelumnya 1m)
-    if (segmentDistanceM >= 0.5) {
+    // Filter drift statis: abaikan pergerakan kecil jika akurasi buruk
+    if (segmentDistanceM < 2.0 && position.accuracy > 15.0) {
+      print('⚠️ [SERVICE] Drift terdeteksi (acc: ${position.accuracy}m). Diabaikan.');
+      return;
+    }
+
+    // Threshold 0.1m (sangat sensitif untuk merekam jarak aktual di tikungan)
+    if (segmentDistanceM >= 0.1) {
       _distanceKm += segmentDistanceKm;
       _movingSeconds++;
       _lastValidPosition = position;
