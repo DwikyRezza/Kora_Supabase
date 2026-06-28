@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 import '../models/exercise_definition.dart';
@@ -236,6 +236,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
           const SizedBox(height: 16),
           Expanded(
             child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
               children: _muscleCategories.entries.map((entry) {
                 final categoryName = entry.key;
                 final muscles = entry.value;
@@ -340,6 +341,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
             child: filtered.isEmpty
                 ? Center(child: Text('Tidak ada gerakan yang sesuai kriteria.', style: TextStyle(color: AppTheme.textMuted)))
                 : ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
                     itemCount: filtered.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemBuilder: (ctx, i) {
@@ -407,7 +409,8 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
                     children: [
                       Text('Estimasi Sesi', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
                       const SizedBox(height: 4),
-                      Row(
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Text('~$estimatedMins Menit', style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
                           const SizedBox(width: 12),
@@ -432,6 +435,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
                 shadowColor: Colors.transparent,
               ),
               child: ReorderableListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
                 itemCount: _selectedExerciseIds.length,
                 proxyDecorator: (Widget child, int index, Animation<double> animation) {
                   return Material(
@@ -471,33 +475,37 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: AppTheme.border),
                     ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                      leading: Row(
-                        mainAxisSize: MainAxisSize.min,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      child: Row(
                         children: [
                           SizedBox(
-                            width: 24,
-                            child: Text('${i + 1}.', style: TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.bold, fontSize: 16)),
+                            width: 20,
+                            child: Text('${i + 1}.', style: TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.bold, fontSize: 14)),
                           ),
                           Container(
-                            width: 44,
-                            height: 44,
+                            width: 40,
+                            height: 40,
                             decoration: BoxDecoration(
                               color: AppTheme.electricBlue.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Center(
-                              child: Icon(ex.icon, color: AppTheme.electricBlue, size: 22),
+                              child: Icon(ex.icon, color: AppTheme.electricBlue, size: 20),
                             ),
                           ),
-                        ],
-                      ),
-                      title: Text(ex.name, style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold)),
-                      subtitle: Text(ex.muscleGroups.join(', '), style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(ex.name, style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 2),
+                                Text(ex.muscleGroups.join(', '), style: TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
                           Container(
                             decoration: BoxDecoration(
                               color: AppTheme.surfaceVariant,
@@ -514,8 +522,8 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
                                     });
                                   },
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    child: Icon(Icons.remove, color: AppTheme.textPrimary, size: 18),
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                    child: Icon(Icons.remove, color: AppTheme.textPrimary, size: 16),
                                   ),
                                 ),
                                 InkWell(
@@ -524,8 +532,8 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
                                     _showSetEditDialog(exId);
                                   },
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    child: Text('${_exerciseSets[exId] ?? 4}', style: TextStyle(color: AppTheme.electricBlue, fontWeight: FontWeight.bold, fontSize: 16)),
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                    child: Text('${_exerciseSets[exId] ?? 4}', style: TextStyle(color: AppTheme.electricBlue, fontWeight: FontWeight.bold, fontSize: 14)),
                                   ),
                                 ),
                                 InkWell(
@@ -537,15 +545,15 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
                                     });
                                   },
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    child: Icon(Icons.add, color: AppTheme.textPrimary, size: 18),
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                    child: Icon(Icons.add, color: AppTheme.textPrimary, size: 16),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          const Icon(Icons.drag_handle_rounded, color: Colors.grey),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.drag_handle_rounded, color: Colors.grey, size: 20),
                         ],
                       ),
                     ),

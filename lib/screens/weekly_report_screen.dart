@@ -476,7 +476,10 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               // ── Filter pills: Run | Walk | Lift ─────────────────────────────
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: Row(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Row(
                   children: [
                     _buildProgressPill(
                       label: 'Lari',
@@ -496,6 +499,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                       key: 'lift',
                     ),
                   ],
+                ),
                 ),
               ),
               const SizedBox(height: 18),
@@ -632,12 +636,12 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          Row(
+          Wrap(
+            spacing: 24,
+            runSpacing: 12,
             children: [
               _progressStatItem(firstLabel, firstVal),
-              const SizedBox(width: 24),
               _progressStatItem('Time', timeStr),
-              const SizedBox(width: 24),
               _progressStatItem(thirdLabel, thirdVal),
             ],
           ),

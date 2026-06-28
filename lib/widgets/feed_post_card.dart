@@ -502,13 +502,27 @@ class _FeedPostCardState extends State<FeedPostCard> {
   }
 
   Widget _socialButton({required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
-    return TextButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon, size: 20, color: color),
-      label: Text(label, style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.w600)),
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 20, color: color),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  label,
+                  style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

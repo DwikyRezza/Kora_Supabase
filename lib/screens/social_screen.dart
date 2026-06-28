@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../services/social_service.dart';
 import '../services/auth_service.dart';
@@ -194,6 +194,7 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
     }
 
     return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(24),
       itemCount: users.length,
       separatorBuilder: (context, index) => Divider(color: AppTheme.border, height: 16),

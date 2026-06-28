@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/profile_service.dart';
 import '../services/cloud_sync_service.dart';
@@ -99,6 +99,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
       ),
       body: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(24.0),
         child: Form(
           key: _formKey,
@@ -157,6 +158,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   SizedBox(width: 20),
                   Expanded(
                     child: DropdownButtonFormField<String>(
+                      isExpanded: true,
                       decoration: InputDecoration(
                         labelText: 'Gender',
                         labelStyle: TextStyle(color: const Color(0xFF72A2C5)),

@@ -81,6 +81,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
                 color: const Color(0xFFFF5406),
                 backgroundColor: AppTheme.surface,
                 child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
                     SliverToBoxAdapter(
                       child: Padding(

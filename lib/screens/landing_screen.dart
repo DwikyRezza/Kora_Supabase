@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/auth_service.dart';
 import '../services/cloud_sync_service.dart';
@@ -177,13 +177,23 @@ class _LandingScreenState extends State<LandingScreen>
     return Scaffold(
       backgroundColor: AppTheme.surface, // Paper White
       body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnim,
-          child: SlideTransition(
-            position: _slideAnim,
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return ScrollConfiguration(
+              behavior: const _GlowScrollBehavior(),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
+                  ),
+                  child: IntrinsicHeight(
+                    child: FadeTransition(
+                      opacity: _fadeAnim,
+                      child: SlideTransition(
+                        position: _slideAnim,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
                 child: Column(
                   children: [
                     const SizedBox(height: 32),
@@ -352,15 +362,20 @@ class _LandingScreenState extends State<LandingScreen>
                     ),
                   ),
                   SizedBox(height: 32),
-                ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
 
 /// Widget Google "G" icon kecil
@@ -371,6 +386,20 @@ class _GoogleGIcon extends StatelessWidget {
       'assets/icons/kora_logo.svg', // using the SVG provided by the user
       width: 22,
       height: 22,
+    );
+  }
+}
+
+class _GlowScrollBehavior extends ScrollBehavior {
+  const _GlowScrollBehavior();
+
+  @override
+  Widget buildOverscrollIndicator(
+      BuildContext context, Widget child, ScrollableDetails details) {
+    return GlowingOverscrollIndicator(
+      axisDirection: details.direction,
+      color: const Color(0xFFFF5406).withOpacity(0.3), // Orange tema Kora
+      child: child,
     );
   }
 }

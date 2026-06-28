@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../models/body_measurement.dart';
@@ -88,6 +88,7 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
             color: AppTheme.electricBlue,
             backgroundColor: AppTheme.surface,
             child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
                 SliverToBoxAdapter(
                   child: Padding(

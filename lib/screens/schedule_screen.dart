@@ -163,6 +163,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               backgroundColor: AppTheme.surface,
               child: _events.isEmpty
                   ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 100),
                       children: [
                         Column(
@@ -187,6 +188,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       ],
                     )
                   : ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(24, 16, 24, 100),
                       itemCount: _events.length,
                       itemBuilder: (context, index) {

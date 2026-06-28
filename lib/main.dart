@@ -92,6 +92,7 @@ class Kora extends StatelessWidget {
         return MaterialApp(
           title: 'Kora',
           debugShowCheckedModeBanner: false,
+          scrollBehavior: const GlowScrollBehavior(),
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: currentMode,

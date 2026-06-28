@@ -340,17 +340,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('CAPAIAN PROTEIN', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textMuted, letterSpacing: 1.5)),
-                  const SizedBox(height: 4),
-                  Text(
-                    isSufficient ? 'Target tercapai!' : 'Di bawah target harian',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isSufficient ? const Color(0xFF00B33F) : const Color(0xFFFF3400)),
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('CAPAIAN PROTEIN', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textMuted, letterSpacing: 1.5)),
+                    const SizedBox(height: 4),
+                    Text(
+                      isSufficient ? 'Target tercapai!' : 'Di bawah target harian',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isSufficient ? const Color(0xFF00B33F) : const Color(0xFFFF3400)),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Text(
                 '${(progress * 100).round()}%',
                 style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: AppTheme.textPrimary),
@@ -473,7 +476,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       mainAxisSpacing: 16,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 1.5,
+      childAspectRatio: 1.3, // Memberikan ruang vertikal lebih agar tidak overflow
       children: [
         _buildStatBox(title: 'Nutrisi', value: '${_totalProteinToday.toStringAsFixed(0)}g', color: const Color(0xFF00B33F)),
         _buildStatBox(title: 'Energi', value: '$_totalCaloriesToday', subValue: 'Kkal', color: const Color(0xFFFF6D00)),
@@ -544,37 +547,41 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               final isSelected = date.year == _selectedScheduleDate.year && 
                                  date.month == _selectedScheduleDate.month && 
                                  date.day == _selectedScheduleDate.day;
-              return GestureDetector(
-                onTap: () {
-                  setState(() => _selectedScheduleDate = date);
-                  _loadData();
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: isSelected ? const Color(0xFF00B33F) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(26),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        DateFormat('E', 'id').format(date).toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 9, 
-                          fontWeight: FontWeight.bold, 
-                          color: isSelected ? Colors.white.withOpacity(0.8) : AppTheme.textMuted
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() => _selectedScheduleDate = date);
+                    _loadData();
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
+                    decoration: BoxDecoration(
+                      color: isSelected ? const Color(0xFF00B33F) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(26),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          DateFormat('E', 'id').format(date).toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 9, 
+                            fontWeight: FontWeight.bold, 
+                            color: isSelected ? Colors.white.withOpacity(0.8) : AppTheme.textMuted
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${date.day}',
-                        style: TextStyle(
-                          fontSize: 14, 
-                          fontWeight: FontWeight.bold, 
-                          color: isSelected ? Colors.white : AppTheme.textPrimary
+                        const SizedBox(height: 4),
+                        Text(
+                          '${date.day}',
+                          style: TextStyle(
+                            fontSize: 14, 
+                            fontWeight: FontWeight.bold, 
+                            color: isSelected ? Colors.white : AppTheme.textPrimary
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               );

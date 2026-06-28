@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
 /// High-performance Q&A screen using ValueNotifier + ListView.builder.
@@ -144,6 +144,7 @@ class _QnaScreenState extends State<QnaScreen> {
                 }
 
                 return ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                   itemCount: filtered.length,
                   itemBuilder: (context, index) {

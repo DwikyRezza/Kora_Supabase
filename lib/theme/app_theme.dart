@@ -221,3 +221,19 @@ class AppTheme {
     );
   }
 }
+
+/// Global ScrollBehavior untuk mengganti efek overscroll stretch bawaan Android 12
+/// menjadi efek glow melengkung (ala Instagram) dengan warna oranye Kora.
+class GlowScrollBehavior extends ScrollBehavior {
+  const GlowScrollBehavior();
+
+  @override
+  Widget buildOverscrollIndicator(
+      BuildContext context, Widget child, ScrollableDetails details) {
+    return GlowingOverscrollIndicator(
+      axisDirection: details.direction,
+      color: const Color(0xFFFF5406).withOpacity(0.3),
+      child: child,
+    );
+  }
+}

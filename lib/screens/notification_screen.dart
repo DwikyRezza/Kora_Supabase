@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
@@ -130,6 +130,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   ),
                 )
               : ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   itemCount: _notifications.length,
                   separatorBuilder: (context, index) => Divider(color: AppTheme.border, height: 1),
