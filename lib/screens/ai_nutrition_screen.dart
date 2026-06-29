@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -75,10 +75,7 @@ class _AiNutritionScreenState extends State<AiNutritionScreen> {
     });
 
     try {
-      final apiKey = dotenv.env['GROQ_API_KEY'] ?? '';
-      if (apiKey.isEmpty) {
-        throw Exception('API key tidak valid. Periksa kembali GROQ_API_KEY di file .env.');
-      }
+      final vercelUrl = dotenv.env['VERCEL_URL'] ?? 'https://your-vercel-project-url.vercel.app';
 
       final foodList =
           foods.map((f) => '- ${f['name']} ${f['gram']}g').join('\n');
@@ -108,26 +105,21 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
 ''';
 
       final res = await http.post(
-        Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
+        Uri.parse('$vercelUrl/api/ai-nutrition'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $apiKey',
         },
         body: jsonEncode({
-          'model': 'llama-3.3-70b-versatile',
-          'messages': [
-            {'role': 'user', 'content': prompt}
-          ],
-          'temperature': 0,
+          'prompt': prompt,
         }),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 25)); // Vercel cold starts might take a bit longer
 
       if (res.statusCode != 200) {
         throw Exception('API Error: ${res.statusCode} ${res.body}');
       }
 
       final resJson = jsonDecode(res.body);
-      final text = (resJson['choices'][0]['message']['content'] as String?) ?? '';
+      final text = resJson['text'] as String? ?? resJson['choices']?[0]?['message']?['content'] as String? ?? '';
 
       final jsonStart = text.indexOf('[');
       final jsonEnd = text.lastIndexOf(']');

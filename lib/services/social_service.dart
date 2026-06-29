@@ -1,9 +1,35 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'auth_service.dart';
 import 'notification_service.dart';
-
 class SocialService {
   static final _firestore = FirebaseFirestore.instance;
+
+  static Future<void> _triggerVercelFCM(String targetUid, String title, String body) async {
+    try {
+      final vercelUrl = dotenv.env['VERCEL_URL'];
+      if (vercelUrl == null || vercelUrl.isEmpty) return; // Skip if no Vercel backend yet
+      
+      final doc = await _firestore.collection('users').doc(targetUid).get();
+      if (!doc.exists) return;
+      final fcmToken = doc.data()?['fcmToken'] as String?;
+      if (fcmToken == null || fcmToken.isEmpty) return;
+
+      await http.post(
+        Uri.parse('$vercelUrl/api/notify'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'fcmToken': fcmToken,
+          'title': title,
+          'body': body,
+        }),
+      );
+    } catch (e) {
+      print('[SocialService] Error triggering Vercel FCM: $e');
+    }
+  }
 
   /// Mendapatkan jumlah pengikut (followers) dari seorang pengguna
   static Future<int> getFollowersCount(String uid) async {
@@ -79,6 +105,8 @@ class SocialService {
           relatedUid: currentUid,
           relatedPhotoUrl: photoUrl,
         );
+        
+        await _triggerVercelFCM(targetUid, 'Pengikut Baru', '$display mulai mengikuti Anda.');
       }
 
     } catch (e) {
@@ -301,6 +329,8 @@ class SocialService {
                 relatedUid: uid,
                 relatedPhotoUrl: myProfile['photoUrl'],
               );
+              
+              await _triggerVercelFCM(authorUid, 'Suka Baru', '$myName menyukai aktivitas Anda.');
             }
           }
         }
@@ -361,6 +391,8 @@ class SocialService {
             relatedUid: uid,
             relatedPhotoUrl: photoUrl,
           );
+          
+          await _triggerVercelFCM(authorUid, 'Komentar Baru', '$name mengomentari: "${text.trim()}"');
         }
       }
 

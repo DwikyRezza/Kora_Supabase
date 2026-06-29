@@ -24,7 +24,7 @@ import 'services/location_service.dart';
 import 'services/auth_service.dart';
 import 'services/settings_service.dart';
 import 'services/cloud_sync_service.dart';
-import 'services/notification_service.dart';
+import 'services/fcm_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +32,7 @@ Future<void> main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp();
+  await FCMService.init();
 
   // Load Settings (like ThemeMode)
   await SettingsService.loadAll();
@@ -92,7 +93,7 @@ class Kora extends StatelessWidget {
         return MaterialApp(
           title: 'Kora',
           debugShowCheckedModeBanner: false,
-          scrollBehavior: const GlowScrollBehavior(),
+          scrollBehavior: const _GlowScrollBehavior(),
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: currentMode,
@@ -342,6 +343,20 @@ class _MainNavigationState extends State<MainNavigation>
           ],
         ),
       ),
+    );
+  }
+}
+
+class _GlowScrollBehavior extends ScrollBehavior {
+  const _GlowScrollBehavior();
+
+  @override
+  Widget buildOverscrollIndicator(
+      BuildContext context, Widget child, ScrollableDetails details) {
+    return GlowingOverscrollIndicator(
+      axisDirection: details.direction,
+      color: const Color(0xFFFF5406).withOpacity(0.3),
+      child: child,
     );
   }
 }
