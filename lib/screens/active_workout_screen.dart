@@ -765,27 +765,27 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen>
                 style: TextStyle(
                   color: AppTheme.textPrimary,
                   fontSize: 100,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w800,
                   fontFamily: 'monospace',
                   fontFeatures: const [FontFeature.tabularFigures()],
                   shadows: [
-                    // Highlight tipis di atas angka (Emboss effect)
+                    // Highlight super tajam di bagian atas (Inner Bevel / Emboss edge)
                     Shadow(
-                      color: Colors.white.withOpacity(AppTheme.isDarkMode ? 0.15 : 0.6),
-                      offset: const Offset(0, -2),
-                      blurRadius: 2,
+                      color: Colors.white.withOpacity(AppTheme.isDarkMode ? 0.15 : 0.7),
+                      offset: const Offset(0, -1),
+                      blurRadius: 0,
                     ),
-                    // Bayangan lembut di bawah untuk kesan mengambang (Elevation)
+                    // Bayangan solid di bawah angka untuk kedalaman fisik (Raised 3D effect)
                     Shadow(
-                      color: Colors.black.withOpacity(AppTheme.isDarkMode ? 0.6 : 0.15),
-                      offset: const Offset(0, 12),
-                      blurRadius: 24,
+                      color: Colors.black.withOpacity(AppTheme.isDarkMode ? 0.9 : 0.3),
+                      offset: const Offset(0, 3),
+                      blurRadius: 0,
                     ),
-                    // Bayangan lebih pekat dan dekat untuk menambah kedalaman
+                    // Sedikit bayangan tipis agar angka terpisah dari background, tanpa efek menyebar
                     Shadow(
                       color: Colors.black.withOpacity(AppTheme.isDarkMode ? 0.4 : 0.1),
-                      offset: const Offset(0, 4),
-                      blurRadius: 8,
+                      offset: const Offset(0, 5),
+                      blurRadius: 2,
                     ),
                   ],
                 ),
