@@ -201,7 +201,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
               children: [
                 _filterChip('Lari', 'running'),
                 _filterChip('Jalan', 'walking'),
-                _filterChip('Angkat Beban', 'weightlifting'),
+                _filterChip('Workout', 'weightlifting'),
               ],
             ),
           ),
@@ -596,7 +596,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
               
               _buildBoldGatewayCard(
                 context,
-                title: 'Angkat Beban',
+                title: 'Workout',
                 subtitle: 'Gym log',
                 icon: Icons.fitness_center_rounded,
                 accentColor: const Color(0xFFFF5406),

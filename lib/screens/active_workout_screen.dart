@@ -728,7 +728,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen>
 
     return Positioned.fill(
       child: Scaffold(
-        backgroundColor: const Color(0xFF09141D),
+        backgroundColor: AppTheme.isDarkMode ? Colors.black : Colors.white,
         body: SafeArea(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -770,7 +770,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen>
                   fontFeatures: [FontFeature.tabularFigures()],
                   shadows: [
                     Shadow(
-                        color: const Color(0xFFFFB830).withOpacity(0.5),
+                        color: const Color(0xFFFF5406).withOpacity(0.5),
                         blurRadius: 40)
                   ],
                 ),
@@ -786,8 +786,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen>
                         style: TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold)),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white70,
-                      side: BorderSide(color: Colors.white24, width: 2),
+                      foregroundColor: AppTheme.textPrimary,
+                      side: BorderSide(color: AppTheme.border, width: 2),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -802,8 +802,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen>
                         style: TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold)),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white70,
-                      side: BorderSide(color: Colors.white24, width: 2),
+                      foregroundColor: AppTheme.textPrimary,
+                      side: BorderSide(color: AppTheme.border, width: 2),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -819,17 +819,17 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 48, vertical: 20),
                   decoration: BoxDecoration(
-                      color: const Color(0xFFFFB830),
+                      color: const Color(0xFFFF5406),
                       borderRadius: BorderRadius.circular(32),
                       boxShadow: [
                         BoxShadow(
-                            color: const Color(0xFFFFB830).withOpacity(0.3),
+                            color: const Color(0xFFFF5406).withOpacity(0.3),
                             blurRadius: 24,
                             offset: const Offset(0, 8))
                       ]),
                   child: const Text('LEWATI ISTIRAHAT',
                       style: TextStyle(
-                          color: Color(0xFF09141D),
+                          color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 1.5)),

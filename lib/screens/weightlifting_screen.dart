@@ -323,7 +323,7 @@ class _WeightliftingScreenState extends State<WeightliftingScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text(' Logs Angkat Beban'),
+        title: Text(' Logs Workout'),
         backgroundColor: AppTheme.background,
         elevation: 0,
       ),

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 class Workout {
   final int? id;
   final String type; // 'running', 'basketball', 'weightlifting'
@@ -133,7 +133,7 @@ class Workout {
       case 'basketball':
         return 'Basket';
       case 'weightlifting':
-        return 'Angkat Beban';
+        return 'Workout';
       default:
         return type;
     }

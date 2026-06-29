@@ -502,7 +502,7 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
                   items: [
                     DropdownMenuItem(value: 'running', child: Text('Lari / Running')),
                     DropdownMenuItem(value: 'basketball', child: Text('Basket')),
-                    DropdownMenuItem(value: 'weightlifting', child: Text('Angkat Beban')),
+                    DropdownMenuItem(value: 'weightlifting', child: Text('Workout')),
                     DropdownMenuItem(value: 'custom', child: Text('Spesifik Lainnya')),
                   ],
                   onChanged: (val) => setState(() => _workoutType = val!),

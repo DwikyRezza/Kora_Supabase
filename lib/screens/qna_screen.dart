@@ -48,8 +48,8 @@ class _QnaScreenState extends State<QnaScreen> {
       'a': 'Bisa. Komponen Android Foreground Service kami bekerja langsung membaca perangkat keras GPS internal ponsel Anda. Data koordinat rute akan ditampung sementara di buffer lokal SQLite dan peta rute akan langsung diperbarui begitu Anda mendapatkan sinyal internet kembali.',
     },
     {
-      'q': 'Mengapa grafik pada halaman Laporan Mingguan saya tidak memunculkan data angkat beban?',
-      'a': 'Periksa filter chip aktif di bagian atas halaman laporan Anda. Secara default, filter dapat diganti antara opsi \'Semua\', \'Lari\', atau \'Angkat Beban\' untuk menyajikan visualisasi metrik volume total kg dan set yang terisolasi dengan rapi.',
+      'q': 'Mengapa grafik pada halaman Laporan Mingguan saya tidak memunculkan data workout?',
+      'a': 'Periksa filter chip aktif di bagian atas halaman laporan Anda. Secara default, filter dapat diganti antara opsi \'Semua\', \'Lari\', atau \'Workout\' untuk menyajikan visualisasi metrik volume total kg dan set yang terisolasi dengan rapi.',
     },
     {
       'q': 'Mengapa nama atau foto profil saya di halaman Beranda Komunitas terkadang kosong?',

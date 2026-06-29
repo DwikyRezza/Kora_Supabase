@@ -44,7 +44,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     'all': 'Semua',
     'running': 'Lari',
     'walking': 'Jalan',
-    'weightlifting': 'Angkat Beban',
+    'weightlifting': 'Workout',
   };
 
   static final _filterColors = {
@@ -483,7 +483,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                     ),
                     const SizedBox(width: 10),
                     _buildProgressPill(
-                      label: 'Angkat Beban',
+                      label: 'Workout',
                       icon: Icons.fitness_center_rounded,
                       key: 'lift',
                     ),
