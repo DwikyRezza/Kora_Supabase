@@ -222,6 +222,18 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
   }
 
+  Future<void> _loadScheduleOnly(DateTime date) async {
+    setState(() {
+      _selectedScheduleDate = date;
+    });
+    final events = await _db.getScheduleEventsByDate(date);
+    if (mounted) {
+      setState(() {
+        _upcomingEvents = events;
+      });
+    }
+  }
+
   Future<void> _navigateByWorkoutType(ScheduleEvent event) async {
     final profile = await ProfileService.getProfile();
     final weight = profile[ProfileService.keyWeight] ?? 70.0;
@@ -604,8 +616,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               return Expanded(
                 child: GestureDetector(
                   onTap: () {
-                    setState(() => _selectedScheduleDate = date);
-                    _loadData();
+                    _loadScheduleOnly(date);
                   },
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 2),
