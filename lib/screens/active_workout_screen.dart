@@ -765,13 +765,28 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen>
                 style: TextStyle(
                   color: AppTheme.textPrimary,
                   fontSize: 100,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.bold,
                   fontFamily: 'monospace',
-                  fontFeatures: [FontFeature.tabularFigures()],
+                  fontFeatures: const [FontFeature.tabularFigures()],
                   shadows: [
+                    // Highlight tipis di atas angka (Emboss effect)
                     Shadow(
-                        color: const Color(0xFFFF5406).withOpacity(0.5),
-                        blurRadius: 40)
+                      color: Colors.white.withOpacity(AppTheme.isDarkMode ? 0.15 : 0.6),
+                      offset: const Offset(0, -2),
+                      blurRadius: 2,
+                    ),
+                    // Bayangan lembut di bawah untuk kesan mengambang (Elevation)
+                    Shadow(
+                      color: Colors.black.withOpacity(AppTheme.isDarkMode ? 0.6 : 0.15),
+                      offset: const Offset(0, 12),
+                      blurRadius: 24,
+                    ),
+                    // Bayangan lebih pekat dan dekat untuk menambah kedalaman
+                    Shadow(
+                      color: Colors.black.withOpacity(AppTheme.isDarkMode ? 0.4 : 0.1),
+                      offset: const Offset(0, 4),
+                      blurRadius: 8,
+                    ),
                   ],
                 ),
               ),
