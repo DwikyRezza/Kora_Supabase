@@ -57,10 +57,11 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   // ── Apple Fitness-style progress section state ───────────────────────────
   // 'run' | 'walk' | 'lift'
   String _progressFilter = 'run';
-  // 12 data points — satu per minggu, 12 minggu ke belakang
-  List<_WeekPoint> _twelveWeekData = [];
+  // Dynamic chart data — either 4 weekly (1-month) or 3 monthly (3-month) points
+  List<_ChartPoint> _chartData = [];
   bool _twelveWeekLoading = true;
-  List<Workout> _currentWeekWorkouts = [];
+  bool _isMonthlyScale = false; // false = 1-month/weekly, true = 3-month/monthly
+  int? _selectedChartIndex; // null = show latest point
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
   @override
@@ -69,7 +70,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     _playFireSound();
     _loadData();
     _loadWorkoutData();
-    _loadTwelveWeekData();
+    _loadChartData();
   }
 
   @override
@@ -178,73 +179,93 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     }
   }
 
-  // ── 12-week data loader ──────────────────────────────────────────────────
-  Future<void> _loadTwelveWeekData() async {
-    setState(() => _twelveWeekLoading = true);
+  // ── Dynamic chart data loader ─────────────────────────────────────────────
+  Future<void> _loadChartData() async {
+    setState(() {
+      _twelveWeekLoading = true;
+      _selectedChartIndex = null;
+    });
     final now = DateTime.now();
-    // Mulai dari awal minggu saat ini (Senin)
-    final todayMidnight = DateTime(now.year, now.month, now.day);
-    final thisMonday = todayMidnight.subtract(
-        Duration(days: (todayMidnight.weekday - 1) % 7));
+    final dbType = (_progressFilter == 'lift')
+        ? 'weightlifting'
+        : ((_progressFilter == 'walk') ? null : 'running');
 
-    final List<_WeekPoint> points = [];
-    List<Workout> currentWkList = [];
-    for (int w = 11; w >= 0; w--) {
-      final weekStart = thisMonday.subtract(Duration(days: w * 7));
-      final weekEnd = weekStart
-          .add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59));
+    // Step 1: Count activities in the last 1 month to decide scale
+    final monthStart = DateTime(now.year, now.month, 1);
+    final monthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+    final lastMonthWorkouts = await _db.getWorkoutsByDateRange(
+      start: monthStart, end: monthEnd, type: dbType,
+    );
+    // Filter to match the progress filter properly
+    int countLastMonth = 0;
+    for (final wk in lastMonthWorkouts) {
+      if (_progressFilter == 'walk' && wk.type == 'running' && (wk.distance ?? 0) <= 2.0) countLastMonth++;
+      else if (_progressFilter == 'run' && wk.type == 'running' && (wk.distance ?? 0) > 2.0) countLastMonth++;
+      else if (_progressFilter == 'lift' && wk.type == 'weightlifting') countLastMonth++;
+    }
 
-      final dbType = (_progressFilter == 'lift')
-          ? 'weightlifting'
-          : ((_progressFilter == 'walk') ? null : 'running');
-      final workouts = await _db.getWorkoutsByDateRange(
-        start: weekStart,
-        end: weekEnd,
-        type: dbType,
-      );
+    final List<_ChartPoint> points = [];
+    bool isMonthly = countLastMonth < 2;
 
-      if (w == 0) {
-        currentWkList = workouts;
+    if (!isMonthly) {
+      // ── 1-MONTH MODE: 4 weekly points ───────────────────────────────────
+      final todayMidnight = DateTime(now.year, now.month, now.day);
+      final thisMonday = todayMidnight.subtract(Duration(days: (todayMidnight.weekday - 1) % 7));
+      for (int w = 3; w >= 0; w--) {
+        final weekStart = thisMonday.subtract(Duration(days: w * 7));
+        final weekEnd = weekStart.add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59));
+        final workouts = await _db.getWorkoutsByDateRange(start: weekStart, end: weekEnd, type: dbType);
+        final metrics = _computeMetricsFromWorkouts(workouts);
+        points.add(_ChartPoint(rangeStart: weekStart, rangeEnd: weekEnd, metrics: metrics));
       }
-
-      double val = 0;
-      for (final wk in workouts) {
-        if (_progressFilter == 'walk') {
-          // Hanya hitung sesi running berjarak pendek sebagai walking
-          if (wk.type == 'running' && (wk.distance ?? 0) <= 2.0) {
-            val += wk.distance ?? 0;
-          }
-        } else if (_progressFilter == 'run') {
-          // Hanya hitung sesi running berjarak jauh sebagai running
-          if (wk.type == 'running' && (wk.distance ?? 0) > 2.0) {
-            val += wk.distance ?? 0;
-          }
-        } else if (_progressFilter == 'lift') {
-          // Hitung volume latihan beban untuk angkat beban
-          if (wk.type == 'weightlifting') {
-            double vol = (wk.weight ?? 0) * (wk.reps ?? 0) * (wk.sets ?? 1);
-            if (vol == 0) vol = wk.weight ?? 0;
-            val += vol;
-          }
-        }
+    } else {
+      // ── 3-MONTH MODE: 3 monthly points ──────────────────────────────────
+      for (int m = 2; m >= 0; m--) {
+        // Calculate month boundaries correctly
+        final year = now.month - m <= 0 ? now.year - 1 : now.year;
+        final month = now.month - m <= 0 ? now.month - m + 12 : now.month - m;
+        final start = DateTime(year, month, 1);
+        final end = DateTime(year, month + 1, 0, 23, 59, 59);
+        final workouts = await _db.getWorkoutsByDateRange(start: start, end: end, type: dbType);
+        final metrics = _computeMetricsFromWorkouts(workouts);
+        points.add(_ChartPoint(rangeStart: start, rangeEnd: end, metrics: metrics));
       }
-
-      points.add(_WeekPoint(weekStart: weekStart, distanceKm: val));
     }
 
     if (mounted) {
       setState(() {
-        _twelveWeekData = points;
-        _currentWeekWorkouts = currentWkList;
+        _chartData = points;
+        _isMonthlyScale = isMonthly;
         _twelveWeekLoading = false;
       });
     }
   }
 
+  _WeekMetrics _computeMetricsFromWorkouts(List<Workout> workouts) {
+    double distance = 0, duration = 0, elevation = 0, volume = 0, sets = 0;
+    for (final wk in workouts) {
+      if (_progressFilter == 'walk') {
+        if (wk.type != 'running' || (wk.distance ?? 0) > 2.0) continue;
+      } else if (_progressFilter == 'run') {
+        if (wk.type != 'running' || (wk.distance ?? 0) <= 2.0) continue;
+      } else if (_progressFilter == 'lift') {
+        if (wk.type != 'weightlifting') continue;
+      }
+      distance += wk.distance ?? 0;
+      duration += wk.duration;
+      elevation += wk.elevationGain ?? 0;
+      double vol = (wk.weight ?? 0) * (wk.reps ?? 0) * (wk.sets ?? 1);
+      if (vol == 0) vol = wk.weight ?? 0;
+      volume += vol;
+      sets += wk.sets ?? 0;
+    }
+    return _WeekMetrics(distance: distance, duration: duration, elevation: elevation, volume: volume, sets: sets.round());
+  }
+
   void _onProgressFilterChanged(String f) {
     if (_progressFilter == f) return;
     setState(() => _progressFilter = f);
-    _loadTwelveWeekData();
+    _loadChartData();
   }
 
   Future<void> _loadWorkoutData() async {
@@ -335,39 +356,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         sets: sets.round());
   }
 
-  _WeekMetrics _computeProgressWeekMetrics() {
-    double distance = 0, duration = 0, elevation = 0;
-    double volume = 0, sets = 0;
-    for (final w in _currentWeekWorkouts) {
-      if (_progressFilter == 'walk') {
-        if (w.type == 'running' && (w.distance ?? 0) <= 2.0) {
-          distance += w.distance ?? 0;
-          duration += w.duration;
-          elevation += w.elevationGain ?? 0;
-        }
-      } else if (_progressFilter == 'run') {
-        if (w.type == 'running' && (w.distance ?? 0) > 2.0) {
-          distance += w.distance ?? 0;
-          duration += w.duration;
-          elevation += w.elevationGain ?? 0;
-        }
-      } else if (_progressFilter == 'lift') {
-        if (w.type == 'weightlifting') {
-          double vol = (w.weight ?? 0) * (w.reps ?? 0) * (w.sets ?? 1);
-          if (vol == 0) vol = w.weight ?? 0;
-          volume += vol;
-          duration += w.duration;
-          sets += w.sets ?? 0;
-        }
-      }
-    }
-    return _WeekMetrics(
-        distance: distance,
-        duration: duration,
-        elevation: elevation,
-        volume: volume,
-        sets: sets.round());
-  }
+  // _computeProgressWeekMetrics removed — metrics now computed via _computeMetricsFromWorkouts
 
   // ═══════════════════════════════════════════════════════════════════════
   // BUILD
@@ -589,21 +578,32 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   }
 
   Widget _buildProgressStats() {
-    // Hitung stats untuk minggu yang sedang dipilih (minggu ini)
-    final currentWeekPoint = _twelveWeekData.isNotEmpty
-        ? _twelveWeekData.last
-        : null;
-    final now = DateTime.now();
-    final thisMonday = now.subtract(Duration(days: (now.weekday - 1) % 7));
-    final thisSunday = thisMonday.add(const Duration(days: 6));
+    if (_chartData.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        child: SizedBox(height: 60),
+      );
+    }
 
-    // Format tanggal range
-    final monthStart = DateFormat('MMM d').format(thisMonday);
-    final yearEnd = DateFormat('MMM d, yyyy').format(thisSunday);
+    // Use selected point or default to the latest (last) point
+    final idx = (_selectedChartIndex != null &&
+            _selectedChartIndex! >= 0 &&
+            _selectedChartIndex! < _chartData.length)
+        ? _selectedChartIndex!
+        : _chartData.length - 1;
+    final point = _chartData[idx];
+    final m = point.metrics;
 
-    // Hitung total metrik khusus untuk filter progress minggu ini
-    final m = _computeProgressWeekMetrics();
-    
+    // Format tanggal berdasarkan skala
+    final String dateLabel;
+    if (_isMonthlyScale) {
+      dateLabel = DateFormat('MMMM yyyy', 'id').format(point.rangeStart);
+    } else {
+      final start = DateFormat('MMM d').format(point.rangeStart);
+      final end = DateFormat('MMM d, yyyy').format(point.rangeEnd);
+      dateLabel = '$start - $end';
+    }
+
     // Format metrik Jarak / Volume
     final String firstLabel = _progressFilter == 'lift' ? 'Volume' : 'Distance';
     final String firstVal = _progressFilter == 'lift'
@@ -626,13 +626,17 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '$monthStart - $yearEnd',
-            style: TextStyle(
-              color: AppTheme.textPrimary,
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.5,
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 180),
+            child: Text(
+              dateLabel,
+              key: ValueKey(dateLabel),
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.5,
+              ),
             ),
           ),
           const SizedBox(height: 10),
@@ -674,7 +678,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   }
 
   Widget _buildTwelveWeekChart() {
-    if (_twelveWeekLoading || _twelveWeekData.isEmpty) {
+    if (_twelveWeekLoading || _chartData.isEmpty) {
       return const SizedBox(
         height: 200,
         child: Center(
@@ -683,43 +687,50 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       );
     }
 
-    // Nilai max untuk skala Y
-    final maxVal = _twelveWeekData.fold(0.0,
-        (m, p) => p.distanceKm > m ? p.distanceKm : m);
-    final yMax = _progressFilter == 'lift'
-        ? (maxVal < 10.0 ? 200.0 : (maxVal * 1.35).ceilToDouble())
-        : (maxVal < 1.0 ? 2.0 : (maxVal * 1.4).ceilToDouble());
-    // Y-axis labels: 0, yMax/2, yMax
-    final yMid = (yMax / 2).roundToDouble();
+    final n = _chartData.length; // 4 (weekly) or 3 (monthly)
+    final maxX = (n - 1).toDouble();
+    final selectedIdx = (_selectedChartIndex != null &&
+            _selectedChartIndex! >= 0 &&
+            _selectedChartIndex! < n)
+        ? _selectedChartIndex!
+        : n - 1;
 
-    // Helper untuk format label/tooltip
+    // Helper untuk format nilai Y
     String formatVal(double v) {
       if (_progressFilter == 'lift') {
-        if (v >= 1000) {
-          return '${(v / 1000).toStringAsFixed(1)}k kg';
-        }
-        return '${v.round()} kg';
+        return v >= 1000 ? '${(v / 1000).toStringAsFixed(1)}k kg' : '${v.round()} kg';
       }
       return '${v.toStringAsFixed(v == v.truncate() ? 0 : 1)} km';
     }
 
-    // Buat spot untuk LineChart
-    final spots = List.generate(
-      _twelveWeekData.length,
-      (i) => FlSpot(i.toDouble(), _twelveWeekData[i].distanceKm),
-    );
+    // Nilai max untuk skala Y
+    final maxVal = _chartData.fold(0.0, (m, p) => p.metrics.distance > m ? p.metrics.distance : m);
+    final rawMax = _progressFilter == 'lift'
+        ? _chartData.fold(0.0, (m, p) => p.metrics.volume > m ? p.metrics.volume : m)
+        : maxVal;
+    final yMax = _progressFilter == 'lift'
+        ? (rawMax < 10.0 ? 200.0 : (rawMax * 1.35).ceilToDouble())
+        : (rawMax < 1.0 ? 2.0 : (rawMax * 1.4).ceilToDouble());
+    final yMid = (yMax / 2).roundToDouble();
 
-    // Indeks minggu saat ini (index ke-11, terakhir)
-    const currentWeekX = 11.0;
+    // Build spots — use distance or volume for Y
+    final spots = List.generate(n, (i) {
+      final val = _progressFilter == 'lift'
+          ? _chartData[i].metrics.volume
+          : _chartData[i].metrics.distance;
+      return FlSpot(i.toDouble(), val);
+    });
 
-    // Cari bulan-bulan yang muncul di 12 minggu ini (untuk label X)
-    final Set<int> shownMonths = {};
-    final Map<int, String> monthLabels = {};
-    for (int i = 0; i < _twelveWeekData.length; i++) {
-      final month = _twelveWeekData[i].weekStart.month;
-      if (!shownMonths.contains(month)) {
-        shownMonths.add(month);
-        monthLabels[i] = DateFormat('MMM').format(_twelveWeekData[i].weekStart).toUpperCase();
+    // X-axis labels
+    Map<int, String> xLabels = {};
+    for (int i = 0; i < n; i++) {
+      if (_isMonthlyScale) {
+        xLabels[i] = DateFormat('MMM').format(_chartData[i].rangeStart).toUpperCase();
+      } else {
+        // weekly — show month name only when it changes
+        if (i == 0 || _chartData[i].rangeStart.month != _chartData[i - 1].rangeStart.month) {
+          xLabels[i] = DateFormat('MMM').format(_chartData[i].rangeStart).toUpperCase();
+        }
       }
     }
 
@@ -735,13 +746,12 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               child: LineChart(
                 LineChartData(
                   minX: 0,
-                  maxX: 11,
+                  maxX: maxX,
                   minY: 0,
                   maxY: yMax,
                   clipData: const FlClipData.all(),
                   backgroundColor: AppTheme.surface,
 
-                  // Grid — hanya 2 garis horizontal
                   gridData: FlGridData(
                     show: true,
                     drawVerticalLine: false,
@@ -754,31 +764,26 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
                   borderData: FlBorderData(show: false),
 
-                  // Titles
                   titlesData: FlTitlesData(
                     show: true,
-                    topTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false)),
-                    leftTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
                         reservedSize: 28,
                         interval: 1,
                         getTitlesWidget: (value, meta) {
-                          final idx = value.toInt();
-                          if (!monthLabels.containsKey(idx)) return const SizedBox();
+                          final i = value.toInt();
+                          final label = xLabels[i];
+                          if (label == null) return const SizedBox();
                           return Padding(
                             padding: const EdgeInsets.only(top: 6),
                             child: Text(
-                              monthLabels[idx]!,
+                              label,
                               style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600),
+                                  color: Colors.grey, fontSize: 11, fontWeight: FontWeight.w600),
                             ),
                           );
                         },
@@ -786,31 +791,37 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                     ),
                   ),
 
-                  // Extra lines: garis vertikal untuk "minggu ini"
+                  // Vertical line on selected point
                   extraLinesData: ExtraLinesData(
                     verticalLines: [
                       VerticalLine(
-                        x: currentWeekX,
+                        x: selectedIdx.toDouble(),
                         color: AppTheme.textPrimary.withOpacity(0.45),
                         strokeWidth: 1.5,
-                        dashArray: null,
                       ),
                     ],
                   ),
 
+                  // ── Touch interaction: update stats header on drag ───────
                   lineTouchData: LineTouchData(
                     enabled: true,
-                    touchTooltipData: LineTouchTooltipData(
-                      getTooltipColor: (_) => AppTheme.surfaceVariant,
-                      getTooltipItems: (spots) => spots.map((s) {
-                        return LineTooltipItem(
-                          formatVal(s.y),
-                          const TextStyle(
-                              color: Color(0xFFFF5406),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13),
-                        );
-                      }).toList(),
+                    handleBuiltInTouches: false,
+                    touchCallback: (FlTouchEvent event, LineTouchResponse? response) {
+                      if (response == null || response.lineBarSpots == null || response.lineBarSpots!.isEmpty) {
+                        if (event is FlPanEndEvent || event is FlTapUpEvent || event is FlLongPressEnd) {
+                          setState(() => _selectedChartIndex = null);
+                        }
+                        return;
+                      }
+                      final spotIndex = response.lineBarSpots!.first.spotIndex;
+                      if (_selectedChartIndex != spotIndex) {
+                        setState(() => _selectedChartIndex = spotIndex);
+                      }
+                    },
+                    touchTooltipData: const LineTouchTooltipData(
+                      fitInsideHorizontally: true,
+                      fitInsideVertically: true,
+                      getTooltipItems: _emptyTooltip, // hide fl_chart tooltip; we use the header
                     ),
                   ),
 
@@ -823,11 +834,11 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                       isStrokeCapRound: true,
                       dotData: FlDotData(
                         show: true,
-                        getDotPainter: (spot, pct, bar, idx) =>
-                            FlDotCirclePainter(
-                          radius: 4,
+                        getDotPainter: (spot, pct, bar, i) => FlDotCirclePainter(
+                          radius: i == selectedIdx ? 6 : 4,
                           color: const Color(0xFFFF5406),
-                          strokeWidth: 0,
+                          strokeWidth: i == selectedIdx ? 2 : 0,
+                          strokeColor: Colors.white,
                         ),
                       ),
                       belowBarData: BarAreaData(
@@ -847,7 +858,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               ),
             ),
 
-            // ── Y-axis labels di kanan (0 km, yMid, yMax) ──────────
+            // ── Y-axis labels kanan ──────────────────────────────────
             Positioned(
               right: 0,
               top: 0,
@@ -857,18 +868,9 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    formatVal(yMax),
-                    style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.w500),
-                  ),
-                  Text(
-                    formatVal(yMid),
-                    style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.w500),
-                  ),
-                  Text(
-                    formatVal(0),
-                    style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.w500),
-                  ),
+                  Text(formatVal(yMax), style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.w500)),
+                  Text(formatVal(yMid), style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.w500)),
+                  Text(formatVal(0), style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.w500)),
                 ],
               ),
             ),
@@ -877,6 +879,10 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       ),
     );
   }
+
+  // Static helper — fl_chart requires a static/top-level function for getTooltipItems
+  static List<LineTooltipItem?> _emptyTooltip(List<LineBarSpot> spots) =>
+      spots.map((_) => null).toList();
 
   // ── 1. Filter Chips ──────────────────────────────────────────────────────
   Widget _buildFilterChips() {
@@ -1834,12 +1840,17 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   }
 }
 
-/// Data point untuk 12-week line chart — satu per minggu.
-class _WeekPoint {
-  final DateTime weekStart;
-  final double distanceKm;
+/// Data point untuk dynamic chart — bisa mingguan (4 titik) atau bulanan (3 titik).
+class _ChartPoint {
+  final DateTime rangeStart;
+  final DateTime rangeEnd;
+  final _WeekMetrics metrics;
 
-  const _WeekPoint({required this.weekStart, required this.distanceKm});
+  const _ChartPoint({
+    required this.rangeStart,
+    required this.rangeEnd,
+    required this.metrics,
+  });
 }
 
 /// Simple data holder for weekly workout metrics.
