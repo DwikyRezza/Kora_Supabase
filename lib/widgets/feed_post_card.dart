@@ -637,6 +637,4 @@ class _FeedPostCardState extends State<FeedPostCard> {
     if (m > 0) return '${m}m ${s}s';
     return '${(mins * 60).round()}s';
   }
-
-  }
 }

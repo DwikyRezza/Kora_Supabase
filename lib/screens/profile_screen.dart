@@ -243,7 +243,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     : Image.network(photoUrl, fit: BoxFit.cover))
                                 : Container(
                                     color: AppTheme.surfaceVariant,
-                                    child: Icon(Icons.person, size: context.iconXL * 1.5, color: Colors.grey),
+                                    child: Icon(Icons.person, size: context.iconLG * 1.5, color: Colors.grey),
                                   ),
                           ),
                         ),
