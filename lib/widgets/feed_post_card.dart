@@ -10,7 +10,7 @@ import '../screens/workout_detail_screen.dart';
 import '../models/workout.dart';
 import 'comment_bottom_sheet.dart';
 import 'mini_route_painter.dart';
-
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 class FeedPostCard extends StatefulWidget {
   final Map<String, dynamic> post;
   final VoidCallback onDataChanged;
@@ -438,9 +438,32 @@ class _FeedPostCardState extends State<FeedPostCard> {
           Positioned.fill(
             child: IgnorePointer(
               ignoring: true,
-              child: CustomPaint(
-                size: Size.infinite,
-                painter: MiniRoutePainter(routePoints),
+              child: Builder(
+                builder: (context) {
+                  final apiKey = dotenv.env['MAPS_API_KEY'] ?? '';
+                  if (apiKey.isEmpty || routePoints.isEmpty) {
+                    return CustomPaint(
+                      size: Size.infinite,
+                      painter: MiniRoutePainter(routePoints),
+                    );
+                  }
+                  final enc = _encodePolyline(routePoints);
+                  final start = '${routePoints.first.latitude},${routePoints.first.longitude}';
+                  final end = '${routePoints.last.latitude},${routePoints.last.longitude}';
+                  final markers = '&markers=color:green|size:mid|$start&markers=color:red|size:mid|$end';
+                  
+                  // Gunakan style default untuk Maps
+                  final url = 'https://maps.googleapis.com/maps/api/staticmap?size=600x400&path=color:0xFFFF5406ff|weight:4|enc:$enc$markers&key=$apiKey';
+                  
+                  return Image.network(
+                    url,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => CustomPaint(
+                      size: Size.infinite,
+                      painter: MiniRoutePainter(routePoints),
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -546,5 +569,31 @@ class _FeedPostCardState extends State<FeedPostCard> {
     if (h > 0) return '${h}h ${m}m';
     if (m > 0) return '${m}m ${s}s';
     return '${(mins * 60).round()}s';
+  }
+
+  String _encodePolyline(List<LatLng> points) {
+    int _round(double value) => (value * 1e5).round();
+    String _encode(int value) {
+      value = value < 0 ? ~(value << 1) : value << 1;
+      String str = '';
+      while (value >= 0x20) {
+        str += String.fromCharCode((0x20 | (value & 0x1f)) + 63);
+        value >>= 5;
+      }
+      str += String.fromCharCode(value + 63);
+      return str;
+    }
+    int lastLat = 0;
+    int lastLng = 0;
+    String result = '';
+    for (var point in points) {
+      int lat = _round(point.latitude);
+      int lng = _round(point.longitude);
+      result += _encode(lat - lastLat);
+      result += _encode(lng - lastLng);
+      lastLat = lat;
+      lastLng = lng;
+    }
+    return result;
   }
 }
