@@ -401,7 +401,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.local_fire_department_rounded, color: const Color(0xFFFFB830), size: 32),
+                Icon(Icons.local_fire_department_rounded, color: const Color(0xFFFF5406), size: 32),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
@@ -416,7 +416,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
                           const SizedBox(width: 12),
                           Container(width: 4, height: 4, decoration: BoxDecoration(color: AppTheme.textMuted, shape: BoxShape.circle)),
                           const SizedBox(width: 12),
-                          Text('~$estimatedCalories kkal', style: TextStyle(color: const Color(0xFFFFB830), fontSize: 14, fontWeight: FontWeight.bold)),
+                          Text('~$estimatedCalories kkal', style: TextStyle(color: const Color(0xFFFF5406), fontSize: 14, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ],

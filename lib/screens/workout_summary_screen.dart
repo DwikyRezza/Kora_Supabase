@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../theme/app_theme.dart';
 import '../models/workout.dart';
@@ -218,16 +218,16 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFB830).withOpacity(0.15),
+                color: const Color(0xFFFF5406).withOpacity(0.15),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFFFB830).withOpacity(0.4)),
+                border: Border.all(color: const Color(0xFFFF5406).withOpacity(0.4)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.local_fire_department_rounded, color: Color(0xFFFFB830), size: 16),
+                  const Icon(Icons.local_fire_department_rounded, color: Color(0xFFFF5406), size: 16),
                   const SizedBox(width: 6),
                   const Text('3 HARI STREAK!', style: TextStyle(
-                    color: Color(0xFFFFB830), fontSize: 11,
+                    color: Color(0xFFFF5406), fontSize: 11,
                     fontWeight: FontWeight.w800, letterSpacing: 1.0,
                   )),
                 ],
@@ -259,7 +259,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
           children: [
             Expanded(child: _statCard('REPS', '$_totalReps', Icons.repeat_rounded, AppTheme.neonGreen)),
             const SizedBox(width: 12),
-            Expanded(child: _statCard('KALORI', '$_totalCalories kkal', Icons.local_fire_department_rounded, const Color(0xFFFFB830))),
+            Expanded(child: _statCard('KALORI', '$_totalCalories kkal', Icons.local_fire_department_rounded, const Color(0xFFFF5406))),
           ],
         ),
       ],
@@ -300,19 +300,19 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [const Color(0xFFFFD700).withOpacity(0.2), const Color(0xFFFFA500).withOpacity(0.1)]),
+        gradient: LinearGradient(colors: [const Color(0xFFFF5406).withOpacity(0.2), const Color(0xFFFF5406).withOpacity(0.1)]),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.5)),
+        border: Border.all(color: const Color(0xFFFF5406).withOpacity(0.5)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.emoji_events_rounded, color: Color(0xFFFFD700), size: 40),
+          const Icon(Icons.emoji_events_rounded, color: Color(0xFFFF5406), size: 40),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Pencapaian Baru!', style: TextStyle(color: Color(0xFFFFD700), fontWeight: FontWeight.bold, fontSize: 16)),
+                const Text('Pencapaian Baru!', style: TextStyle(color: Color(0xFFFF5406), fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 4),
                 Text('Anda 17% lebih kuat dari minggu lalu! Volume latihan memecahkan rekor pribadi.', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.3)),
               ],
@@ -586,7 +586,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
                 min: 1,
                 max: 10,
                 divisions: 9,
-                activeColor: _rpe > 7 ? AppTheme.accentRed : (_rpe > 4 ? Color(0xFFFFB830) : AppTheme.neonGreen),
+                activeColor: _rpe > 7 ? Color(0xFFFF5406) : (_rpe > 4 ? Color(0xFFFF5406) : AppTheme.neonGreen),
                 inactiveColor: AppTheme.border,
                 label: _rpe.toInt().toString(),
                 onChanged: (v) => setState(() => _rpe = v),

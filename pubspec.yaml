@@ -57,6 +57,7 @@ flutter:
   assets:
     - assets/icons/
     - assets/audio/
+    - assets/exercises/
     - .env
 
 flutter_launcher_icons:

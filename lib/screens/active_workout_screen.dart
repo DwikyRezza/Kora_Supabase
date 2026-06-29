@@ -679,7 +679,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen>
           gradient: LinearGradient(
             colors: isFinishing
                 ? [AppTheme.neonGreen, Color(0xFF00CC6A)]
-                : [AppTheme.electricBlue, Color(0xFF0099CC)],
+                : [const Color(0xFFFF5406), const Color(0xFFFF7A3D)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
