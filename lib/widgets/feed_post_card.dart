@@ -286,85 +286,88 @@ class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver
               Padding(
                 padding: EdgeInsets.fromLTRB(context.spaceLG, context.spaceLG, context.spaceLG, 0),
                 child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(typeLower),
-                RSpace.md(),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(typeLower),
+                    RSpace.md(),
 
-                // ── JUDUL AKTIVITAS ─────────────────────────────────────
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontWeight: FontWeight.w900,
-                    fontSize: context.fontLG,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-                RSpace.md(),
-
-                // ── 3 KOLOM METRIK ──────────────────────────────────────
-                typeLower == 'running' || typeLower == 'walking'
-                    ? _buildRunMetrics(dist, dur)
-                    : _buildStrengthMetrics(workoutData, dur),
-
-                RSpace.md(),
-              ],
-            ),
-          ),
-
-          // ── CHALLENGE / ENCOURAGEMENT BANNER ──
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: context.spaceLG, vertical: context.spaceMD),
-            child: Row(
-              children: [
-                Icon(Icons.thumb_up_rounded,
-                    color: const Color(0xFFFF5406), size: context.iconLG),
-                RSpace.md(horizontal: true),
-                Expanded(
-                  child: Text(
-                    'Nicely done! Keep moving by joining a challenge',
-                    style: TextStyle(
-                      color: AppTheme.textPrimary,
-                      fontSize: context.fontSM,
-                      fontWeight: FontWeight.w600,
+                    // ── JUDUL AKTIVITAS ─────────────────────────────────────
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: AppTheme.textPrimary,
+                        fontWeight: FontWeight.w900,
+                        fontSize: context.fontLG,
+                        letterSpacing: -0.3,
+                      ),
                     ),
-                  ),
+                    RSpace.md(),
+
+                    // ── 3 KOLOM METRIK ──────────────────────────────────────
+                    typeLower == 'running' || typeLower == 'walking'
+                        ? _buildRunMetrics(dist, dur)
+                        : _buildStrengthMetrics(workoutData, dur),
+
+                    RSpace.md(),
+                  ],
                 ),
-                RSpace.sm(horizontal: true),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF5406),
-                    foregroundColor: Colors.white,
-                    shape: const StadiumBorder(),
-                    padding:
-                        EdgeInsets.symmetric(horizontal: context.spaceMD, vertical: context.spaceXS),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    'See More',
-                    style: TextStyle(fontSize: context.fontSM, fontWeight: FontWeight.bold),
-                  ),
+              ),
+
+              // ── CHALLENGE / ENCOURAGEMENT BANNER ──
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: context.spaceLG, vertical: context.spaceMD),
+                child: Row(
+                  children: [
+                    Icon(Icons.thumb_up_rounded,
+                        color: const Color(0xFFFF5406), size: context.iconLG),
+                    RSpace.md(horizontal: true),
+                    Expanded(
+                      child: Text(
+                        'Nicely done! Keep moving by joining a challenge',
+                        style: TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontSize: context.fontSM,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    RSpace.sm(horizontal: true),
+                    ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF5406),
+                        foregroundColor: Colors.white,
+                        shape: const StadiumBorder(),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: context.spaceMD, vertical: context.spaceXS),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'See More',
+                        style: TextStyle(fontSize: context.fontSM, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+
+              // ── MAP SNAPSHOT ─────────────────────────────────────────────
+              if (hasRoute) _buildMapSnapshot(routePoints),
+              if (!hasRoute)
+                Container(
+                  height: 8,
+                  color: AppTheme.surfaceVariant,
+                ),
+
+              // ── FOOTER: INTERAKSI SOSIAL ─────────────────────────────────
+              _buildSocialFooter(),
+            ],
           ),
-
-          // ── MAP SNAPSHOT ─────────────────────────────────────────────
-          if (hasRoute) _buildMapSnapshot(routePoints),
-          if (!hasRoute)
-            Container(
-              height: 8,
-              color: AppTheme.surfaceVariant,
-            ),
-
-          // ── FOOTER: INTERAKSI SOSIAL ─────────────────────────────────
-          _buildSocialFooter(),
-        ],
+        ),
       ),
     );
   }
+
 
   Widget _buildHeader(String typeLower) {
     return Row(
@@ -556,10 +559,9 @@ class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver
                 splashColor: Colors.black12,
                 highlightColor: Colors.transparent,
               ),
-              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
