@@ -412,45 +412,109 @@ class _FeedPostCardState extends State<FeedPostCard> {
   }
 
   Widget _buildMapSnapshot(List<LatLng> routePoints) {
+    if (routePoints.isEmpty) return const SizedBox.shrink();
+
     return Container(
       height: 220,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppTheme.isDarkMode ? const Color(0xFF1A1F2E) : const Color(0xFFE8EDF5),
         border: Border(
           top: BorderSide(color: AppTheme.border, width: 0.5),
           bottom: BorderSide(color: AppTheme.border, width: 0.5),
         ),
       ),
-      child: InkWell(
-        onTap: _navigateToDetail,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: ClipRect(
-                child: CustomPaint(
-                  painter: MiniRoutePainter(
-                    routePoints,
-                    routeColor: const Color(0xFFFF5406),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: IgnorePointer(
+              ignoring: true,
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: routePoints[routePoints.length ~/ 2],
+                  zoom: 14.0,
+                ),
+                liteModeEnabled: true,
+                mapToolbarEnabled: false,
+                myLocationEnabled: false,
+                myLocationButtonEnabled: false,
+                zoomControlsEnabled: false,
+                scrollGesturesEnabled: false,
+                zoomGesturesEnabled: false,
+                rotateGesturesEnabled: false,
+                tiltGesturesEnabled: false,
+                style: AppTheme.isDarkMode ? '''[
+                  {"elementType":"geometry","stylers":[{"color":"#212121"}]},
+                  {"elementType":"labels.icon","stylers":[{"visibility":"off"}]},
+                  {"elementType":"labels.text.fill","stylers":[{"color":"#757575"}]},
+                  {"elementType":"labels.text.stroke","stylers":[{"color":"#212121"}]},
+                  {"featureType":"road","elementType":"geometry.fill","stylers":[{"color":"#2c2c2c"}]},
+                  {"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#373737"}]},
+                  {"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#3c3c3c"}]},
+                  {"featureType":"water","elementType":"geometry","stylers":[{"color":"#000000"}]},
+                  {"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#181818"}]}
+                ]''' : null,
+                polylines: {
+                  Polyline(
+                    polylineId: const PolylineId('route'),
+                    points: routePoints,
+                    color: const Color(0xFFFF5406),
+                    width: 5,
+                    jointType: JointType.round,
+                    startCap: Cap.roundCap,
+                    endCap: Cap.roundCap,
                   ),
-                  child: Container(),
-                ),
+                },
+                markers: {
+                  Marker(
+                    markerId: const MarkerId('start'),
+                    position: routePoints.first,
+                    icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+                  ),
+                  if (routePoints.length > 1)
+                    Marker(
+                      markerId: const MarkerId('end'),
+                      position: routePoints.last,
+                      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+                    ),
+                },
+                onMapCreated: (controller) {
+                  Future.delayed(const Duration(milliseconds: 150), () {
+                    if (!mounted) return;
+                    double minLat = routePoints.first.latitude;
+                    double maxLat = routePoints.first.latitude;
+                    double minLng = routePoints.first.longitude;
+                    double maxLng = routePoints.first.longitude;
+                    for (final p in routePoints) {
+                      if (p.latitude < minLat) minLat = p.latitude;
+                      if (p.latitude > maxLat) maxLat = p.latitude;
+                      if (p.longitude < minLng) minLng = p.longitude;
+                      if (p.longitude > maxLng) maxLng = p.longitude;
+                    }
+                    controller.animateCamera(
+                      CameraUpdate.newLatLngBounds(
+                        LatLngBounds(
+                          southwest: LatLng(minLat, minLng),
+                          northeast: LatLng(maxLat, maxLng),
+                        ),
+                        20.0,
+                      ),
+                    );
+                  });
+                },
               ),
             ),
-            Positioned(
-              left: 8,
-              bottom: 8,
-              child: Text(
-                '© OpenMapTiles © OpenStreetMap',
-                style: TextStyle(
-                  color: (AppTheme.isDarkMode ? Colors.white : Colors.black).withOpacity(0.4),
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
-                ),
+          ),
+          Positioned.fill(
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: _navigateToDetail,
+                splashColor: Colors.black12,
+                highlightColor: Colors.transparent,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
