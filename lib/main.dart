@@ -1,67 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
-import 'package:intl/date_symbol_data_local.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:quick_actions/quick_actions.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'theme/app_theme.dart';
-import 'utils/responsive.dart';
 import 'utils/tab_visibility.dart';
-import 'screens/landing_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/workout_screen.dart';
 import 'screens/protein_screen.dart';
 import 'screens/schedule_screen.dart';
-import 'screens/onboarding_screen.dart';
 import 'screens/body_stats_screen.dart';
 import 'screens/profile_screen.dart';
-import 'screens/setting_screen.dart';
-import 'services/profile_service.dart';
 import 'services/notification_service.dart';
-import 'services/location_service.dart';
-import 'services/auth_service.dart';
 import 'services/settings_service.dart';
-import 'services/cloud_sync_service.dart';
-import 'services/fcm_service.dart';
+
+import 'screens/splash_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
-
-  // Initialize Firebase
-  await Firebase.initializeApp();
-  await FCMService.init();
-
-  // Load Settings (like ThemeMode)
-  await SettingsService.loadAll();
-
-  // ── Aktifkan Firestore Offline Persistence ────────────────────────────────
-  // Firestore akan cache data lokal secara otomatis.
-  // - Baca: dari cache jika offline, dari cloud jika online (selalu up-to-date)
-  // - Tulis: antrian lokal, auto-sync ke cloud saat internet tersedia
-  // - Source of truth tetap Firestore Cloud
-  FirebaseFirestore.instance.settings = const Settings(
-    persistenceEnabled: true,
-    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-  );
-
+  
   // WAJIB: inisialisasi port komunikasi antara TaskHandler (background service)
   // dan Flutter UI. Harus dipanggil SEBELUM runApp().
   FlutterForegroundTask.initCommunicationPort();
 
-  // Inisialisasi foreground task config sekali di awal
-  LocationService.initialize();
-
-  await initializeDateFormatting('id', null);
-  await NotificationService().init();
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark, // akan diupdate oleh MaterialApp
-    ),
-  );
+  // Load Settings (like ThemeMode) sebelum UI dirender
+  await SettingsService.loadAll();
 
   // Update status bar brightness saat tema berubah
   AppTheme.themeNotifier.addListener(() {
@@ -72,18 +34,18 @@ Future<void> main() async {
     ));
   });
 
-  // Check login and onboarding status
-  bool isLoggedIn = AuthService.isLoggedIn;
-  bool onboarded = await ProfileService.isOnboarded();
+  // Terapkan initial status bar style
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: AppTheme.isDarkMode ? Brightness.light : Brightness.dark,
+    systemNavigationBarColor: Colors.transparent,
+  ));
 
-  runApp(Kora(isLoggedIn: isLoggedIn, isOnboarded: onboarded));
+  runApp(const KoraApp());
 }
 
-class Kora extends StatelessWidget {
-  final bool isLoggedIn;
-  final bool isOnboarded;
-  const Kora(
-      {super.key, required this.isLoggedIn, required this.isOnboarded});
+class KoraApp extends StatelessWidget {
+  const KoraApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -97,20 +59,10 @@ class Kora extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: currentMode,
-          home: _getHomeScreen(),
+          home: const SplashScreen(),
         );
       },
     );
-  }
-
-  Widget _getHomeScreen() {
-    if (!isLoggedIn) {
-      return const LandingScreen();
-    }
-    if (!isOnboarded) {
-      return const OnboardingScreen();
-    }
-    return const MainNavigation();
   }
 }
 
@@ -140,7 +92,9 @@ class _MainNavigationState extends State<MainNavigation>
     }
     // Auto-trigger the modal after transition
     Future.delayed(const Duration(milliseconds: 100), () {
-      _workoutScreenKey.currentState?.showWorkoutSelectionSheet(context);
+      if (mounted) {
+        _workoutScreenKey.currentState?.showWorkoutSelectionSheet(context);
+      }
     });
   }
 
@@ -203,10 +157,10 @@ class _MainNavigationState extends State<MainNavigation>
                   );
                 },
               ),
-              ProteinScreen(),
+              const ProteinScreen(),
               WorkoutScreen(key: _workoutScreenKey),
               ScheduleScreen(),
-              ProfileScreen(), // Diubah dari SettingScreen() menjadi ProfileScreen()
+              const ProfileScreen(), // Diubah dari SettingScreen() menjadi ProfileScreen()
             ],
           ),
           bottomNavigationBar: _buildBottomNav(),
@@ -218,7 +172,7 @@ class _MainNavigationState extends State<MainNavigation>
   Widget _buildBottomNav() {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.surface.withOpacity(0.95),
+        color: AppTheme.surface.withValues(alpha: 0.95),
         border: Border(top: BorderSide(color: AppTheme.border, width: 1)),
       ),
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 24),
@@ -355,7 +309,7 @@ class _GlowScrollBehavior extends ScrollBehavior {
       BuildContext context, Widget child, ScrollableDetails details) {
     return GlowingOverscrollIndicator(
       axisDirection: details.direction,
-      color: const Color(0xFFFF5406).withOpacity(0.3),
+      color: const Color(0xFFFF5406).withValues(alpha: 0.3),
       child: child,
     );
   }
