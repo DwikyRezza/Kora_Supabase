@@ -8,6 +8,7 @@ class ExerciseDefinition {
   final String techniqueTip;
   final IconData icon;
   final String difficulty; 
+  final String? gifPath;
 
   const ExerciseDefinition({
     required this.id,
@@ -17,6 +18,7 @@ class ExerciseDefinition {
     required this.techniqueTip,
     required this.icon,
     this.difficulty = 'Beginner',
+    this.gifPath,
   });
 }
 
@@ -35,6 +37,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Jaga tubuh tetap lurus dari kepala hingga tumit dan kunci bagian core.',
     icon: Icons.accessibility_new_rounded,
     difficulty: 'Beginner',
+    gifPath: 'assets/exercises/standar_push_up.gif',
   ),
   const ExerciseDefinition(
     id: 'bw_wide_pushup',
@@ -44,6 +47,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Posisikan tangan lebih lebar dari bahu untuk tekanan ekstra pada dada samping.',
     icon: Icons.accessibility_new_rounded,
     difficulty: 'Intermediate',
+    gifPath: 'assets/exercises/wide_push_up.gif',
   ),
   const ExerciseDefinition(
     id: 'bw_diamond_pushup',
@@ -53,6 +57,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Pastikan siku tetap rapat ke arah badan saat menekuk. Dekatkan tangan membentuk berlian.',
     icon: Icons.accessibility_new_rounded,
     difficulty: 'Intermediate',
+    gifPath: 'assets/exercises/diamond_push_up.gif',
   ),
   const ExerciseDefinition(
     id: 'bw_decline_pushup',
@@ -62,6 +67,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Posisikan kaki lebih tinggi dari kepala, fokus pada dada bagian atas.',
     icon: Icons.accessibility_new_rounded,
     difficulty: 'Intermediate',
+    gifPath: 'assets/exercises/decline_push_up.gif',
   ),
   const ExerciseDefinition(
     id: 'bw_bench_dips',
@@ -71,6 +77,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Turunkan pinggul mendekati kursi, gunakan otot tricep untuk mendorong tubuh naik.',
     icon: Icons.fitness_center_rounded,
     difficulty: 'Beginner',
+    gifPath: 'assets/exercises/bench_dips.gif',
   ),
 
   // -- Back & Biceps --
@@ -100,6 +107,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Fokus pada kontraksi otot lengan depan, pastikan siku mengarah ke bawah.',
     icon: Icons.fitness_center_rounded,
     difficulty: 'Intermediate',
+    gifPath: 'assets/exercises/chin_up.gif',
   ),
   const ExerciseDefinition(
     id: 'bw_inverted_row',
@@ -109,6 +117,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Gunakan meja atau tiang rendah, tarik dada ke arah pegangan.',
     icon: Icons.fitness_center_rounded,
     difficulty: 'Beginner',
+    gifPath: 'assets/exercises/inverted__row.gif',
   ),
   const ExerciseDefinition(
     id: 'bw_superman',
@@ -167,6 +176,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Langkah ke depan, turunkan pinggul hingga kedua lutut membentuk sudut 90 derajat.',
     icon: Icons.directions_walk_rounded,
     difficulty: 'Beginner',
+    gifPath: 'assets/exercises/bb_lunges.gif',
   ),
   const ExerciseDefinition(
     id: 'bw_lateral_lunges',
@@ -310,6 +320,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Gunakan kemiringan bangku 30-45 derajat untuk memfokuskan tarikan pada otot dada bagian atas.',
     icon: Icons.fitness_center_rounded,
     difficulty: 'Intermediate',
+    gifPath: 'assets/exercises/incline_bench_press.gif',
   ),
   const ExerciseDefinition(
     id: 'wt_tricep_pushdown',
@@ -319,6 +330,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Jaga siku agar tetap menempel pada sisi tubuh dan dorong kabel lurus ke bawah.',
     icon: Icons.fitness_center_rounded,
     difficulty: 'Beginner',
+    gifPath: 'assets/exercises/triceps_pulldown.gif',
   ),
   const ExerciseDefinition(
     id: 'wt_db_flyes',
@@ -328,6 +340,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Buka lengan ke samping dengan sedikit tekukan di siku, rasakan tarikan di dada.',
     icon: Icons.accessibility_new_rounded,
     difficulty: 'Intermediate',
+    gifPath: 'assets/exercises/dumbell_flys.gif',
   ),
   const ExerciseDefinition(
     id: 'wt_skull_crushers',
@@ -337,6 +350,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Pastikan siku tetap rapat ke arah badan saat menekuk. Turunkan beban ke arah dahi.',
     icon: Icons.fitness_center_rounded,
     difficulty: 'Intermediate',
+    gifPath: 'assets/exercises/skull_crushers.gif',
   ),
 
   // -- Back & Biceps --
@@ -357,6 +371,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Bayangkan menarik siku ke arah pinggul untuk mengaktifkan sayap punggung.',
     icon: Icons.fitness_center_rounded,
     difficulty: 'Beginner',
+    gifPath: 'assets/exercises/lat_pulldown.gif',
   ),
   const ExerciseDefinition(
     id: 'wt_seated_row',
@@ -366,6 +381,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Jaga dada tetap tegak dan tarik handle ke arah perut bawah sambil merapatkan tulang belikat.',
     icon: Icons.fitness_center_rounded,
     difficulty: 'Beginner',
+    gifPath: 'assets/exercises/seated_row.gif',
   ),
   const ExerciseDefinition(
     id: 'wt_deadlift',
@@ -375,6 +391,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Dorong lantai dengan kaki dan pastikan punggung tidak melengkung saat mengangkat.',
     icon: Icons.fitness_center_rounded,
     difficulty: 'Advanced',
+    gifPath: 'assets/exercises/deadlift.gif',
   ),
   const ExerciseDefinition(
     id: 'wt_shrugs',
@@ -384,6 +401,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Angkat bahu mendekati telinga tanpa menekuk siku tangan.',
     icon: Icons.accessibility_new_rounded,
     difficulty: 'Beginner',
+    gifPath: 'assets/exercises/shrugs.gif',
   ),
 
   const ExerciseDefinition(
@@ -394,6 +412,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Fokus pada kontraksi otot lengan depan, jangan ayunkan beban.',
     icon: Icons.fitness_center_rounded,
     difficulty: 'Beginner',
+    gifPath: 'assets/exercises/db_curl.gif',
   ),
 
   // -- Shoulders & Forearms --
@@ -405,6 +424,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Dorong beban lurus ke atas kepala tanpa mengayunkan badan atau menekuk lutut.',
     icon: Icons.fitness_center_rounded,
     difficulty: 'Intermediate',
+    gifPath: 'assets/exercises/overhead_press.gif',
   ),
   const ExerciseDefinition(
     id: 'wt_front_raise',
@@ -414,6 +434,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Jaga punggung tetap tegak, jangan biarkan tubuh condong ke belakang saat mengangkat.',
     icon: Icons.accessibility_new_rounded,
     difficulty: 'Beginner',
+    gifPath: 'assets/exercises/front_raise.gif',
   ),
   const ExerciseDefinition(
     id: 'wt_lateral_raise',
@@ -423,6 +444,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Angkat beban ke samping hingga setinggi bahu dengan siku sedikit ditekuk.',
     icon: Icons.accessibility_new_rounded,
     difficulty: 'Beginner',
+    gifPath: 'assets/exercises/lateral_raise.gif',
   ),
   const ExerciseDefinition(
     id: 'wt_face_pull',
@@ -450,6 +472,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Genggam alat dengan kuat, gulung pergelangan tangan ke atas untuk memeras lengan bawah.',
     icon: Icons.fitness_center_rounded,
     difficulty: 'Beginner',
+    gifPath: 'assets/exercises/wrist_curl.gif',
   ),
 
   // -- Legs --
@@ -470,6 +493,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Dorong beban menggunakan kekuatan paha hingga kaki lurus sempurna.',
     icon: Icons.accessibility_new_rounded,
     difficulty: 'Beginner',
+    gifPath: 'assets/exercises/goblet_squat.gif',
   ),
   const ExerciseDefinition(
     id: 'wt_leg_extension',
@@ -479,6 +503,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Dorong beban menggunakan kekuatan paha depan hingga kaki lurus sempurna.',
     icon: Icons.fitness_center_rounded,
     difficulty: 'Beginner',
+    gifPath: 'assets/exercises/leg_extension.gif',
   ),
   const ExerciseDefinition(
     id: 'wt_leg_curl',
@@ -497,6 +522,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Tekuk pinggul ke belakang sampai terasa tarikan maksimal di paha belakang.',
     icon: Icons.fitness_center_rounded,
     difficulty: 'Intermediate',
+    gifPath: 'assets/exercises/rdl.gif',
   ),
   const ExerciseDefinition(
     id: 'wt_hip_thrust',
@@ -515,6 +541,7 @@ final List<ExerciseDefinition> exerciseDatabase = [
     techniqueTip: 'Jaga torso tetap tegak dan melangkah cukup jauh agar lutut membentuk sudut 90 derajat.',
     icon: Icons.directions_walk_rounded,
     difficulty: 'Intermediate',
+    gifPath: 'assets/exercises/bb_lunges.gif',
   ),
 
   // -- Core --

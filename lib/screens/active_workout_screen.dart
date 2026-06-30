@@ -425,52 +425,18 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen>
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: List.generate(widget.exercises.length, (i) {
-              final isActive = i == _currentExerciseIndex;
-              final isDone = i < _currentExerciseIndex;
-              return Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(
-                      right: i < widget.exercises.length - 1 ? 6 : 0),
-                  child: AnimatedBuilder(
-                    animation: _pulseAnim,
-                    builder: (_, __) {
-                      return Container(
-                        height: 6,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(3),
-                          color: isDone
-                              ? AppTheme.electricBlue.withOpacity(0.5)
-                              : isActive
-                                  ? AppTheme.electricBlue
-                                      .withOpacity(_pulseAnim.value)
-                                  : AppTheme.border,
-                          boxShadow: isActive
-                              ? [
-                                  BoxShadow(
-                                      color: AppTheme.electricBlue
-                                          .withOpacity(0.6 * _pulseAnim.value),
-                                      blurRadius: 8)
-                                ]
-                              : null,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              );
-            }),
-          ),
+
         ],
       ),
     );
   }
 
   Widget _buildHeroSection() {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final imageHeight = screenHeight * 0.4;
+
     return SizedBox(
-      height: 320,
+      height: imageHeight + 160,
       child: PageView.builder(
         controller: _heroPageController,
         onPageChanged: (idx) {
@@ -491,8 +457,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen>
             child: Column(
               children: [
                 Container(
-                  height: 180,
+                  height: imageHeight,
                   width: double.infinity,
+                  clipBehavior: Clip.hardEdge,
                   decoration: BoxDecoration(
                     color: AppTheme.surface,
                     borderRadius: BorderRadius.circular(24),
@@ -505,13 +472,20 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen>
                       ),
                     ],
                   ),
-                  child: Center(
-                    child: Icon(
-                      ex.icon,
-                      size: 96,
-                      color: AppTheme.electricBlue.withOpacity(0.85),
-                    ),
-                  ),
+                  child: ex.gifPath != null
+                      ? Image.asset(
+                          ex.gifPath!,
+                          fit: BoxFit.contain,
+                          width: double.infinity,
+                          height: double.infinity,
+                        )
+                      : Center(
+                          child: Icon(
+                            ex.icon,
+                            size: 96,
+                            color: AppTheme.electricBlue.withOpacity(0.85),
+                          ),
+                        ),
                 ),
                 const SizedBox(height: 20),
                 Text(
