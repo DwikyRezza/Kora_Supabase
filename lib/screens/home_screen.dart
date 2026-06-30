@@ -295,8 +295,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     _buildKoraAssistant(),
                     SizedBox(height: context.space2XL),
                     
-                    _buildTodayWorkouts(),
-                    SizedBox(height: context.space2XL),
+
                     
                     _buildSocialFeed(),
                     const SizedBox(height: 100), // padding bottom
@@ -717,82 +716,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildTodayWorkouts() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Text('Jadwal ', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: AppTheme.textPrimary, letterSpacing: -0.5)),
-                const Text('Latih', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Color(0xFFFF5406), letterSpacing: -0.5)),
-              ],
-            ),
-            GestureDetector(
-              onTap: widget.onGoToWorkout,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceVariant,
-                  borderRadius: BorderRadius.circular(26),
-                ),
-                child: Text('TAMBAH', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textPrimary, letterSpacing: 1.5)),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        if (_todayWorkouts.isEmpty)
-          const Center(child: Text('Belum ada latihan hari ini.', style: TextStyle(color: Colors.grey)))
-        else
-          ..._todayWorkouts.map((w) {
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => WorkoutDetailScreen(workout: w)),
-                ).then((_) => _loadData());
-              },
-              behavior: HitTestBehavior.opaque,
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceVariant,
-                  borderRadius: BorderRadius.circular(26),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48, height: 48,
-                      decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(26)),
-                      child: const Icon(Icons.task_alt, color: Color(0xFF00B33F)),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(w.type.substring(0, 1).toUpperCase() + w.type.substring(1), style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textPrimary, fontSize: 16)),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Selesai • ${DateFormat('HH:mm').format(w.date)} WIB',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppTheme.textMuted, letterSpacing: 0.5),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(Icons.chevron_right, color: AppTheme.textMuted),
-                  ],
-                ),
-              ),
-            );
-          }),
-      ],
-    );
-  }
 
   Widget _buildSocialFeed() {
     return Column(
