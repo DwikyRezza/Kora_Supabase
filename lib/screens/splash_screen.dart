@@ -26,8 +26,6 @@ class _SplashScreenState extends State<SplashScreen>
   late final AnimationController _animController;
   late final Animation<double> _fadeAnimation;
   late final Animation<double> _scaleAnimation;
-  late final Animation<double> _pulseAnimation;
-  late final Animation<double> _glowAnimation;
 
   bool _isInitComplete = false;
   bool _isAnimationComplete = false;
@@ -52,51 +50,14 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animController,
-        curve: const Interval(0.1, 0.7, curve: Curves.elasticOut),
+        curve: const Interval(0.1, 0.7, curve: Curves.easeOutBack),
       ),
     );
 
-    // Pulse 1400 - 2000ms
-    _pulseAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.08)
-            .chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 50,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.08, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 50,
-      ),
-    ]).animate(
-      CurvedAnimation(
-        parent: _animController,
-        curve: const Interval(0.7, 1.0),
-      ),
-    );
-
-    // Soft Orange Glow (syncs with pulse)
-    _glowAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: 0.4)
-            .chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 50,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0.4, end: 0.0)
-            .chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 50,
-      ),
-    ]).animate(
-      CurvedAnimation(
-        parent: _animController,
-        curve: const Interval(0.7, 1.0),
-      ),
-    );
-
+    // Removed pulse and glow animations to keep it simple
     _animController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         _isAnimationComplete = true;
@@ -177,47 +138,45 @@ class _SplashScreenState extends State<SplashScreen>
 
     return Scaffold(
       backgroundColor: AppTheme.background,
-      body: Center(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            colors: [
+              Colors.transparent,
+              Colors.black.withOpacity(0.4), // Soft vignette effect
+            ],
+            radius: 1.2,
+          ),
+        ),
+        child: Center(
         child: AnimatedBuilder(
           animation: _animController,
           builder: (context, child) {
-            // Apply scale logic: multiply initial scale by pulse scale
-            final currentScale = _scaleAnimation.value * _pulseAnimation.value;
+            // Apply scale logic
+            final currentScale = _scaleAnimation.value;
             
             return Transform.scale(
               scale: currentScale,
               child: Opacity(
                 opacity: _fadeAnimation.value,
-                child: Container(
-                  decoration: BoxDecoration(
-                    boxShadow: _glowAnimation.value > 0
-                        ? [
-                            BoxShadow(
-                              color: const Color(0xFFFF6B00).withValues(alpha: _glowAnimation.value),
-                              blurRadius: 22,
-                              spreadRadius: 0,
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Image.asset(
-                    logoPath,
-                    width: 240, // Increased from 120
-                    height: 240,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      // Fallback in case assets are missing
-                      return const Icon(
-                        Icons.sports_score_rounded,
-                        size: 80,
-                        color: Color(0xFFFF5406),
-                      );
-                    },
-                  ),
+                child: Image.asset(
+                  logoPath,
+                  width: 280, // Increased size for more focus
+                  height: 280,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    // Fallback in case assets are missing
+                    return const Icon(
+                      Icons.sports_score_rounded,
+                      size: 80,
+                      color: Color(0xFFFF5406),
+                    );
+                  },
                 ),
               ),
             );
           },
+        ),
         ),
       ),
     );
