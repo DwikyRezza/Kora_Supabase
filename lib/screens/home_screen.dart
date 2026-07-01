@@ -142,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             backgroundColor: AppTheme.surface,
             title: Row(
               children: [
-                const Icon(Icons.sports, color: Color(0xFFFF5406)),
+                Icon(Icons.sports, color: AppTheme.accent),
                 const SizedBox(width: 8),
                 Text('Waktunya Action!', style: TextStyle(color: AppTheme.textPrimary)),
               ],
@@ -158,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   WhistleblowerService.stopAlarm();
                   Navigator.pop(ctx);
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00B33F)),
+                style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accent),
                 child: const Text('OK', style: TextStyle(color: Colors.white)),
               ),
             ],
@@ -266,44 +266,51 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _refreshData,
-          color: const Color(0xFF00B33F),
+          color: AppTheme.accent,
           backgroundColor: AppTheme.surface,
-          child: SingleChildScrollView(
+          child: CustomScrollView(
             controller: _scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: context.spaceXL),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: context.spaceLG),
-                  _buildHeader(),
-                  SizedBox(height: context.spaceXL),
-                  
-                  if (_isLoading)
-                    const Center(child: CircularProgressIndicator(color: Color(0xFFFF5406)))
-                  else ...[
-                    _buildProteinCard(),
-                    SizedBox(height: context.space2XL),
-                    
-                    _buildQuickActions(),
-                    SizedBox(height: context.space2XL),
-                    
-                    _buildStatGrid(),
-                    SizedBox(height: context.space2XL),
-                    
-                    _buildKoraAssistant(),
-                    SizedBox(height: context.space2XL),
-                    
-
-                    
-                    _buildSocialFeed(),
-                    const SizedBox(height: 100), // padding bottom
-                  ],
-                ],
+            slivers: [
+              SliverAppBar(
+                backgroundColor: AppTheme.surface,
+                surfaceTintColor: Colors.transparent, // Mencegah perubahan warna saat di-scroll
+                scrolledUnderElevation: 0, // Memastikan tidak ada bayangan/warna tambahan
+                elevation: 0,
+                floating: true,
+                snap: false,
+                automaticallyImplyLeading: false,
+                titleSpacing: context.spaceXL,
+                title: _buildHeader(),
               ),
+              SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: context.spaceLG),
+                
+                if (_isLoading)
+                  Center(child: CircularProgressIndicator(color: AppTheme.accent))
+                else ...[
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: context.spaceXL),
+                    child: Column(
+                      children: [
+                        _buildProteinCard(),
+                        SizedBox(height: context.space2XL),
+                        _buildStatGrid(),
+                        SizedBox(height: context.space2XL),
+                      ],
+                    ),
+                  ),
+                    
+                  _buildSocialFeed(),
+                ],
+              ],
             ),
           ),
+        ],
+      ),
         ),
       ),
     );
@@ -328,14 +335,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          'KORA',
-          style: TextStyle(
-            color: const Color(0xFF00B33F),
-            fontWeight: FontWeight.w800,
-            fontSize: context.fontXL * 1.1,
-            letterSpacing: -1,
-          ),
+        Image.asset(
+          AppTheme.isDarkMode 
+              ? 'assets/icons/logoGelapTanpaIcon.png' 
+              : 'assets/icons/logoTerangTanpaIcon.png',
+          height: 14, // Diperkecil lagi sesuai permintaan
+          fit: BoxFit.contain,
         ),
         Row(
           children: [
@@ -362,7 +367,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       width: 8,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: Color(0xFFFF3400),
+                        color: AppTheme.accent,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -413,7 +418,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     SizedBox(height: context.spaceXS),
                     Text(
                       isSufficient ? 'Target tercapai!' : 'Di bawah target harian',
-                      style: TextStyle(fontSize: context.fontBase, fontWeight: FontWeight.bold, color: isSufficient ? const Color(0xFF00B33F) : const Color(0xFFFF3400)),
+                      style: TextStyle(fontSize: context.fontBase, fontWeight: FontWeight.bold, color: isSufficient ? AppTheme.accent : AppTheme.textPrimary),
                     ),
                   ],
                 ),
@@ -438,7 +443,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               widthFactor: progress,
               child: Container(
                 decoration: BoxDecoration(
-                  color: isSufficient ? const Color(0xFF00B33F) : const Color(0xFFFF3400),
+                  color: AppTheme.accent,
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
@@ -470,56 +475,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildQuickActions() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      child: Row(
-        children: [
-          _buildPillAction(
-            title: 'Latihan',
-            icon: Icons.fitness_center,
-            color: const Color(0xFF00B33F), // achievement-neon
-            onTap: widget.onGoToWorkout,
-          ),
-          const SizedBox(width: 12),
-          _buildPillAction(
-            title: 'Nutrisi',
-            icon: Icons.restaurant,
-            color: const Color(0xFFFF6D00), // calorie-orange
-            onTap: widget.onGoToProtein,
-          ),
-          const SizedBox(width: 12),
-          _buildPillAction(
-            title: 'Jadwal',
-            icon: Icons.calendar_today,
-            color: const Color(0xFF0099F9), // pending-blue
-            onTap: widget.onGoToSchedule,
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildPillAction({required String title, required IconData icon, required Color color, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(26),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: color, size: 18),
-            const SizedBox(width: 8),
-            Text(title, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 14)),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildStatGrid() {
     return GridView.count(
@@ -530,10 +486,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       physics: const NeverScrollableScrollPhysics(),
       childAspectRatio: 1.3, // Memberikan ruang vertikal lebih agar tidak overflow
       children: [
-        _buildStatBox(title: 'Nutrisi', value: '${_totalProteinToday.toStringAsFixed(0)}g', color: const Color(0xFF00B33F)),
-        _buildStatBox(title: 'Energi', value: '$_totalCaloriesToday', subValue: 'Kkal', color: const Color(0xFFFF6D00)),
-        _buildStatBox(title: 'Durasi', value: '$_totalWorkoutMinutes', subValue: 'Menit', color: const Color(0xFF0099F9)),
-        _buildStatBox(title: 'Sesi', value: '${_todayWorkouts.length} Sesi', color: const Color(0xFFBD4BE5)),
+        _buildStatBox(title: 'Nutrisi', value: '${_totalProteinToday.toStringAsFixed(0)}g', color: AppTheme.accent),
+        _buildStatBox(title: 'Energi', value: '$_totalCaloriesToday', subValue: 'Kkal', color: AppTheme.accent),
+        _buildStatBox(title: 'Durasi', value: '$_totalWorkoutMinutes', subValue: 'Menit', color: AppTheme.accent),
+        _buildStatBox(title: 'Sesi', value: '${_todayWorkouts.length} Sesi', color: AppTheme.accent),
       ],
     );
   }
@@ -568,179 +524,52 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildKoraAssistant() {
-    final days = List.generate(7, (i) => DateTime.now().add(Duration(days: i - 2))); 
-    
-    final sortedEvents = List<ScheduleEvent>.from(_upcomingEvents)
-      ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
-    final selectedDateEvents = sortedEvents.where((e) {
-      return e.dateTime.year == _selectedScheduleDate.year &&
-             e.dateTime.month == _selectedScheduleDate.month &&
-             e.dateTime.day == _selectedScheduleDate.day;
-    }).toList();
-
-    final pendingEvents = selectedDateEvents.where((e) => e.status == 'pending').toList();
-    final heroEvent = pendingEvents.isNotEmpty ? pendingEvents.first : (selectedDateEvents.isNotEmpty ? selectedDateEvents.first : null);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Date Picker
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppTheme.surfaceVariant,
-            borderRadius: BorderRadius.circular(26),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: days.map((date) {
-              final isSelected = date.year == _selectedScheduleDate.year && 
-                                 date.month == _selectedScheduleDate.month && 
-                                 date.day == _selectedScheduleDate.day;
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    _loadScheduleOnly(date);
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 2),
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
-                    decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF00B33F) : Colors.transparent,
-                      borderRadius: BorderRadius.circular(26),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          DateFormat('E', 'id').format(date).toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 9, 
-                            fontWeight: FontWeight.bold, 
-                            color: isSelected ? Colors.white.withOpacity(0.8) : AppTheme.textMuted
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${date.day}',
-                          style: TextStyle(
-                            fontSize: 14, 
-                            fontWeight: FontWeight.bold, 
-                            color: isSelected ? Colors.white : AppTheme.textPrimary
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-        const SizedBox(height: 24),
-        
-        // Hero Card
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: AppTheme.surfaceVariant,
-            borderRadius: BorderRadius.circular(26),
-          ),
-          child: heroEvent != null ? Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('JADWAL KORA', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF00B33F), letterSpacing: 1.5)),
-                  Text(DateFormat('HH:mm').format(heroEvent.dateTime), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textMuted)),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(heroEvent.title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
-              const SizedBox(height: 8),
-              Text(
-                heroEvent.notes.isNotEmpty ? heroEvent.notes : 'Fokus pada kontrol pernapasan dan postur tubuh yang stabil.',
-                style: TextStyle(fontSize: 14, color: AppTheme.textMuted, height: 1.5),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.timer, size: 18, color: Color(0xFF0099F9)),
-                      const SizedBox(width: 4),
-                      Text('60 mnt', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
-                      const SizedBox(width: 16),
-                      const Icon(Icons.local_fire_department, size: 18, color: Color(0xFFFF6D00)),
-                      const SizedBox(width: 4),
-                      Text('320 kal', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
-                    ],
-                  ),
-                  ElevatedButton(
-                    onPressed: () => _navigateByWorkoutType(heroEvent),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.textPrimary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    ),
-                    child: Text('MULAI', style: TextStyle(color: AppTheme.surface, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
-                  ),
-                ],
-              ),
-            ],
-          ) : const Center(
-            child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text('Tidak ada jadwal', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
 
   Widget _buildSocialFeed() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Text('Aktivitas ', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: AppTheme.textPrimary, letterSpacing: -0.5)),
-            const Text('Teman', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Color(0xFF00B33F), letterSpacing: -0.5)),
-          ],
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: context.spaceXL),
+          child: Row(
+            children: [
+              Text('Aktivitas ', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: AppTheme.textPrimary, letterSpacing: -0.5)),
+              Text('Teman', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: AppTheme.accent, letterSpacing: -0.5)),
+            ],
+          ),
         ),
         const SizedBox(height: 24),
 
         if (_isLoadingFeed)
-          const Center(child: CircularProgressIndicator(color: Color(0xFF00B33F)))
+          Center(child: CircularProgressIndicator(color: AppTheme.accent))
         else if (_feedPosts.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppTheme.surfaceVariant,
-              borderRadius: BorderRadius.circular(26),
-            ),
-            child: Column(
-              children: [
-                Icon(Icons.group_outlined, size: 48, color: AppTheme.textMuted),
-                SizedBox(height: 16),
-                Text(
-                  'Belum ada aktivitas',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textPrimary),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Ikuti lebih banyak teman untuk melihat aktivitas mereka di sini.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey, height: 1.5),
-                ),
-              ],
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: context.spaceXL),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceVariant,
+                borderRadius: BorderRadius.circular(26),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.group_outlined, size: 48, color: AppTheme.textMuted),
+                  SizedBox(height: 16),
+                  Text(
+                    'Belum ada aktivitas',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textPrimary),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Ikuti lebih banyak teman untuk melihat aktivitas mereka di sini.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppTheme.textMuted, height: 1.5),
+                  ),
+                ],
+              ),
             ),
           )
         else
@@ -755,9 +584,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
         // ── Load More indicator ──────────────────────────────────────────
         if (_isLoadingMore)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Center(child: CircularProgressIndicator(color: Color(0xFF00B33F), strokeWidth: 2)),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(child: CircularProgressIndicator(color: AppTheme.accent, strokeWidth: 2)),
           )
         else if (!_hasMoreData && _feedPosts.isNotEmpty)
           Padding(
@@ -765,7 +594,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             child: Center(
               child: Text(
                 '— Sudah mencapai akhir —',
-                style: TextStyle(color: Colors.grey, fontSize: 12, fontStyle: FontStyle.italic),
+                style: TextStyle(color: AppTheme.textMuted, fontSize: 12, fontStyle: FontStyle.italic),
               ),
             ),
           ),

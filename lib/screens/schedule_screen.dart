@@ -54,14 +54,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               backgroundColor: AppTheme.surface,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
               title: Text('Hapus Jadwal?', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold)),
-              content: Text('Apakah Anda yakin ingin menghapus jadwal ini?', style: TextStyle(color: Colors.grey)),
+              content: Text('Apakah Anda yakin ingin menghapus jadwal ini?', style: TextStyle(color: AppTheme.textMuted)),
               actions: [
                 TextButton(
                     onPressed: () => Navigator.pop(ctx, false),
-                    child: Text('Batal', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold))),
+                    child: Text('Batal', style: TextStyle(color: AppTheme.textMuted, fontWeight: FontWeight.bold))),
                 TextButton(
                     onPressed: () => Navigator.pop(ctx, true),
-                    child: Text('Hapus', style: TextStyle(color: const Color(0xFFFF5406), fontWeight: FontWeight.bold))),
+                    child: Text('Hapus', style: TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold))),
               ],
             ));
 
@@ -128,7 +128,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       appBar: AppBar(
         title: Row(
           children: [
-            Text('Agenda ', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: const Color(0xFFFF5406), letterSpacing: -1)),
+            Text('Agenda ', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: AppTheme.accent, letterSpacing: -1)),
             Text('Hari Ini', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: AppTheme.textPrimary, letterSpacing: -1)),
           ],
         ),
@@ -147,7 +147,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               HapticFeedback.lightImpact();
               _showAddEditEventSheet();
             },
-            backgroundColor: const Color(0xFFFF5406),
+            backgroundColor: AppTheme.accent,
             elevation: 0,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
             icon: Icon(Icons.add_rounded, color: Colors.white),
@@ -156,10 +156,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF5406)))
+          ? Center(child: CircularProgressIndicator(color: AppTheme.accent))
           : RefreshIndicator(
               onRefresh: _refreshEvents,
-              color: const Color(0xFFFF5406),
+              color: AppTheme.accent,
               backgroundColor: AppTheme.surface,
               child: _events.isEmpty
                   ? ListView(
@@ -168,7 +168,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       children: [
                         Column(
                           children: [
-                            Icon(Icons.event_seat_rounded, color: Colors.grey, size: 80),
+                            Icon(Icons.event_seat_rounded, color: AppTheme.textMuted, size: 80),
                             SizedBox(height: 24),
                             Text(
                               'Belum ada agenda.',
@@ -181,7 +181,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                               'Mau buat jadwal baru atau lanjut istirahat?',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                  color: Colors.grey, fontSize: 14),
+                                  color: AppTheme.textMuted, fontSize: 14),
                             ),
                           ],
                         )
@@ -224,7 +224,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                                       Text(
                                           '${DateFormat('d MMM yyyy • HH:mm').format(event.dateTime)}',
                                           style: TextStyle(
-                                              color: const Color(0xFFFF5406),
+                                              color: AppTheme.accent,
                                               fontWeight: FontWeight.bold, fontSize: 12)),
                                       if (event.durationMinutes > 0)
                                         Padding(
@@ -232,7 +232,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                                           child: Text(
                                               'Durasi: ${event.durationMinutes} menit',
                                               style: TextStyle(
-                                                  color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+                                                  color: AppTheme.textMuted, fontSize: 12, fontWeight: FontWeight.bold)),
                                         ),
                                     ],
                                   ),
@@ -242,12 +242,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                                   children: [
                                     IconButton(
                                       icon: Icon(Icons.delete_outline,
-                                          color: const Color(0xFFFF5406)),
+                                          color: AppTheme.accent),
                                       onPressed: () => _deleteEvent(event),
                                     ),
                                     IconButton(
                                       icon: Icon(Icons.check_circle_outline,
-                                          color: Color(0xFF00B33F)),
+                                          color: AppTheme.accent),
                                       onPressed: () async {
                                         await _db.updateScheduleEventCompletion(
                                             event.id!, true);
@@ -275,10 +275,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   Color _getColorForType(String type) {
     switch (type) {
-      case 'workout': return const Color(0xFF00B33F);
-      case 'meal': return const Color(0xFFFF5406);
+      case 'workout': return AppTheme.accent;
+      case 'meal': return AppTheme.accent;
       case 'rest': return AppTheme.textPrimary;
-      default: return const Color(0xFFFF5406);
+      default: return AppTheme.accent;
     }
   }
 }
@@ -341,7 +341,7 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: ColorScheme.light(
-            primary: const Color(0xFFFF5406),
+            primary: AppTheme.accent,
             onPrimary: Colors.white,
             surface: AppTheme.surface,
             onSurface: AppTheme.textPrimary,
@@ -362,7 +362,7 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: ColorScheme.light(
-            primary: const Color(0xFFFF5406),
+            primary: AppTheme.accent,
             onPrimary: Colors.white,
             surface: AppTheme.surface,
             onSurface: AppTheme.textPrimary,
@@ -439,7 +439,7 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
                           color: AppTheme.textPrimary)),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: Icon(Icons.close_rounded, color: Colors.grey),
+                    icon: Icon(Icons.close_rounded, color: AppTheme.textMuted),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
@@ -526,10 +526,10 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
                             '${rec.description}\n\nEstimasi Harga: Rp${rec.estimatedCost.toInt()} (${rec.category})';
                       });
                     },
-                    icon: Icon(Icons.auto_awesome, color: Color(0xFFFF5406)),
-                    label: Text('Dapatkan Rekomendasi Menu (AI)', style: TextStyle(color: Color(0xFFFF5406), fontWeight: FontWeight.bold)),
+                    icon: Icon(Icons.auto_awesome, color: AppTheme.accent),
+                    label: Text('Dapatkan Rekomendasi Menu (AI)', style: TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF5406).withOpacity(0.1),
+                      backgroundColor: AppTheme.accent.withOpacity(0.1),
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
@@ -568,7 +568,7 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.calendar_today,
-                                color: const Color(0xFFFF5406), size: 20),
+                                color: AppTheme.accent, size: 20),
                             SizedBox(width: 8),
                             Text(DateFormat('d MMM').format(_selectedDate),
                                 style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold)),
@@ -591,7 +591,7 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.access_time,
-                                color: const Color(0xFFFF5406), size: 20),
+                                color: AppTheme.accent, size: 20),
                             SizedBox(width: 8),
                             Text(_selectedTime.format(context),
                                 style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold)),
@@ -639,7 +639,7 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
                           horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? const Color(0xFFFF5406)
+                            ? AppTheme.accent
                             : AppTheme.surfaceVariant,
                         borderRadius: BorderRadius.circular(26),
                       ),
@@ -648,7 +648,7 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
                         style: TextStyle(
                           color: isSelected
                               ? Colors.white
-                              : Colors.grey,
+                              : AppTheme.textMuted,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -666,8 +666,8 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
                         color: AppTheme.textPrimary,
                         fontWeight: FontWeight.bold)),
                 subtitle: Text('Alarm akan berbunyi di waktu terjadwal',
-                    style: TextStyle(color: Colors.grey, fontSize: 12)),
-                activeColor: const Color(0xFFFF5406),
+                    style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+                activeColor: AppTheme.accent,
                 value: _isReminderOn,
                 onChanged: (val) => setState(() => _isReminderOn = val),
               ),
@@ -678,7 +678,7 @@ class _AddEditEventFormState extends State<_AddEditEventForm> {
                 child: ElevatedButton(
                   onPressed: _save,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF5406),
+                    backgroundColor: AppTheme.accent,
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     elevation: 0,
                     shape: RoundedRectangleBorder(

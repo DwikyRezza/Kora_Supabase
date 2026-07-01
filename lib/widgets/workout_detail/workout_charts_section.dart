@@ -95,7 +95,7 @@ class WorkoutChartsSection extends StatelessWidget {
                     horizontalLines: [
                       HorizontalLine(
                         y: 15.0 - avgPaceMins,
-                        color: Colors.grey.withOpacity(0.5),
+                        color: AppTheme.textMuted.withOpacity(0.5),
                         strokeWidth: 1.5,
                         dashArray: [5, 5],
                       ),
@@ -105,7 +105,7 @@ class WorkoutChartsSection extends StatelessWidget {
                     LineChartBarData(
                       spots: spots,
                       isCurved: true,
-                      color: const Color(0xFFFF5406),
+                      color: AppTheme.accent,
                       barWidth: 2,
                       dotData: const FlDotData(show: false),
                       belowBarData: BarAreaData(
@@ -114,8 +114,8 @@ class WorkoutChartsSection extends StatelessWidget {
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
-                            const Color(0xFFFF5406).withOpacity(0.25),
-                            const Color(0xFFFF5406).withOpacity(0.0),
+                            AppTheme.accent.withOpacity(0.25),
+                            AppTheme.accent.withOpacity(0.0),
                           ],
                         ),
                       ),
@@ -347,7 +347,7 @@ class WorkoutChartsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold)),
+        Text(label, style: TextStyle(color: AppTheme.textMuted, fontSize: 10, fontWeight: FontWeight.bold)),
         const SizedBox(height: 2),
         Text(value, style: TextStyle(color: AppTheme.textPrimary, fontSize: 14, fontWeight: FontWeight.w900)),
       ],

@@ -156,10 +156,10 @@ class _SplashScreenState extends State<SplashScreen>
                   fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) {
                     // Fallback in case assets are missing
-                    return const Icon(
+                    return Icon(
                       Icons.sports_score_rounded,
                       size: 80,
-                      color: Color(0xFFFF5406),
+                      color: AppTheme.accent,
                     );
                   },
                 ),

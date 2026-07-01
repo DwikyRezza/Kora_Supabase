@@ -267,13 +267,8 @@ class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver
     final hasRoute = routePoints.isNotEmpty;
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
         color: AppTheme.surface,
-        border: Border(
-          top: BorderSide(color: AppTheme.border, width: 0.5),
-          bottom: BorderSide(color: AppTheme.border, width: 0.5),
-        ),
       ),
       child: Material(
         color: Colors.transparent,
@@ -313,51 +308,11 @@ class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver
                 ),
               ),
 
-              // ── CHALLENGE / ENCOURAGEMENT BANNER ──
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: context.spaceLG, vertical: context.spaceMD),
-                child: Row(
-                  children: [
-                    Icon(Icons.thumb_up_rounded,
-                        color: const Color(0xFFFF5406), size: context.iconLG),
-                    RSpace.md(horizontal: true),
-                    Expanded(
-                      child: Text(
-                        'Nicely done! Keep moving by joining a challenge',
-                        style: TextStyle(
-                          color: AppTheme.textPrimary,
-                          fontSize: context.fontSM,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    RSpace.sm(horizontal: true),
-                    ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF5406),
-                        foregroundColor: Colors.white,
-                        shape: const StadiumBorder(),
-                        padding:
-                            EdgeInsets.symmetric(horizontal: context.spaceMD, vertical: context.spaceXS),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'See More',
-                        style: TextStyle(fontSize: context.fontSM, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
 
               // ── MAP SNAPSHOT ─────────────────────────────────────────────
               if (hasRoute) _buildMapSnapshot(routePoints),
               if (!hasRoute)
-                Container(
-                  height: 8,
-                  color: AppTheme.surfaceVariant,
-                ),
+                const SizedBox(height: 8),
 
               // ── FOOTER: INTERAKSI SOSIAL ─────────────────────────────────
               _buildSocialFooter(),
@@ -599,7 +554,7 @@ class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver
               _socialButton(
                 icon: _isLiked ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
                 label: 'Like',
-                color: _isLiked ? const Color(0xFFFF5406) : AppTheme.textSecondary,
+                color: _isLiked ? AppTheme.accent : AppTheme.textSecondary,
                 onTap: _toggleLike,
               ),
               // Comment

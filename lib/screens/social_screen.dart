@@ -65,7 +65,7 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
         content: const Text('Apakah Anda yakin ingin berhenti mengikuti akun ini?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Berhenti Mengikuti', style: TextStyle(color: Colors.red))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text('Berhenti Mengikuti', style: TextStyle(color: AppTheme.accentRed))),
         ],
       ),
     );
@@ -84,7 +84,7 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
         content: const Text('Kora tidak akan memberi tahu mereka bahwa mereka telah dihapus dari pengikut Anda.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Hapus', style: TextStyle(color: Colors.red))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text('Hapus', style: TextStyle(color: AppTheme.accentRed))),
         ],
       ),
     );
@@ -102,7 +102,7 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
       }
       return Image.network(photoUrl, fit: BoxFit.cover);
     }
-    return const Icon(Icons.person, size: 28, color: Colors.grey);
+    return Icon(Icons.person, size: 28, color: AppTheme.textMuted);
   }
 
   Widget _buildUserRow(Map<String, dynamic> user, bool isFollowersTab) {
@@ -181,7 +181,7 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
 
   Widget _buildList(List<Map<String, dynamic>> users, bool isFollowersTab) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Color(0xFFA83300)));
+      return Center(child: CircularProgressIndicator(color: AppTheme.accent));
     }
     
     if (users.isEmpty) {
@@ -212,7 +212,7 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
         backgroundColor: AppTheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFFA83300)),
+          icon: Icon(Icons.arrow_back_rounded, color: AppTheme.accent),
           onPressed: () => Navigator.pop(context, true),
         ),
         title: Text(
@@ -240,8 +240,8 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
                   ]
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
-                labelColor: const Color(0xFFA83300), // Primary
-                unselectedLabelColor: const Color(0xFF5F5E5E), // Secondary
+                labelColor: AppTheme.accent, // Primary
+                unselectedLabelColor: AppTheme.textSecondary, // Secondary
                 labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, letterSpacing: 0.05),
                 dividerColor: Colors.transparent,
                 tabs: [

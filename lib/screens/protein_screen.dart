@@ -76,10 +76,10 @@ class _ProteinScreenState extends State<ProteinScreen> {
       body: SafeArea(
         child: _isLoading
             ? Center(
-                child: CircularProgressIndicator(color: Color(0xFFFF5406)))
+                child: CircularProgressIndicator(color: AppTheme.accent))
             : RefreshIndicator(
                 onRefresh: _refreshData,
-                color: const Color(0xFFFF5406),
+                color: AppTheme.accent,
                 backgroundColor: AppTheme.surface,
                 child: CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -106,10 +106,10 @@ class _ProteinScreenState extends State<ProteinScreen> {
                       ),
                     ),
                     if (_entries.isEmpty)
-                      const SliverFillRemaining(
+                      SliverFillRemaining(
                         child: Center(
                           child: Text('Belum ada asupan yang dicatat.',
-                              style: TextStyle(color: Colors.grey)),
+                              style: TextStyle(color: AppTheme.textMuted)),
                         ),
                       )
                     else
@@ -144,7 +144,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
                 style: TextStyle(
                     fontSize: context.font3XL,
                     fontWeight: FontWeight.w900,
-                    color: const Color(0xFFFF5406),
+                    color: AppTheme.accent,
                     letterSpacing: -1)),
             Text('Harian',
                 style: TextStyle(
@@ -198,7 +198,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
             children: [
               _macroRing(
                   'Karbo', _totalCarbs, 250, const Color(0xFF00A9DD), 'g'),
-              _macroRing('Lemak', _totalFat, 65, const Color(0xFF00B33F), 'g'),
+              _macroRing('Lemak', _totalFat, 65, AppTheme.accent, 'g'),
             ],
           ),
         ],
@@ -239,7 +239,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
                             fontSize: context.fontLG)),
                     Text(unit,
                         style: TextStyle(
-                            color: Colors.grey,
+                            color: AppTheme.textMuted,
                             fontSize: context.fontXS,
                             fontWeight: FontWeight.bold)),
                   ],
@@ -251,7 +251,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
         SizedBox(height: 12),
         Text(label,
             style: TextStyle(
-                color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold)),
+                color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -299,7 +299,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
                           ? '${entry.waterMl} ml • Hidrasi'
                           : '${entry.calories.toStringAsFixed(0)} kcal • ${entry.mealLabel}',
                       style: TextStyle(
-                          color: Colors.grey,
+                          color: AppTheme.textMuted,
                           fontSize: 13,
                           fontWeight: FontWeight.w600)),
                 ],
@@ -350,7 +350,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
             if (result == true) _loadData();
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFF5406),
+            backgroundColor: AppTheme.accent,
             elevation: 0,
             padding: const EdgeInsets.symmetric(vertical: 18),
             shape:

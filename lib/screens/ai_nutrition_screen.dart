@@ -193,7 +193,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${_results!.length} makanan berhasil dicatat!'),
-        backgroundColor: const Color(0xFF00B33F),
+        backgroundColor: AppTheme.accent,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
@@ -222,7 +222,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
         ),
         title: Row(
           children: [
-            Text('Catat Makanan', style: TextStyle(color: Color(0xFFFF5406), fontWeight: FontWeight.w900, fontSize: 24, letterSpacing: -0.5)),
+            Text('Catat Makanan', style: TextStyle(color: AppTheme.accent, fontWeight: FontWeight.w900, fontSize: 24, letterSpacing: -0.5)),
           ],
         ),
       ),
@@ -260,7 +260,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                     Text(
                       'Tulis menu makananmu secara natural.',
                       style: TextStyle(
-                          color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold),
+                          color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -281,7 +281,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                       flex: 5,
                       child: Text('Menu Makanan',
                           style: TextStyle(
-                              color: Colors.grey,
+                              color: AppTheme.textMuted,
                               fontSize: 13,
                               fontWeight: FontWeight.bold)),
                     ),
@@ -290,7 +290,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                       width: 80,
                       child: Text('Gram',
                           style: TextStyle(
-                              color: Colors.grey,
+                              color: AppTheme.textMuted,
                               fontSize: 13,
                               fontWeight: FontWeight.bold)),
                     ),
@@ -358,8 +358,8 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
             child: ElevatedButton(
               onPressed: _isAnalyzing ? null : _analyze,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF5406),
-                disabledBackgroundColor: const Color(0xFFFF5406).withOpacity(0.5),
+                backgroundColor: AppTheme.accent,
+                disabledBackgroundColor: AppTheme.accent.withOpacity(0.5),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(26)),
                 elevation: 0,
@@ -402,7 +402,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
                 hintText: '2 butir telur, nasi goreng...',
-                hintStyle: TextStyle(color: Colors.grey, fontSize: 16),
+                hintStyle: TextStyle(color: AppTheme.textMuted, fontSize: 16),
                 filled: true,
                 fillColor: AppTheme.surfaceVariant,
                 contentPadding:
@@ -423,11 +423,11 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
               style: TextStyle(color: AppTheme.textPrimary, fontSize: 16),
               decoration: InputDecoration(
                 hintText: '100',
-                hintStyle: TextStyle(color: Colors.grey, fontSize: 16),
+                hintStyle: TextStyle(color: AppTheme.textMuted, fontSize: 16),
                 filled: true,
                 fillColor: AppTheme.surfaceVariant,
                 suffixText: 'g',
-                suffixStyle: TextStyle(color: Colors.grey, fontSize: 14),
+                suffixStyle: TextStyle(color: AppTheme.textMuted, fontSize: 14),
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 border: OutlineInputBorder(
@@ -442,7 +442,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
             icon: Icon(Icons.remove_circle_outline_rounded,
                 color: _rows.length > 1
                     ? const Color(0xFFFF3400)
-                    : Colors.grey.withOpacity(0.5),
+                    : AppTheme.textMuted.withOpacity(0.5),
                 size: 28),
             onPressed: _rows.length > 1 ? () => _removeRow(index) : null,
             padding: const EdgeInsets.all(4),
@@ -494,7 +494,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                         SizedBox(width: 12),
                         _totalChip('Carb', '${totalCarbs.toStringAsFixed(0)}g', const Color(0xFF00A9DD)),
                         SizedBox(width: 12),
-                        _totalChip('Fat', '${totalFat.toStringAsFixed(0)}g', const Color(0xFF00B33F)),
+                        _totalChip('Fat', '${totalFat.toStringAsFixed(0)}g', AppTheme.accent),
                       ],
                     ),
                   ],
@@ -539,8 +539,8 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                 child: ElevatedButton(
                   onPressed: _isSaving ? null : _saveAll,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF5406),
-                    disabledBackgroundColor: const Color(0xFFFF5406).withOpacity(0.5),
+                    backgroundColor: AppTheme.accent,
+                    disabledBackgroundColor: AppTheme.accent.withOpacity(0.5),
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(26)),
@@ -607,8 +607,8 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
             children: [
               _miniNutrient('Protein', r.protein, const Color(0xFFBD4BE5)),
               _miniNutrient('Karbo', r.carbs, const Color(0xFF00A9DD)),
-              _miniNutrient('Lemak', r.fat, const Color(0xFF00B33F)),
-              _miniNutrient('Serat', r.fiber, Colors.grey),
+              _miniNutrient('Lemak', r.fat, AppTheme.accent),
+              _miniNutrient('Serat', r.fiber, AppTheme.textMuted),
             ],
           ),
         ],
@@ -625,7 +625,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                   color: color, fontSize: 16, fontWeight: FontWeight.bold)),
           SizedBox(height: 4),
           Text(label,
-              style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+              style: TextStyle(color: AppTheme.textMuted, fontSize: 12, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -646,7 +646,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                     color: color, fontSize: 16, fontWeight: FontWeight.bold)),
             SizedBox(height: 4),
             Text(label,
-                style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+                style: TextStyle(color: AppTheme.textMuted, fontSize: 12, fontWeight: FontWeight.bold)),
           ],
         ),
       ),

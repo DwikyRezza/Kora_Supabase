@@ -1,14 +1,17 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../theme/app_theme.dart';
 
 /// Painter class untuk merender rute lari tanpa lag di dalam List card.
 /// Dipindahkan ke file ini agar bisa dipakai oleh widget lain (ActivityFeedCard, dll.)
 class MiniRoutePainter extends CustomPainter {
   final List<LatLng> points;
-  final Color routeColor;
+  final Color? _routeColor;
 
-  MiniRoutePainter(this.points, {this.routeColor = const Color(0xFFFF5406)});
+  MiniRoutePainter(this.points, {Color? routeColor}) : _routeColor = routeColor;
+
+  Color get routeColor => _routeColor ?? AppTheme.accent;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -66,7 +69,7 @@ class MiniRoutePainter extends CustomPainter {
     canvas.drawCircle(
       getOffset(points.first),
       5.5,
-      Paint()..color = const Color(0xFF00B33F)..style = PaintingStyle.fill,
+      Paint()..color = AppTheme.accent..style = PaintingStyle.fill,
     );
 
     // End dot (red)

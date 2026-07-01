@@ -111,7 +111,7 @@ class WorkoutSplitsTable extends StatelessWidget {
                             value: progress,
                             minHeight: 8,
                             backgroundColor: AppTheme.border,
-                            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFF5406)),
+                            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accent),
                           ),
                         ),
                       ),

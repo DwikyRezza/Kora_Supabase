@@ -39,7 +39,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final List<String> _goals = ['Bulking', 'Cutting / Diet', 'Maintenance', 'Endurance Training'];
   final List<String> _genders = ['Pria', 'Wanita'];
 
-  static const Color primaryColor = Color(0xFFA83300);
+  static Color get primaryColor => AppTheme.accent;
 
   @override
   void initState() {
@@ -128,7 +128,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Username "$newUsername" sudah digunakan. Silakan pilih username lain.'),
-          backgroundColor: const Color(0xFFFF5406),
+          backgroundColor: AppTheme.accent,
         ),
       );
       return;
@@ -207,7 +207,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (_isLoading) {
       return Scaffold(
         backgroundColor: AppTheme.surface,
-        body: const Center(child: CircularProgressIndicator(color: primaryColor)),
+        body: Center(child: CircularProgressIndicator(color: primaryColor)),
       );
     }
 
@@ -230,7 +230,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         backgroundColor: AppTheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: primaryColor),
+          icon: Icon(Icons.arrow_back_rounded, color: primaryColor),
           onPressed: () async {
             if (!_hasChanges()) {
               Navigator.pop(context);
@@ -282,14 +282,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                           child: ClipOval(
                             child: _isUploadingPhoto
-                                ? const Center(child: CircularProgressIndicator(color: primaryColor))
+                                ? Center(child: CircularProgressIndicator(color: primaryColor))
                                 : _localPhotoPath != null
                                     ? Image.file(File(_localPhotoPath!), fit: BoxFit.cover)
                                     : _uploadedPhotoUrl != null
                                         ? (_uploadedPhotoUrl!.startsWith('data:image') 
                                             ? Image.memory(base64Decode(_uploadedPhotoUrl!.split(',')[1]), fit: BoxFit.cover)
                                             : Image.network(_uploadedPhotoUrl!, fit: BoxFit.cover))
-                                        : const Icon(Icons.person, size: 64, color: Colors.grey),
+                                        : Icon(Icons.person, size: 64, color: AppTheme.textMuted),
                           ),
                         ),
                         Container(
@@ -479,7 +479,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: DropdownButton<String>(
               value: value,
               isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.grey),
+              icon: Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.textMuted),
               items: items.map((String item) {
                 return DropdownMenuItem(
                   value: item,

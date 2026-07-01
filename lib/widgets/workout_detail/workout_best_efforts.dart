@@ -25,7 +25,7 @@ class WorkoutBestEfforts extends StatelessWidget {
         child: Column(
           children: efforts.entries.map((e) {
             return ListTile(
-              leading: const Icon(Icons.flash_on_rounded, color: Color(0xFFFF5406), size: 20),
+              leading: Icon(Icons.flash_on_rounded, color: AppTheme.accent, size: 20),
               title: Text(e.key, style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
               trailing: Text(e.value, style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w900, fontSize: 15)),
             );

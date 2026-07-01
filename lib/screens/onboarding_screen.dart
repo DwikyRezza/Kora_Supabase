@@ -42,7 +42,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Username "$_username" sudah digunakan. Silakan pilih username lain.'),
-            backgroundColor: const Color(0xFFFF5406),
+            backgroundColor: AppTheme.accent,
           ),
         );
         return;
@@ -132,7 +132,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: const Color(0xFFFF5406), width: 2),
+                    borderSide: BorderSide(color: AppTheme.accent, width: 2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   filled: true,
@@ -167,7 +167,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: const Color(0xFFFF5406), width: 2),
+                          borderSide: BorderSide(color: AppTheme.accent, width: 2),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         filled: true,
@@ -200,7 +200,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: const Color(0xFFFF5406), width: 2),
+                    borderSide: BorderSide(color: AppTheme.accent, width: 2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   filled: true,
@@ -218,7 +218,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 height: 56,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF5406), // Ember Orange
+                    backgroundColor: AppTheme.accent, // Ember Orange
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)), // Pill radius
                     elevation: 0,
                   ),
@@ -255,7 +255,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           borderRadius: BorderRadius.circular(12),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: const Color(0xFFFF5406), width: 2), // Ember Orange
+          borderSide: BorderSide(color: AppTheme.accent, width: 2), // Ember Orange
           borderRadius: BorderRadius.circular(12),
         ),
         filled: true,

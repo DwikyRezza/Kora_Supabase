@@ -112,7 +112,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
           height: 6,
           width: isActive ? 24 : 12,
           decoration: BoxDecoration(
-            color: isActive ? Color(0xFFFF5406) : (isDone ? Color(0xFFFF5406).withOpacity(0.5) : AppTheme.border),
+            color: isActive ? AppTheme.accent : (isDone ? AppTheme.accent.withOpacity(0.5) : AppTheme.border),
             borderRadius: BorderRadius.circular(3),
           ),
         );
@@ -135,7 +135,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Color(0xFFFF5406).withOpacity(0.4),
+                    color: AppTheme.accent.withOpacity(0.4),
                     blurRadius: 20,
                     offset: const Offset(0, 6),
                   ),
@@ -145,7 +145,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
         child: ElevatedButton(
           onPressed: canProceed ? _nextPage : null,
           style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFFFF5406),
+            backgroundColor: AppTheme.accent,
             foregroundColor: Colors.white,
             disabledBackgroundColor: AppTheme.surfaceVariant,
             disabledForegroundColor: AppTheme.textMuted,
@@ -168,7 +168,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Tahap 1: Mode Latihan', style: TextStyle(color: Color(0xFFFF5406), fontWeight: FontWeight.bold, fontSize: 14)),
+          Text('Tahap 1: Mode Latihan', style: TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 8),
           Text('Pilih gaya latihanmu', style: TextStyle(color: AppTheme.textPrimary, fontSize: 28, fontWeight: FontWeight.w900)),
           const SizedBox(height: 16),
@@ -190,16 +190,16 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isSelected ? Color(0xFFFF5406).withOpacity(0.1) : AppTheme.surface,
+          color: isSelected ? AppTheme.accent.withOpacity(0.1) : AppTheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: isSelected ? Color(0xFFFF5406) : AppTheme.border, width: 2),
+          border: Border.all(color: isSelected ? AppTheme.accent : AppTheme.border, width: 2),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isSelected ? Color(0xFFFF5406) : AppTheme.surfaceVariant,
+                color: isSelected ? AppTheme.accent : AppTheme.surfaceVariant,
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: isSelected ? Colors.white : AppTheme.textSecondary, size: 28),
@@ -228,7 +228,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Tahap 2: Pemetaan Otot', style: TextStyle(color: Color(0xFFFF5406), fontWeight: FontWeight.bold, fontSize: 14)),
+          Text('Tahap 2: Pemetaan Otot', style: TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 8),
           Text('Otot apa yang ingin dilatih?', style: TextStyle(color: AppTheme.textPrimary, fontSize: 28, fontWeight: FontWeight.w900)),
           const SizedBox(height: 16),
@@ -249,22 +249,22 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
-                      color: isCategoryActive ? Color(0xFFFF5406).withOpacity(0.05) : AppTheme.surface,
+                      color: isCategoryActive ? AppTheme.accent.withOpacity(0.05) : AppTheme.surface,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: isCategoryActive ? Color(0xFFFF5406).withOpacity(0.5) : AppTheme.border),
+                      border: Border.all(color: isCategoryActive ? AppTheme.accent.withOpacity(0.5) : AppTheme.border),
                     ),
                     child: ExpansionTile(
                       title: Text(
                         categoryName,
                         style: TextStyle(
-                          color: isCategoryActive ? Color(0xFFFF5406) : AppTheme.textPrimary,
+                          color: isCategoryActive ? AppTheme.accent : AppTheme.textPrimary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       subtitle: selectedCount > 0 
-                          ? Text('$selectedCount otot dipilih', style: TextStyle(color: Color(0xFFFF5406), fontSize: 12)) 
+                          ? Text('$selectedCount otot dipilih', style: TextStyle(color: AppTheme.accent, fontSize: 12)) 
                           : null,
-                      iconColor: Color(0xFFFF5406),
+                      iconColor: AppTheme.accent,
                       collapsedIconColor: AppTheme.textSecondary,
                       childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                       children: [
@@ -284,16 +284,16 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
                                 });
                               },
                               backgroundColor: AppTheme.background,
-                              selectedColor: Color(0xFFFF5406).withOpacity(0.2),
-                              checkmarkColor: Color(0xFFFF5406),
+                              selectedColor: AppTheme.accent.withOpacity(0.2),
+                              checkmarkColor: AppTheme.accent,
                               labelStyle: TextStyle(
-                                color: isSelected ? Color(0xFFFF5406) : AppTheme.textSecondary,
+                                color: isSelected ? AppTheme.accent : AppTheme.textSecondary,
                                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                                 fontSize: 13,
                               ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
-                                side: BorderSide(color: isSelected ? Color(0xFFFF5406) : AppTheme.border),
+                                side: BorderSide(color: isSelected ? AppTheme.accent : AppTheme.border),
                               ),
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                             );
@@ -331,7 +331,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Tahap 3: Kurasi Gerakan', style: TextStyle(color: Color(0xFFFF5406), fontWeight: FontWeight.bold, fontSize: 14)),
+          Text('Tahap 3: Kurasi Gerakan', style: TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 8),
           Text('Pilih gerakanmu', style: TextStyle(color: AppTheme.textPrimary, fontSize: 28, fontWeight: FontWeight.w900)),
           const SizedBox(height: 16),
@@ -358,12 +358,12 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
                         title: Text(ex.name, style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold)),
                         subtitle: Text('${ex.difficulty} • ${ex.muscleGroups.join(', ')}', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
                         secondary: Icon(ex.icon, color: AppTheme.textMuted),
-                        activeColor: Color(0xFFFF5406),
+                        activeColor: AppTheme.accent,
                         checkColor: Colors.white,
                         tileColor: AppTheme.surface,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: isSelected ? Color(0xFFFF5406) : AppTheme.border),
+                          side: BorderSide(color: isSelected ? AppTheme.accent : AppTheme.border),
                         ),
                       );
                     },
@@ -388,7 +388,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Tahap Final', style: TextStyle(color: Color(0xFFFF5406), fontWeight: FontWeight.bold, fontSize: 14)),
+          Text('Tahap Final', style: TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 8),
           Text('Today\'s Routine', style: TextStyle(color: AppTheme.textPrimary, fontSize: 28, fontWeight: FontWeight.w900)),
           const SizedBox(height: 24),
@@ -401,7 +401,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.local_fire_department_rounded, color: const Color(0xFFFF5406), size: 32),
+                Icon(Icons.local_fire_department_rounded, color: AppTheme.accent, size: 32),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
@@ -416,7 +416,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
                           const SizedBox(width: 12),
                           Container(width: 4, height: 4, decoration: BoxDecoration(color: AppTheme.textMuted, shape: BoxShape.circle)),
                           const SizedBox(width: 12),
-                          Text('~$estimatedCalories kkal', style: TextStyle(color: const Color(0xFFFF5406), fontSize: 14, fontWeight: FontWeight.bold)),
+                          Text('~$estimatedCalories kkal', style: TextStyle(color: AppTheme.accent, fontSize: 14, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ],
@@ -441,14 +441,14 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
                   return Material(
                     elevation: 12,
                     color: Colors.transparent,
-                    shadowColor: Color(0xFFFF5406).withOpacity(0.5),
+                    shadowColor: AppTheme.accent.withOpacity(0.5),
                     child: Container(
                       decoration: BoxDecoration(
                         color: AppTheme.surfaceVariant.withOpacity(0.95),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Color(0xFFFF5406), width: 2),
+                        border: Border.all(color: AppTheme.accent, width: 2),
                         boxShadow: [
-                          BoxShadow(color: Color(0xFFFF5406).withOpacity(0.3), blurRadius: 12, spreadRadius: 2),
+                          BoxShadow(color: AppTheme.accent.withOpacity(0.3), blurRadius: 12, spreadRadius: 2),
                         ]
                       ),
                       child: child,
@@ -487,11 +487,11 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
                             width: 40,
                             height: 40,
                             decoration: BoxDecoration(
-                              color: Color(0xFFFF5406).withOpacity(0.1),
+                              color: AppTheme.accent.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Center(
-                              child: Icon(ex.icon, color: Color(0xFFFF5406), size: 20),
+                              child: Icon(ex.icon, color: AppTheme.accent, size: 20),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -533,7 +533,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
                                   },
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                                    child: Text('${_exerciseSets[exId] ?? 4}', style: TextStyle(color: Color(0xFFFF5406), fontWeight: FontWeight.bold, fontSize: 14)),
+                                    child: Text('${_exerciseSets[exId] ?? 4}', style: TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold, fontSize: 14)),
                                   ),
                                 ),
                                 InkWell(
@@ -553,7 +553,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Icon(Icons.drag_handle_rounded, color: Colors.grey, size: 20),
+                          Icon(Icons.drag_handle_rounded, color: AppTheme.textMuted, size: 20),
                         ],
                       ),
                     ),
@@ -580,7 +580,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
           style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
           decoration: InputDecoration(
-            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFFF5406), width: 2)),
+            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.accent, width: 2)),
             enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
           ),
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -595,7 +595,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
               }
               Navigator.pop(ctx);
             },
-            child: Text('Simpan', style: TextStyle(color: Color(0xFFFF5406), fontWeight: FontWeight.bold)),
+            child: Text('Simpan', style: TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

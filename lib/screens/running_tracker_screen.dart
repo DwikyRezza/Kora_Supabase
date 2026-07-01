@@ -748,14 +748,14 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+              child: Text('Batal', style: TextStyle(color: AppTheme.textMuted)),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(ctx);
                 Geolocator.openAppSettings();
               },
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00B33F)),
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accent),
               child: const Text('Buka Pengaturan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
@@ -1017,17 +1017,17 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                 child: Container(
                   height: 64,
                   decoration: BoxDecoration(
-                    color: _isSaving ? AppTheme.surfaceVariant : Color(0xFFFF5406),
+                    color: _isSaving ? AppTheme.surfaceVariant : AppTheme.accent,
                     borderRadius: BorderRadius.circular(26),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.play_arrow, color: _isSaving ? Colors.grey : Colors.white, size: 32),
+                      Icon(Icons.play_arrow, color: _isSaving ? AppTheme.textMuted : Colors.white, size: 32),
                       SizedBox(width: 8),
                       Text('Resume',
                           style: TextStyle(
-                              color: _isSaving ? Colors.grey : Colors.white,
+                              color: _isSaving ? AppTheme.textMuted : Colors.white,
                               fontSize: 20,
                               fontWeight: FontWeight.w900)),
                     ],
@@ -1043,16 +1043,16 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                 child: Container(
                   height: 64,
                   decoration: BoxDecoration(
-                    color: _isSaving ? AppTheme.surfaceVariant : Color(0xFF00B33F),
+                    color: _isSaving ? AppTheme.surfaceVariant : AppTheme.accent,
                     borderRadius: BorderRadius.circular(26),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: _isSaving
                         ? [
-                            SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.grey, strokeWidth: 3)),
+                            SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: AppTheme.textMuted, strokeWidth: 3)),
                             SizedBox(width: 12),
-                            Text('Menyimpan...', style: TextStyle(color: Colors.grey, fontSize: 20, fontWeight: FontWeight.w900)),
+                            Text('Menyimpan...', style: TextStyle(color: AppTheme.textMuted, fontSize: 20, fontWeight: FontWeight.w900)),
                           ]
                         : [
                             Icon(Icons.stop, color: Colors.white, size: 32),
@@ -1085,7 +1085,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
         SizedBox(height: 4),
         Text(label,
             style: TextStyle(
-                color: Colors.grey,
+                color: AppTheme.textMuted,
                 fontSize: 12,
                 fontWeight: FontWeight.w600)),
       ],
@@ -1251,7 +1251,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                   child: Center(
                     child: Text('Dijeda',
                         style: TextStyle(
-                            color: Colors.grey,
+                            color: AppTheme.textMuted,
                             fontWeight: FontWeight.w900,
                             fontSize: context.fontLG)),
                   ),
@@ -1311,25 +1311,25 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                       Expanded(
                           child: _actionButton(
                         label: 'Resume',
-                        color: _isSaving ? AppTheme.surfaceVariant : Color(0xFFFF5406),
+                        color: _isSaving ? AppTheme.surfaceVariant : AppTheme.accent,
                         icon: Icons.play_arrow,
-                        textColor: _isSaving ? Colors.grey : Colors.white,
+                        textColor: _isSaving ? AppTheme.textMuted : Colors.white,
                         onTap: _isSaving ? () {} : _resumeRun,
                       )),
                       SizedBox(width: 16),
                       Expanded(
                           child: _actionButton(
                         label: _isSaving ? 'Menyimpan...' : 'Finish',
-                        color: _isSaving ? AppTheme.surfaceVariant : Color(0xFF00B33F),
+                        color: _isSaving ? AppTheme.surfaceVariant : AppTheme.accent,
                         icon: _isSaving ? Icons.hourglass_empty : Icons.stop,
-                        textColor: _isSaving ? Colors.grey : Colors.white,
+                        textColor: _isSaving ? AppTheme.textMuted : Colors.white,
                         onTap: _isSaving ? () {} : _stopRun,
                       )),
                     ] else if (_isRunning) ...[
                       Expanded(
                           child: _actionButton(
                         label: 'Pause',
-                        color: const Color(0xFFFF5406),
+                        color: AppTheme.accent,
                         icon: Icons.pause,
                         textColor: Colors.white,
                         onTap: _pauseRun,
@@ -1342,9 +1342,9 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                             : 'Mulai Lari',
                         color: _currentLocation == null
                             ? AppTheme.surfaceVariant
-                            : const Color(0xFFFF5406),
+                            : AppTheme.accent,
                         icon: Icons.play_arrow,
-                        textColor: _currentLocation == null ? Colors.grey : Colors.white,
+                        textColor: _currentLocation == null ? AppTheme.textMuted : Colors.white,
                         onTap: _currentLocation == null ? () {} : _startRun,
                       )),
                     ],
@@ -1381,7 +1381,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
                 fontWeight: FontWeight.w900)),
         Text(label,
             style: TextStyle(
-                color: Colors.grey,
+                color: AppTheme.textMuted,
                 fontSize: context.fontXS,
                 fontWeight: FontWeight.w600)),
       ],
@@ -1394,7 +1394,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.speed, color: Colors.grey, size: context.iconSM),
+            Icon(Icons.speed, color: AppTheme.textMuted, size: context.iconSM),
             SizedBox(width: 4),
             Text(value,
                 style: TextStyle(
@@ -1405,7 +1405,7 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
         ),
         Text(label,
             style: TextStyle(
-                color: Colors.grey,
+                color: AppTheme.textMuted,
                 fontSize: context.fontXS,
                 fontWeight: FontWeight.w600)),
       ],

@@ -199,16 +199,16 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Color(0xFFFF5406).withOpacity(0.15),
+                color: AppTheme.accent.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Color(0xFFFF5406).withOpacity(0.4)),
+                border: Border.all(color: AppTheme.accent.withOpacity(0.4)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle_rounded, color: Color(0xFFFF5406), size: 16),
+                  Icon(Icons.check_circle_rounded, color: AppTheme.accent, size: 16),
                   const SizedBox(width: 6),
                   Text('SELESAI', style: TextStyle(
-                    color: Color(0xFFFF5406), fontSize: 11,
+                    color: AppTheme.accent, fontSize: 11,
                     fontWeight: FontWeight.w800, letterSpacing: 1.5,
                   )),
                 ],
@@ -218,16 +218,16 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFFFF5406).withOpacity(0.15),
+                color: AppTheme.accent.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFFF5406).withOpacity(0.4)),
+                border: Border.all(color: AppTheme.accent.withOpacity(0.4)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.local_fire_department_rounded, color: Color(0xFFFF5406), size: 16),
+                  Icon(Icons.local_fire_department_rounded, color: AppTheme.accent, size: 16),
                   const SizedBox(width: 6),
-                  const Text('3 HARI STREAK!', style: TextStyle(
-                    color: Color(0xFFFF5406), fontSize: 11,
+                  Text('3 HARI STREAK!', style: TextStyle(
+                    color: AppTheme.accent, fontSize: 11,
                     fontWeight: FontWeight.w800, letterSpacing: 1.0,
                   )),
                 ],
@@ -249,7 +249,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
       children: [
         Row(
           children: [
-            Expanded(child: _statCard('DURASI', _formatTime(widget.sessionSeconds), Icons.timer_outlined, Color(0xFFFF5406))),
+            Expanded(child: _statCard('DURASI', _formatTime(widget.sessionSeconds), Icons.timer_outlined, AppTheme.accent)),
             const SizedBox(width: 12),
             Expanded(child: _statCard('VOLUME', '${_totalVolumeKg.toStringAsFixed(0)} kg', Icons.fitness_center_rounded, AppTheme.accentPurple)),
           ],
@@ -259,7 +259,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
           children: [
             Expanded(child: _statCard('REPS', '$_totalReps', Icons.repeat_rounded, AppTheme.neonGreen)),
             const SizedBox(width: 12),
-            Expanded(child: _statCard('KALORI', '$_totalCalories kkal', Icons.local_fire_department_rounded, const Color(0xFFFF5406))),
+            Expanded(child: _statCard('KALORI', '$_totalCalories kkal', Icons.local_fire_department_rounded, AppTheme.accent)),
           ],
         ),
       ],
@@ -300,19 +300,19 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [const Color(0xFFFF5406).withOpacity(0.2), const Color(0xFFFF5406).withOpacity(0.1)]),
+        gradient: LinearGradient(colors: [AppTheme.accent.withOpacity(0.2), AppTheme.accent.withOpacity(0.1)]),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFFF5406).withOpacity(0.5)),
+        border: Border.all(color: AppTheme.accent.withOpacity(0.5)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.emoji_events_rounded, color: Color(0xFFFF5406), size: 40),
+          Icon(Icons.emoji_events_rounded, color: AppTheme.accent, size: 40),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Pencapaian Baru!', style: TextStyle(color: Color(0xFFFF5406), fontWeight: FontWeight.bold, fontSize: 16)),
+                Text('Pencapaian Baru!', style: TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 4),
                 Text('Anda 17% lebih kuat dari minggu lalu! Volume latihan memecahkan rekor pribadi.', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.3)),
               ],
@@ -339,7 +339,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
           const SizedBox(height: 6),
           Row(
             children: [
-              _legendDot(Color(0xFFFF5406), 'Hari Ini'),
+              _legendDot(AppTheme.accent, 'Hari Ini'),
               const SizedBox(width: 16),
               _legendDot(AppTheme.border, 'Sebelumnya'),
             ],
@@ -400,7 +400,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
         return BarChartGroupData(
           x: i,
           barRods: [
-            BarChartRodData(toY: today[i], color: Color(0xFFFF5406), width: 14, borderRadius: BorderRadius.circular(4)),
+            BarChartRodData(toY: today[i], color: AppTheme.accent, width: 14, borderRadius: BorderRadius.circular(4)),
             BarChartRodData(toY: prev[i], color: AppTheme.border, width: 14, borderRadius: BorderRadius.circular(4)),
           ],
           barsSpace: 4,
@@ -431,7 +431,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
               children: [
                 Row(
                   children: [
-                    Icon(ex.icon, color: Color(0xFFFF5406), size: 18),
+                    Icon(ex.icon, color: AppTheme.accent, size: 18),
                     const SizedBox(width: 8),
                     Text(ex.name, style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w700, fontSize: 15)),
                   ],
@@ -449,8 +449,8 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
                         children: [
                           Container(
                             width: 28, height: 28,
-                            decoration: BoxDecoration(color: Color(0xFFFF5406).withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
-                            child: Center(child: Text('${s + 1}', style: TextStyle(color: Color(0xFFFF5406), fontSize: 12, fontWeight: FontWeight.bold))),
+                            decoration: BoxDecoration(color: AppTheme.accent.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+                            child: Center(child: Text('${s + 1}', style: TextStyle(color: AppTheme.accent, fontSize: 12, fontWeight: FontWeight.bold))),
                           ),
                           const SizedBox(width: 12),
                           Text('${l.reps} reps', style: TextStyle(color: AppTheme.textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
@@ -477,7 +477,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
       children: [
         Row(
           children: [
-            Icon(Icons.edit_note_rounded, color: Color(0xFFFF5406), size: 20),
+            Icon(Icons.edit_note_rounded, color: AppTheme.accent, size: 20),
             const SizedBox(width: 8),
             Text('Catatan Kondisi', style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.w800)),
           ],
@@ -490,7 +490,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
           decoration: InputDecoration(
             hintText: 'Misal: Bahunya agak sakit hari ini...',
             hintStyle: TextStyle(color: AppTheme.textMuted),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Color(0xFFFF5406), width: 2)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: AppTheme.accent, width: 2)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: AppTheme.border)),
             contentPadding: const EdgeInsets.all(16),
           ),
@@ -510,9 +510,9 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
         width: double.infinity,
         height: 60,
         decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [Color(0xFFFF5406), Color(0xFFFF7A3D)]),
+          gradient: LinearGradient(colors: [AppTheme.accent, Color(0xFFFF7A3D)]),
           borderRadius: BorderRadius.circular(18),
-          boxShadow: [BoxShadow(color: Color(0xFFFF5406).withOpacity(0.35), blurRadius: 20, offset: Offset(0, 6))],
+          boxShadow: [BoxShadow(color: AppTheme.accent.withOpacity(0.35), blurRadius: 20, offset: Offset(0, 6))],
         ),
         child: const Center(
           child: Text('SELESAI & KEMBALI', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
@@ -554,7 +554,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
                         value: percent,
                         minHeight: 8,
                         backgroundColor: AppTheme.border,
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5406)),
+                        valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accent),
                       ),
                     ),
                   ),
@@ -586,7 +586,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
                 min: 1,
                 max: 10,
                 divisions: 9,
-                activeColor: _rpe > 7 ? Color(0xFFFF5406) : (_rpe > 4 ? Color(0xFFFF5406) : AppTheme.neonGreen),
+                activeColor: _rpe > 7 ? AppTheme.accent : (_rpe > 4 ? AppTheme.accent : AppTheme.neonGreen),
                 inactiveColor: AppTheme.border,
                 label: _rpe.toInt().toString(),
                 onChanged: (v) => setState(() => _rpe = v),

@@ -69,10 +69,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             return ClipOval(child: Image.memory(base64Decode(parts[1]), fit: BoxFit.cover));
           }
         }
-        return ClipOval(child: Image.network(photoUrl, fit: BoxFit.cover, errorBuilder: (c, e, s) => const Icon(Icons.person, size: 48, color: Colors.grey)));
+        return ClipOval(child: Image.network(photoUrl, fit: BoxFit.cover, errorBuilder: (c, e, s) => Icon(Icons.person, size: 48, color: AppTheme.textMuted)));
       } catch (_) {}
     }
-    return const Icon(Icons.person, size: 48, color: Colors.grey);
+    return Icon(Icons.person, size: 48, color: AppTheme.textMuted);
   }
 
   Future<void> _toggleFollow() async {
@@ -102,7 +102,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       return Scaffold(
         backgroundColor: AppTheme.surface,
         appBar: AppBar(backgroundColor: AppTheme.surface, elevation: 0, iconTheme: IconThemeData(color: AppTheme.textPrimary)),
-        body: const Center(child: CircularProgressIndicator(color: Color(0xFF00B33F))),
+        body: Center(child: CircularProgressIndicator(color: AppTheme.accent)),
       );
     }
 
@@ -110,7 +110,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       return Scaffold(
         backgroundColor: AppTheme.surface,
         appBar: AppBar(backgroundColor: AppTheme.surface, elevation: 0, iconTheme: IconThemeData(color: AppTheme.textPrimary)),
-        body: const Center(child: Text('Pengguna tidak ditemukan', style: TextStyle(color: Colors.grey))),
+        body: Center(child: Text('Pengguna tidak ditemukan', style: TextStyle(color: AppTheme.textMuted))),
       );
     }
 
@@ -129,7 +129,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: _loadData,
-        color: const Color(0xFF00B33F),
+        color: AppTheme.accent,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
@@ -181,13 +181,13 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                         child: ElevatedButton(
                           onPressed: _isProcessingFollow ? null : _toggleFollow,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: _isFollowing ? AppTheme.surfaceVariant : Color(0xFF00B33F),
+                            backgroundColor: _isFollowing ? AppTheme.surfaceVariant : AppTheme.accent,
                             foregroundColor: _isFollowing ? AppTheme.textPrimary : Colors.white,
                             elevation: 0,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(26),
-                              side: _isFollowing ? BorderSide(color: Color(0xFFE0E0E0)) : BorderSide.none,
+                              borderRadius: BorderRadius.circular(20),
+                              side: _isFollowing ? BorderSide(color: AppTheme.border) : BorderSide.none,
                             ),
                           ),
                           child: _isProcessingFollow
@@ -212,10 +212,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                     Text('Aktivitas Terakhir', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
                     const SizedBox(height: 16),
                     if (_userPosts.isEmpty)
-                      const Center(
+                      Center(
                         child: Padding(
                           padding: EdgeInsets.all(32.0),
-                          child: Text('Belum ada aktivitas yang dibagikan.', style: TextStyle(color: Colors.grey)),
+                          child: Text('Belum ada aktivitas yang dibagikan.', style: TextStyle(color: AppTheme.textMuted)),
                         ),
                       )
                     else
@@ -243,7 +243,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textMuted),
         ),
       ],
     );

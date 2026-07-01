@@ -77,8 +77,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
       bgColor = const Color(0xFF0099F9).withOpacity(0.1);
     } else if (type == 'reminder') {
       iconData = Icons.alarm;
-      iconColor = const Color(0xFFFF5406); // ember-orange
-      bgColor = const Color(0xFFFF5406).withOpacity(0.1);
+      iconColor = AppTheme.accent; // ember-orange
+      bgColor = AppTheme.accent.withOpacity(0.1);
     } else if (type == 'like') {
       iconData = Icons.favorite;
       iconColor = const Color(0xFFFF3400); // red
@@ -117,7 +117,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         ),
       ),
       body: _isLoading 
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF5406)))
+          ? Center(child: CircularProgressIndicator(color: AppTheme.accent))
           : _notifications.isEmpty
               ? Center(
                   child: Column(
@@ -153,7 +153,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       },
                       behavior: HitTestBehavior.opaque,
                       child: Container(
-                        color: isRead ? Colors.transparent : const Color(0xFFFF5406).withOpacity(0.05),
+                        color: isRead ? Colors.transparent : AppTheme.accent.withOpacity(0.05),
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,

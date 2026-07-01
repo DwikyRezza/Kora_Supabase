@@ -85,7 +85,7 @@ class _SearchScreenState extends State<SearchScreen> {
       }
       return ClipOval(child: Image.network(photoUrl, fit: BoxFit.cover));
     }
-    return const Icon(Icons.person, size: 28, color: Colors.grey);
+    return Icon(Icons.person, size: 28, color: AppTheme.textMuted);
   }
 
   @override
@@ -125,7 +125,7 @@ class _SearchScreenState extends State<SearchScreen> {
           Divider(color: AppTheme.border, height: 1),
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF5406)))
+                ? Center(child: CircularProgressIndicator(color: AppTheme.accent))
                 : _searchResults.isEmpty && _searchController.text.isNotEmpty
                     ? Center(
                         child: Text(

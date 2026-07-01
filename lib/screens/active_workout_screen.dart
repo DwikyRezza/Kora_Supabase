@@ -653,7 +653,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen>
           gradient: LinearGradient(
             colors: isFinishing
                 ? [AppTheme.neonGreen, Color(0xFF00CC6A)]
-                : [const Color(0xFFFF5406), const Color(0xFFFF7A3D)],
+                : [AppTheme.accent, const Color(0xFFFF7A3D)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -808,11 +808,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 48, vertical: 20),
                   decoration: BoxDecoration(
-                      color: const Color(0xFFFF5406),
+                      color: AppTheme.accent,
                       borderRadius: BorderRadius.circular(32),
                       boxShadow: [
                         BoxShadow(
-                            color: const Color(0xFFFF5406).withOpacity(0.3),
+                            color: AppTheme.accent.withOpacity(0.3),
                             blurRadius: 24,
                             offset: const Offset(0, 8))
                       ]),

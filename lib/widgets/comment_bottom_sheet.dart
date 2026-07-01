@@ -89,9 +89,9 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
           
           Expanded(
             child: _isLoading && _comments.isEmpty
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF5406)))
+                ? Center(child: CircularProgressIndicator(color: AppTheme.accent))
                 : _comments.isEmpty
-                    ? const Center(child: Text('Belum ada komentar', style: TextStyle(color: Colors.grey)))
+                    ? Center(child: Text('Belum ada komentar', style: TextStyle(color: AppTheme.textMuted)))
                     : ListView.builder(
                         padding: EdgeInsets.symmetric(horizontal: context.spaceXL, vertical: context.spaceLG),
                         itemCount: _comments.length,
@@ -115,7 +115,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                         ? (photoUrl.startsWith('data:image')
                                             ? Image.memory(base64Decode(photoUrl.split(',')[1]), fit: BoxFit.cover)
                                             : Image.network(photoUrl, fit: BoxFit.cover))
-                                        : Icon(Icons.person, size: context.iconSM, color: Colors.grey),
+                                        : Icon(Icons.person, size: context.iconSM, color: AppTheme.textMuted),
                                   ),
                                 ),
                                 SizedBox(width: context.spaceMD),
@@ -138,7 +138,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                             ),
                                             Text(
                                               _formatTime(c['timestamp']),
-                                              style: TextStyle(fontSize: context.fontXS, color: Colors.grey),
+                                              style: TextStyle(fontSize: context.fontXS, color: AppTheme.textMuted),
                                             ),
                                           ],
                                         ),
@@ -173,7 +173,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                     style: TextStyle(fontSize: context.fontBase),
                     decoration: InputDecoration(
                       hintText: 'Tulis komentar...',
-                      hintStyle: const TextStyle(color: Colors.grey),
+                      hintStyle: TextStyle(color: AppTheme.textMuted),
                       filled: true,
                       fillColor: AppTheme.surfaceVariant,
                       contentPadding: EdgeInsets.symmetric(horizontal: context.spaceLG, vertical: context.spaceMD),
@@ -190,7 +190,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                   child: Container(
                     width: context.buttonHeight * 0.9, height: context.buttonHeight * 0.9,
                     decoration: BoxDecoration(
-                      color: Color(0xFF00B33F),
+                      color: AppTheme.accent,
                       shape: BoxShape.circle,
                     ),
                     child: _isLoading && _comments.isNotEmpty

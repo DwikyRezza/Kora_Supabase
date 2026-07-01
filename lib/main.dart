@@ -243,7 +243,7 @@ class _MainNavigationState extends State<MainNavigation>
               constraints: const BoxConstraints(minWidth: 60),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFFFF5406), // ember-orange
+                color: AppTheme.accent, // ember-orange
                 borderRadius: BorderRadius.circular(26), // rounded-athlete
               ),
               child: Column(
@@ -309,7 +309,7 @@ class _GlowScrollBehavior extends ScrollBehavior {
       BuildContext context, Widget child, ScrollableDetails details) {
     return GlowingOverscrollIndicator(
       axisDirection: details.direction,
-      color: const Color(0xFFFF5406).withValues(alpha: 0.3),
+      color: AppTheme.accent.withValues(alpha: 0.3),
       child: child,
     );
   }

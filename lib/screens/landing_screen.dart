@@ -209,7 +209,7 @@ class _LandingScreenState extends State<LandingScreen>
                       borderRadius: BorderRadius.circular(26), // radius-3xl
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFFF5406).withOpacity(0.15), // Ember orange soft glow
+                          color: AppTheme.accent.withOpacity(0.15), // Ember orange soft glow
                           blurRadius: 30,
                           offset: const Offset(0, 10),
                         ),
@@ -230,7 +230,7 @@ class _LandingScreenState extends State<LandingScreen>
                         TextSpan(
                           text: 'Capai Target ',
                           style: TextStyle(
-                            color: const Color(0xFF00B33F), // Verdant Green
+                            color: AppTheme.accent, // Accent color instead of Verdant Green
                             fontSize: 32,
                             fontWeight: FontWeight.w900,
                             letterSpacing: -0.5,
@@ -274,7 +274,7 @@ class _LandingScreenState extends State<LandingScreen>
                           ? null
                           : _handleRegister,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF5406), // Ember Orange
+                        backgroundColor: AppTheme.accent, // Ember Orange
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -330,7 +330,7 @@ class _LandingScreenState extends State<LandingScreen>
                               width: 22,
                               height: 22,
                               child: CircularProgressIndicator(
-                                  color: const Color(0xFFFF5406),
+                                  color: AppTheme.accent,
                                   strokeWidth: 2.5),
                             )
                           : Row(
@@ -358,8 +358,7 @@ class _LandingScreenState extends State<LandingScreen>
                     'Dengan mendaftar, Anda menyetujui\nKetentuan Layanan & Kebijakan Privasi',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color:
-                          const Color(0xFF72A2C5), // Mist Blue for muted text
+                      color: AppTheme.textMuted, // Mist Blue for muted text
                       fontSize: 12,
                       height: 1.4,
                     ),
@@ -401,7 +400,7 @@ class _GlowScrollBehavior extends ScrollBehavior {
       BuildContext context, Widget child, ScrollableDetails details) {
     return GlowingOverscrollIndicator(
       axisDirection: details.direction,
-      color: const Color(0xFFFF5406).withOpacity(0.3), // Orange tema Kora
+      color: AppTheme.accent.withOpacity(0.3), // Orange tema Kora
       child: child,
     );
   }

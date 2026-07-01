@@ -53,7 +53,7 @@ class WorkoutAnalysisSplits extends StatelessWidget {
         barRods: [
           BarChartRodData(
             toY: barHeight,
-            color: const Color(0xFFFF5406).withOpacity(0.35),
+            color: AppTheme.accent.withOpacity(0.35),
             width: 16,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(4),
@@ -77,7 +77,7 @@ class WorkoutAnalysisSplits extends StatelessWidget {
           // ── SECTION: WORKOUT ANALYSIS ──────────────────────────────────
           Row(
             children: [
-              Icon(Icons.shield_outlined, color: const Color(0xFFFF5406), size: 24),
+              Icon(Icons.shield_outlined, color: AppTheme.accent, size: 24),
               const SizedBox(width: 8),
               Text(
                 'Workout Analysis',
@@ -120,7 +120,7 @@ class WorkoutAnalysisSplits extends StatelessWidget {
             child: Text(
               'View Workout',
               style: TextStyle(
-                color: const Color(0xFFFF5406),
+                color: AppTheme.accent,
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),
@@ -191,7 +191,7 @@ class WorkoutAnalysisSplits extends StatelessWidget {
                                 value: progress,
                                 minHeight: 12,
                                 backgroundColor: AppTheme.border,
-                                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFF5406)),
+                                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accent),
                               ),
                             ),
                           ),

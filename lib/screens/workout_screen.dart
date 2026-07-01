@@ -132,23 +132,22 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
       appBar: AppBar(
         title: Row(
           children: [
-            Text('Aktivitas ', style: TextStyle(fontSize: context.font3XL, fontWeight: FontWeight.w900, color: const Color(0xFF00B33F), letterSpacing: -1)),
+            Text('Aktivitas ', style: TextStyle(fontSize: context.font3XL, fontWeight: FontWeight.w900, color: AppTheme.accent, letterSpacing: -1)),
             Text('Latihan', style: TextStyle(fontSize: context.font3XL, fontWeight: FontWeight.w900, color: AppTheme.textPrimary, letterSpacing: -1)),
           ],
         ),
         backgroundColor: AppTheme.surface,
         elevation: 0,
-        actions: [],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(50),
+          preferredSize: const Size.fromHeight(60),
           child: Column(
             children: [
               TabBar(
                 controller: _tabController,
-                indicatorColor: const Color(0xFF00B33F),
+                indicatorColor: AppTheme.accent,
                 indicatorWeight: 4,
                 labelColor: AppTheme.textPrimary,
-                unselectedLabelColor: Colors.grey,
+                unselectedLabelColor: AppTheme.textMuted,
                 labelStyle: TextStyle(fontWeight: FontWeight.w900, fontSize: context.fontMD),
                 tabs: const [
                   Tab(text: 'Progress'),
@@ -172,7 +171,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
   }
 
   Widget _buildProgressTab() {
-    if (_isLoading) return const Center(child: CircularProgressIndicator(color: Color(0xFF00B33F)));
+    if (_isLoading) return Center(child: CircularProgressIndicator(color: AppTheme.accent));
 
     double totalDist = 0;
     double totalTime = 0;
@@ -235,7 +234,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
               children: [
                 Text(
                   _activeTypeFilter == 'weightlifting' ? '7 Hari Terakhir (Volume kg)' : '7 Hari Terakhir (Jarak km)',
-                  style: const TextStyle(color: Colors.grey, fontSize: 14, fontWeight: FontWeight.bold)
+                  style: TextStyle(color: AppTheme.textMuted, fontSize: 14, fontWeight: FontWeight.bold)
                 ),
                 const SizedBox(height: 24),
                 Container(
@@ -285,7 +284,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
   }
 
   Widget _buildActivitiesTab() {
-    if (_isLoading) return const Center(child: CircularProgressIndicator(color: Color(0xFF00B33F)));
+    if (_isLoading) return Center(child: CircularProgressIndicator(color: AppTheme.accent));
     
     final filteredPosts = _userPosts.where((post) {
       final wData = post['workoutData'] as Map<String, dynamic>? ?? {};
@@ -310,7 +309,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
 
     return RefreshIndicator(
       onRefresh: _refreshData,
-      color: const Color(0xFF00B33F),
+      color: AppTheme.accent,
       backgroundColor: AppTheme.surface,
       child: ListView.builder(
         padding: const EdgeInsets.only(bottom: 100),
@@ -343,7 +342,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: Colors.grey, fontSize: context.fontXS, fontWeight: FontWeight.w600)),
+        Text(label, style: TextStyle(color: AppTheme.textMuted, fontSize: context.fontXS, fontWeight: FontWeight.w600)),
         SizedBox(height: context.spaceXS),
         Text(value, style: TextStyle(color: AppTheme.textPrimary, fontSize: context.fontSM, fontWeight: FontWeight.bold)),
       ],
@@ -356,7 +355,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey, fontSize: context.fontSM * 0.9, fontWeight: FontWeight.bold)),
+          Text(label, style: TextStyle(color: AppTheme.textMuted, fontSize: context.fontSM * 0.9, fontWeight: FontWeight.bold)),
           Text(value, style: TextStyle(color: AppTheme.textPrimary, fontSize: context.fontMD, fontWeight: FontWeight.bold)),
         ],
       ),
@@ -390,13 +389,13 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? Color(0xFF00B33F).withOpacity(0.1) : AppTheme.surfaceVariant,
+            color: isSelected ? AppTheme.accent.withOpacity(0.1) : AppTheme.surfaceVariant,
             borderRadius: BorderRadius.circular(26),
           ),
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? Color(0xFF00B33F) : AppTheme.textPrimary, 
+              color: isSelected ? AppTheme.accent : AppTheme.textPrimary, 
               fontWeight: FontWeight.bold, 
               fontSize: 14
             ),
@@ -410,7 +409,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: Colors.grey, fontSize: context.fontSM, fontWeight: FontWeight.bold)),
+        Text(label, style: TextStyle(color: AppTheme.textMuted, fontSize: context.fontSM, fontWeight: FontWeight.bold)),
         SizedBox(height: context.spaceXS),
         Text(value, style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w900, fontSize: context.fontLG)),
       ],
@@ -448,7 +447,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
+        Text(label, style: TextStyle(color: AppTheme.textMuted, fontSize: 11, fontWeight: FontWeight.bold)),
         Row(
           children: [
             Text(value, style: TextStyle(color: AppTheme.textPrimary, fontSize: 20, fontWeight: FontWeight.bold)),
@@ -500,7 +499,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
           barRods: [
             BarChartRodData(
               toY: val,
-              color: const Color(0xFF00B33F),
+              color: AppTheme.accent,
               width: 16,
               borderRadius: BorderRadius.circular(8),
               backDrawRodData: BackgroundBarChartRodData(
@@ -544,7 +543,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
                 final dayName = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'][dt.weekday - 1];
                 return Padding(
                   padding: const EdgeInsets.only(top: 8),
-                  child: Text(dayName, style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.w600)),
+                  child: Text(dayName, style: TextStyle(color: AppTheme.textMuted, fontSize: 11, fontWeight: FontWeight.w600)),
                 );
               },
             ),
@@ -584,7 +583,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
                 title: 'Lari / Jalan (GPS)',
                 subtitle: 'Lacak rute & pace',
                 icon: Icons.directions_run_rounded,
-                accentColor: const Color(0xFF00B33F),
+                accentColor: AppTheme.accent,
                 onTap: () async {
                   Navigator.pop(context);
                   final profile = await ProfileService.getProfile();
@@ -599,7 +598,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
                 title: 'Workout',
                 subtitle: 'Gym log',
                 icon: Icons.fitness_center_rounded,
-                accentColor: const Color(0xFFFF5406),
+                accentColor: AppTheme.accent,
                 onTap: () async {
                   Navigator.pop(context);
                   final profile = await ProfileService.getProfile();
@@ -648,7 +647,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
                 children: [
                   Text(title, style: TextStyle(color: AppTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold)),
+                  Text(subtitle, style: TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -662,9 +661,11 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
 
 class MiniRoutePainter extends CustomPainter {
   final List<LatLng> points;
-  final Color routeColor;
+  final Color? _routeColor;
 
-  MiniRoutePainter(this.points, {this.routeColor = const Color(0xFFFF5406)});
+  MiniRoutePainter(this.points, {Color? routeColor}) : _routeColor = routeColor;
+
+  Color get routeColor => _routeColor ?? AppTheme.accent;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -720,13 +721,13 @@ class MiniRoutePainter extends CustomPainter {
     canvas.drawPath(path, paint);
 
     final startPaint = Paint()
-      ..color = const Color(0xFF00B33F)
+      ..color = AppTheme.accent
       ..style = PaintingStyle.fill;
     canvas.drawCircle(getOffset(points.first), 4.5, startPaint);
 
     if (points.length > 1) {
       final endPaint = Paint()
-        ..color = const Color(0xFFFF5406)
+        ..color = AppTheme.accent
         ..style = PaintingStyle.fill;
       canvas.drawCircle(getOffset(points.last), 4.5, endPaint);
     }

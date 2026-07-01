@@ -59,7 +59,7 @@ class _WorkoutDetailMapState extends State<WorkoutDetailMap> {
   Future<void> _createTrackingPinIcon() async {
     final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(pictureRecorder);
-    final Paint paintBorder = Paint()..color = const Color(0xFFFF5406); // Kora Accent Color
+    final Paint paintBorder = Paint()..color = AppTheme.accent; // Kora Accent Color
     final Paint paintWhite = Paint()..color = Colors.white;
 
     canvas.drawCircle(const Offset(24, 24), 16, paintBorder);
@@ -132,7 +132,7 @@ class _WorkoutDetailMapState extends State<WorkoutDetailMap> {
               Polyline(
                 polylineId: const PolylineId('route'),
                 points: _routePoints,
-                color: const Color(0xFFFF5406),
+                color: AppTheme.accent,
                 width: 5,
                 jointType: JointType.round,
                 startCap: Cap.roundCap,

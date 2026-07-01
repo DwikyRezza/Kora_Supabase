@@ -129,7 +129,7 @@ class _WorkoutChartsContainerState extends State<WorkoutChartsContainer> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  Icon(Icons.shield_outlined, color: const Color(0xFFFF5406), size: 20),
+                  Icon(Icons.shield_outlined, color: AppTheme.accent, size: 20),
                   const SizedBox(width: 8),
                   Text(
                     'Grade Adjusted Pace',
@@ -159,7 +159,7 @@ class _WorkoutChartsContainerState extends State<WorkoutChartsContainer> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  Icon(Icons.shield_outlined, color: const Color(0xFFFF5406), size: 20),
+                  Icon(Icons.shield_outlined, color: AppTheme.accent, size: 20),
                   const SizedBox(width: 8),
                   Text(
                     'Pace Zones',
@@ -245,7 +245,7 @@ class _WorkoutChartsContainerState extends State<WorkoutChartsContainer> {
           touchCallback: _handleTouch,
           handleBuiltInTouches: true,
           touchTooltipData: LineTouchTooltipData(
-            getTooltipColor: (spot) => const Color(0xFFFF5406),
+            getTooltipColor: (spot) => AppTheme.accent,
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((s) {
                 // If it is the elevation curve, ignore tooltip
@@ -274,7 +274,7 @@ class _WorkoutChartsContainerState extends State<WorkoutChartsContainer> {
           horizontalLines: [
             HorizontalLine(
               y: 15.0 - avgPaceMins,
-              color: Colors.grey.withOpacity(0.5),
+              color: AppTheme.textMuted.withOpacity(0.5),
               strokeWidth: 1.5,
               dashArray: [5, 5],
             ),
@@ -283,7 +283,7 @@ class _WorkoutChartsContainerState extends State<WorkoutChartsContainer> {
             if (activeIndex != null)
               VerticalLine(
                 x: _series[activeIndex].distance,
-                color: Colors.grey.withOpacity(0.8),
+                color: AppTheme.textMuted.withOpacity(0.8),
                 strokeWidth: 1.5,
                 dashArray: [5, 5],
               ),
@@ -294,19 +294,19 @@ class _WorkoutChartsContainerState extends State<WorkoutChartsContainer> {
           LineChartBarData(
             spots: elevationSpots,
             isCurved: true,
-            color: AppTheme.isDarkMode ? Colors.grey[800]!.withOpacity(0.3) : Colors.grey[300]!.withOpacity(0.5),
+            color: AppTheme.isDarkMode ? AppTheme.surfaceVariant.withOpacity(0.3) : AppTheme.border.withOpacity(0.5),
             barWidth: 1.5,
             dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
-              color: AppTheme.isDarkMode ? Colors.grey[900]!.withOpacity(0.2) : Colors.grey[200]!.withOpacity(0.4),
+              color: AppTheme.isDarkMode ? AppTheme.surfaceVariant.withOpacity(0.2) : AppTheme.border.withOpacity(0.4),
             ),
           ),
           // ── Bar Index 0: Foreground Pace Line
           LineChartBarData(
             spots: paceSpots,
             isCurved: true,
-            color: const Color(0xFFFF5406),
+            color: AppTheme.accent,
             barWidth: 2,
             dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
@@ -315,8 +315,8 @@ class _WorkoutChartsContainerState extends State<WorkoutChartsContainer> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  const Color(0xFFFF5406).withOpacity(0.2),
-                  const Color(0xFFFF5406).withOpacity(0.0),
+                  AppTheme.accent.withOpacity(0.2),
+                  AppTheme.accent.withOpacity(0.0),
                 ],
               ),
             ),
@@ -349,7 +349,7 @@ class _WorkoutChartsContainerState extends State<WorkoutChartsContainer> {
           touchCallback: _handleTouch,
           handleBuiltInTouches: true,
           touchTooltipData: LineTouchTooltipData(
-            getTooltipColor: (spot) => const Color(0xFFFF5406),
+            getTooltipColor: (spot) => AppTheme.accent,
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((s) {
                 final double origPace = 15.0 - s.y;
@@ -377,7 +377,7 @@ class _WorkoutChartsContainerState extends State<WorkoutChartsContainer> {
             if (activeIndex != null)
               VerticalLine(
                 x: _series[activeIndex].distance,
-                color: Colors.grey.withOpacity(0.8),
+                color: AppTheme.textMuted.withOpacity(0.8),
                 strokeWidth: 1.5,
                 dashArray: [5, 5],
               ),
@@ -387,15 +387,15 @@ class _WorkoutChartsContainerState extends State<WorkoutChartsContainer> {
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            color: AppTheme.isDarkMode ? Colors.white : const Color(0xFFFF5406).withOpacity(0.8),
+            color: AppTheme.isDarkMode ? Colors.white : AppTheme.accent.withOpacity(0.8),
             barWidth: 2,
             dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
               gradient: LinearGradient(
                 colors: [
-                  (AppTheme.isDarkMode ? Colors.white : const Color(0xFFFF5406)).withOpacity(0.2),
-                  (AppTheme.isDarkMode ? Colors.white : const Color(0xFFFF5406)).withOpacity(0.0),
+                  (AppTheme.isDarkMode ? Colors.white : AppTheme.accent).withOpacity(0.2),
+                  (AppTheme.isDarkMode ? Colors.white : AppTheme.accent).withOpacity(0.0),
                 ],
               ),
             ),
@@ -446,10 +446,10 @@ class _WorkoutChartsContainerState extends State<WorkoutChartsContainer> {
     final zLabels = ['Z6', 'Z5', 'Z4', 'Z3', 'Z2', 'Z1'];
     final zRanges = ['< 3:41', '3:41-3:55', '3:55-4:11', '4:11-4:40', '4:40-5:25', '> 5:25'];
     final zColors = [
-      const Color(0xFFFF5406),
+      AppTheme.accent,
       const Color(0xFFFF9966),
       const Color(0xFF4DCC60),
-      const Color(0xFF00B33F),
+      AppTheme.accent,
       const Color(0xFF006623),
       Colors.black87,
     ];

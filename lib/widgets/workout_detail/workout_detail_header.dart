@@ -200,7 +200,7 @@ class _WorkoutDetailHeaderState extends State<WorkoutDetailHeader> {
                 _socialButton(
                   icon: _isLiked ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
                   label: 'Like',
-                  color: _isLiked ? const Color(0xFFFF5406) : AppTheme.textSecondary,
+                  color: _isLiked ? AppTheme.accent : AppTheme.textSecondary,
                   onTap: _toggleLike,
                 ),
                 _socialButton(

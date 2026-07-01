@@ -35,7 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Set<int> _workoutsWithPhotos = {};  // Lazy-loading: Set ID workout yang punya foto
 
   // Constants for custom colors
-  static const Color primaryColor = Color(0xFFA83300);
+  static Color get primaryColor => AppTheme.accent;
 
   @override
   void initState() {
@@ -85,7 +85,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildMap(String polylineStr) {
     try {
       final List<dynamic> decoded = jsonDecode(polylineStr);
-      if (decoded.isEmpty) return Container(color: Colors.grey[200]);
+      if (decoded.isEmpty) return Container(color: AppTheme.surfaceVariant);
       final List<LatLng> points = decoded.map((p) => LatLng(p[0] as double, p[1] as double)).toList();
       
       double minLat = points.first.latitude;
@@ -108,7 +108,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Polyline(
             polylineId: const PolylineId('route'),
             points: points,
-            color: const Color(0xFFFF5406),
+            color: AppTheme.accent,
             width: 4,
           )
         },
@@ -125,7 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         },
       );
     } catch (e) {
-      return Container(color: Colors.grey[200]);
+      return Container(color: AppTheme.surfaceVariant);
     }
   }
 
@@ -243,7 +243,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     : Image.network(photoUrl, fit: BoxFit.cover))
                                 : Container(
                                     color: AppTheme.surfaceVariant,
-                                    child: Icon(Icons.person, size: context.iconLG * 1.5, color: Colors.grey),
+                                    child: Icon(Icons.person, size: context.iconLG * 1.5, color: AppTheme.textMuted),
                                   ),
                           ),
                         ),
@@ -251,9 +251,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           width: context.spaceXL,
                           height: context.spaceXL,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFF5406),
+                            color: AppTheme.accent,
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
+                            border: Border.all(color: AppTheme.surface, width: 2),
                           ),
                           child: Icon(Icons.photo_camera, color: Colors.white, size: context.iconSM * 0.7),
                         ),
@@ -321,19 +321,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE6F7EC),
+                  color: AppTheme.accent.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFF00B33F).withOpacity(0.2)),
+                  border: Border.all(color: AppTheme.accent.withOpacity(0.2)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.monitor_weight_rounded, color: Color(0xFF00B33F), size: 18),
+                    Icon(Icons.monitor_weight_rounded, color: AppTheme.accent, size: 18),
                     SizedBox(width: 8),
                     Text(
                       'BMI $bmiStr $bmiStatus',
                       style: TextStyle(
-                        color: Color(0xFF00B33F),
+                        color: AppTheme.accent,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -412,7 +412,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return Center(
         child: Padding(
           padding: EdgeInsets.all(32.0),
-          child: Text('Belum ada aktivitas olahraga.', style: TextStyle(color: Colors.grey)),
+          child: Text('Belum ada aktivitas olahraga.', style: TextStyle(color: AppTheme.textMuted)),
         ),
       );
     }

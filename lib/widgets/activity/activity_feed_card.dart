@@ -157,7 +157,7 @@ class _ActivityFeedCardState extends State<ActivityFeedCard> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
-                  const Icon(Icons.thumb_up_rounded, color: Color(0xFFFF5406), size: 28),
+                  Icon(Icons.thumb_up_rounded, color: AppTheme.accent, size: 28),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -173,7 +173,7 @@ class _ActivityFeedCardState extends State<ActivityFeedCard> {
                   ElevatedButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF5406),
+                      backgroundColor: AppTheme.accent,
                       foregroundColor: Colors.white,
                       shape: const StadiumBorder(),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -362,7 +362,7 @@ class _ActivityFeedCardState extends State<ActivityFeedCard> {
                   child: CustomPaint(
                     painter: MiniRoutePainter(
                       routePoints.cast(),
-                      routeColor: const Color(0xFFFF5406),
+                      routeColor: AppTheme.accent,
                     ),
                     child: Container(),
                   ),
@@ -408,7 +408,7 @@ class _ActivityFeedCardState extends State<ActivityFeedCard> {
               _socialButton(
                 icon: _isLiked ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
                 label: 'Like',
-                color: _isLiked ? const Color(0xFFFF5406) : AppTheme.textSecondary,
+                color: _isLiked ? AppTheme.accent : AppTheme.textSecondary,
                 onTap: () => setState(() {
                   _isLiked = !_isLiked;
                   _likesCount += _isLiked ? 1 : -1;
