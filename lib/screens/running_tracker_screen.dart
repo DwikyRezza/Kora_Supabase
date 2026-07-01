@@ -854,26 +854,8 @@ class _RunningTrackerScreenState extends State<RunningTrackerScreen>
 
     await DatabaseHelper().insertWorkout(workout);
 
-    // ── Ambil snapshot peta sebagai Base64 (non-blocking via Isolate) ──────
-    String? mapSnapshotBase64;
-    if (_mapController.isCompleted && _routePoints.length > 1) {
-      try {
-        final controller = await _mapController.future;
-        final Uint8List? rawPng = await controller.takeSnapshot();
-        if (rawPng != null) {
-          mapSnapshotBase64 =
-              await CloudSyncService.compressMapSnapshotToBase64(rawPng);
-        }
-      } catch (e) {
-        debugPrint('[RunTracker] ⚠️ takeSnapshot failed: $e');
-      }
-    }
-
-    // Build workout map with optional snapshot
+    // Build workout map
     final workoutMap = workout.toMap();
-    if (mapSnapshotBase64 != null) {
-      workoutMap['mapSnapshotBase64'] = mapSnapshotBase64;
-    }
 
     // Auto-backup ke Firestore setelah sesi selesai disimpan
     CloudSyncService.backupToCloud().catchError((_) {});

@@ -339,7 +339,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
 
   Widget _buildStickyBottomActions() {
     return Container(
-      color: Colors.white,
+      color: AppTheme.background,
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
       child: SizedBox(
         width: double.infinity,

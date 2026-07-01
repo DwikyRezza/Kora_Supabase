@@ -213,9 +213,13 @@ class SocialService {
       if (!userDoc.exists) return;
       
       final userData = userDoc.data()!;
-      final name = userData['name'] ?? 'Athlete';
-      final username = userData['username'] ?? 'athlete';
-      final photoUrl = userData['photoUrl'];
+      final profile = userData.containsKey('profile')
+          ? Map<String, dynamic>.from(userData['profile'] as Map)
+          : userData;
+          
+      final name = profile['name'] ?? 'Athlete';
+      final username = profile['username'] ?? 'athlete';
+      final photoUrl = profile['photoUrl'];
 
       // Generate postId (bisa pakai ID workout ditambah UID atau auto-id)
       final docRef = _firestore.collection('feed_posts').doc();

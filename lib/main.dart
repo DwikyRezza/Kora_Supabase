@@ -157,10 +157,10 @@ class _MainNavigationState extends State<MainNavigation>
                   );
                 },
               ),
-              const ProteinScreen(),
+              ProteinScreen(),
               WorkoutScreen(key: _workoutScreenKey),
               ScheduleScreen(),
-              const ProfileScreen(), // Diubah dari SettingScreen() menjadi ProfileScreen()
+              ProfileScreen(), // Diubah dari SettingScreen() menjadi ProfileScreen()
             ],
           ),
           bottomNavigationBar: _buildBottomNav(),

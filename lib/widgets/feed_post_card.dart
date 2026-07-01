@@ -10,9 +10,11 @@ import '../screens/workout_detail_screen.dart';
 import '../models/workout.dart';
 import 'comment_bottom_sheet.dart';
 import 'mini_route_painter.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' hide Polyline, LatLngBounds;
 import 'package:geocoding/geocoding.dart';
 import '../utils/responsive.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart' as ll2;
 
 class FeedPostCard extends StatefulWidget {
   final Map<String, dynamic> post;
@@ -34,9 +36,6 @@ class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver
   late int _commentsCount;
   bool _isLiking = false;
   bool _isKeyboardOpen = false;
-  
-  // Map snapshot decoded once in initState — never re-decoded in build()
-  Uint8List? _decodedMapSnapshot;
 
   String _authorName = 'Athlete';
   String? _photoUrl;
@@ -47,7 +46,6 @@ class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initData();
-    _decodeSnapshot();
     _fetchLocation();
   }
 
@@ -107,12 +105,6 @@ class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver
       _initData();
       _fetchLocation();
     }
-    // Only re-decode if the Base64 string itself changed (not just Map reference)
-    final newBase64 = widget.post['workoutData']?['mapSnapshotBase64'] as String?;
-    final oldBase64 = oldWidget.post['workoutData']?['mapSnapshotBase64'] as String?;
-    if (newBase64 != oldBase64) {
-      _decodeSnapshot();
-    }
   }
 
   void _initData() {
@@ -126,24 +118,6 @@ class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver
     _photoUrl = widget.post['authorPhotoUrl'];
     
     _fetchLatestProfile();
-  }
-
-  /// Decode Base64 snapshot once — stored as Uint8List for Image.memory.
-  /// Uses try-catch so corrupt strings gracefully fallback to CustomPaint.
-  void _decodeSnapshot() {
-    final workoutData = widget.post['workoutData'] as Map<String, dynamic>? ?? {};
-    final base64Str = workoutData['mapSnapshotBase64'] as String?;
-    
-    if (base64Str == null || base64Str.isEmpty) {
-      _decodedMapSnapshot = null;
-      return;
-    }
-    
-    try {
-      _decodedMapSnapshot = base64Decode(base64Str);
-    } catch (e) {
-      _decodedMapSnapshot = null; // Fallback to CustomPaint on corrupt data
-    }
   }
 
   Future<void> _fetchLatestProfile() async {
@@ -464,12 +438,27 @@ class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver
     );
   }
 
-  Widget _buildMapSnapshot(List<LatLng> routePoints) {
+  Widget _buildMapSnapshot(List<LatLng> googlePoints) {
+    if (googlePoints.isEmpty) return const SizedBox();
+
+    final List<ll2.LatLng> ll2Points = googlePoints
+        .map((p) => ll2.LatLng(p.latitude, p.longitude))
+        .toList();
+
+    // Hitung bounding box
+    final bounds = LatLngBounds.fromPoints(ll2Points);
+
+    // Pilih URL berdasarkan tema
+    final isDark = AppTheme.isDarkMode;
+    final tileUrl = isDark
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+
     return Container(
       height: 220,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: AppTheme.surfaceVariant,
         border: Border(
           top: BorderSide(color: AppTheme.border, width: 0.5),
           bottom: BorderSide(color: AppTheme.border, width: 0.5),
@@ -478,15 +467,38 @@ class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver
       child: Stack(
         children: [
           Positioned.fill(
-            child: _decodedMapSnapshot != null
-                // ── Show real map snapshot (Image.memory = pure 2D, zero GPU lag) ──
-                ? Image.memory(
-                    _decodedMapSnapshot!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _buildCustomPaintRoute(routePoints),
-                  )
-                // ── Fallback: 2D route painter (no snapshot yet or corrupt) ──
-                : _buildCustomPaintRoute(routePoints),
+            child: IgnorePointer( // Kunci interaksi map agar seperti image
+              child: FlutterMap(
+                options: MapOptions(
+                  initialCameraFit: CameraFit.bounds(
+                    bounds: bounds,
+                    padding: const EdgeInsets.all(24.0),
+                  ),
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.none, // Matikan scroll/zoom
+                  ),
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate: tileUrl,
+                    subdomains: const ['a', 'b', 'c', 'd'],
+                    userAgentPackageName: 'com.tubes.apb',
+                    retinaMode: true, // <-- Memuat ubin resolusi tinggi (@2x) untuk layar HD
+                  ),
+                  PolylineLayer(
+                    polylines: [
+                      Polyline(
+                        points: ll2Points,
+                        strokeWidth: 4.0,
+                        color: AppTheme.accent,
+                        strokeJoin: StrokeJoin.round,
+                        strokeCap: StrokeCap.round,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
           // Gradient overlay
           Positioned.fill(
