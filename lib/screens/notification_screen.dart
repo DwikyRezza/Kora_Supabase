@@ -55,15 +55,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   Widget _buildAvatar(String? photoUrl, String type) {
     if (type == 'follow' && photoUrl != null && photoUrl.isNotEmpty) {
-      if (photoUrl.startsWith('data:image')) {
-        return ClipOval(
-          child: Image.memory(base64Decode(photoUrl.split(',')[1]), fit: BoxFit.cover, width: 48, height: 48),
-        );
-      } else {
-        return ClipOval(
-          child: Image.network(photoUrl, fit: BoxFit.cover, width: 48, height: 48),
-        );
-      }
+      
     }
     
     // Default system/reminder icon

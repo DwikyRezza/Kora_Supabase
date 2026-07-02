@@ -11,10 +11,10 @@ import '../models/workout.dart';
 import 'comment_bottom_sheet.dart';
 import 'mini_route_painter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' hide Polyline, LatLngBounds;
-import 'package:geocoding/geocoding.dart';
-import '../utils/responsive.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as ll2;
+import 'package:geocoding/geocoding.dart';
+import '../utils/responsive.dart';
 
 class FeedPostCard extends StatefulWidget {
   final Map<String, dynamic> post;
@@ -30,7 +30,7 @@ class FeedPostCard extends StatefulWidget {
   State<FeedPostCard> createState() => _FeedPostCardState();
 }
 
-class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver {
+class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver, AutomaticKeepAliveClientMixin {
   late bool _isLiked;
   late int _likesCount;
   late int _commentsCount;
@@ -40,6 +40,9 @@ class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver
   String _authorName = 'Athlete';
   String? _photoUrl;
   String _locationName = 'Mencari lokasi...';
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -80,6 +83,8 @@ class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver
     if (mounted) setState(() => _locationName = 'Aktivitas Kora');
   }
 
+
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -103,7 +108,6 @@ class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver
     super.didUpdateWidget(oldWidget);
     if (widget.post != oldWidget.post) {
       _initData();
-      _fetchLocation();
     }
   }
 
@@ -180,15 +184,6 @@ class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver
     final url = _photoUrl;
     if (url == null) return null;
     if (url.startsWith('http')) return NetworkImage(url);
-    if (url.startsWith('data:image')) {
-      try {
-        return MemoryImage(
-          base64Decode(url.split(',').last.replaceAll(RegExp(r'\s+'), '')),
-        );
-      } catch (_) {
-        return null;
-      }
-    }
     return null;
   }
 
@@ -227,6 +222,7 @@ class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final workoutData = widget.post['workoutData'] as Map<String, dynamic>? ?? {};
     final typeLower = (workoutData['type'] ?? 'workout').toString().toLowerCase();
     final title = workoutData['title'] ?? (typeLower == 'running' ? 'Morning Run' : 'Workout');

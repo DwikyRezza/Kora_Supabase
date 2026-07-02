@@ -1,15 +1,15 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 import 'auth_service.dart';
 
 class StorageService {
   static final _firestore = FirebaseFirestore.instance;
 
-  /// Upload foto profil dengan menyimpan sebagai base64 string di Firestore.
-  /// Tidak membutuhkan Firebase Storage Rules.
-  /// Return: data URI "data:image/jpeg;base64,..." yang bisa langsung dipakai sebagai URL
+  /// Meminta signature dari Vercel lalu meng-upload foto profil langsung ke Cloudinary
   static Future<String?> uploadProfilePhoto(String localFilePath) async {
     if (!AuthService.isLoggedIn) {
       print('[StorageService] User belum login, skip upload.');
@@ -23,42 +23,68 @@ class StorageService {
     }
 
     try {
-      print('[StorageService] Mengkonversi foto ke base64...');
-      final bytes = await file.readAsBytes();
-
-      // Batasi ukuran: jika > 200KB, kompresi lebih kecil
-      if (bytes.length > 200 * 1024) {
-        print('[StorageService] File terlalu besar: ${bytes.length} bytes. Pastikan maxWidth/maxHeight sudah di-set.');
+      print('[StorageService] Meminta signature dari Vercel...');
+      final vercelUrl = dotenv.env['VERCEL_URL'];
+      if (vercelUrl == null || vercelUrl.isEmpty) {
+        throw Exception('VERCEL_URL is not defined in .env');
       }
 
-      final base64Str = base64Encode(bytes);
-      final dataUri = 'data:image/jpeg;base64,$base64Str';
+      final sigRes = await http.get(Uri.parse('$vercelUrl/api/cloudinary-signature'));
+      if (sigRes.statusCode != 200) {
+        throw Exception('Failed to get signature from Vercel: ${sigRes.body}');
+      }
 
-      // Simpan ke Firestore (field terpisah agar tidak ganggu query profil)
+      final sigData = jsonDecode(sigRes.body);
+      final signature = sigData['signature'];
+      final timestamp = sigData['timestamp'].toString();
+      final cloudName = sigData['cloudName'];
+      final apiKey = sigData['apiKey'];
+
+      print('[StorageService] Uploading image to Cloudinary ($cloudName)...');
+      
+      final uploadUrl = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+      final request = http.MultipartRequest('POST', uploadUrl)
+        ..fields['api_key'] = apiKey
+        ..fields['timestamp'] = timestamp
+        ..fields['signature'] = signature
+        ..fields['folder'] = 'kora_app'
+        ..files.add(await http.MultipartFile.fromPath('file', localFilePath));
+
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+
+      if (response.statusCode != 200) {
+        throw Exception('Cloudinary upload failed: $responseBody');
+      }
+
+      final cloudinaryData = jsonDecode(responseBody);
+      final secureUrl = cloudinaryData['secure_url'];
+
+      // Simpan URL ke Firestore
       final uid = AuthService.uid;
       await _firestore.collection('users').doc(uid).set(
-        {'photoBase64': base64Str},
+        {'photoUrl': secureUrl, 'photoBase64': FieldValue.delete()},
         SetOptions(merge: true),
       );
 
-      print('[StorageService] ✅ Foto tersimpan ke Firestore sebagai base64 (${bytes.length} bytes).');
-      return dataUri; // kembalikan data URI untuk ditampilkan langsung
+      print('[StorageService] ✅ Foto tersimpan di Cloudinary: $secureUrl');
+      return secureUrl;
     } catch (e) {
       print('[StorageService] ❌ Error upload: $e');
       return null;
     }
   }
 
-  /// Ambil foto profil dari Firestore (base64) → data URI
+  /// Ambil foto profil dari Firestore
   static Future<String?> getProfilePhotoDataUri() async {
     if (!AuthService.isLoggedIn) return null;
     try {
       final uid = AuthService.uid;
       final doc = await _firestore.collection('users').doc(uid).get();
-      final base64Str = doc.data()?['photoBase64'] as String?;
-      if (base64Str != null && base64Str.isNotEmpty) {
-        return 'data:image/jpeg;base64,$base64Str';
-      }
+      
+      // Ambil Cloudinary URL (photoUrl)
+      final url = doc.data()?['photoUrl'] as String?;
+      if (url != null && url.isNotEmpty) return url;
     } catch (e) {
       print('[StorageService] Error get photo: $e');
     }
@@ -70,7 +96,10 @@ class StorageService {
     if (!AuthService.isLoggedIn) return;
     try {
       final uid = AuthService.uid;
-      await _firestore.collection('users').doc(uid).update({'photoBase64': FieldValue.delete()});
+      await _firestore.collection('users').doc(uid).update({
+        'photoUrl': FieldValue.delete(),
+        'photoBase64': FieldValue.delete()
+      });
     } catch (e) {
       // Abaikan jika gagal
     }

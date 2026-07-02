@@ -112,9 +112,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                   ),
                                   child: ClipOval(
                                     child: (photoUrl != null && photoUrl.isNotEmpty)
-                                        ? (photoUrl.startsWith('data:image')
-                                            ? Image.memory(base64Decode(photoUrl.split(',')[1]), fit: BoxFit.cover)
-                                            : Image.network(photoUrl, fit: BoxFit.cover))
+                                        ? Image.network(photoUrl, fit: BoxFit.cover)
                                         : Icon(Icons.person, size: context.iconSM, color: AppTheme.textMuted),
                                   ),
                                 ),

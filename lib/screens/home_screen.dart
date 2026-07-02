@@ -283,32 +283,35 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 titleSpacing: context.spaceXL,
                 title: _buildHeader(),
               ),
-              SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: context.spaceLG),
-                
-                if (_isLoading)
-                  Center(child: CircularProgressIndicator(color: AppTheme.accent))
-                else ...[
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: context.spaceXL),
-                    child: Column(
-                      children: [
-                        _buildProteinCard(),
-                        SizedBox(height: context.space2XL),
-                        _buildStatGrid(),
-                        SizedBox(height: context.space2XL),
-                      ],
-                    ),
+              if (_isLoading)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Center(child: CircularProgressIndicator(color: AppTheme.accent)),
                   ),
-                    
-                  _buildSocialFeed(),
-                ],
+                )
+              else ...[
+                SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: context.spaceLG),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: context.spaceXL),
+                        child: Column(
+                          children: [
+                            _buildProteinCard(),
+                            SizedBox(height: context.space2XL),
+                            _buildStatGrid(),
+                            SizedBox(height: context.space2XL),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ..._buildSocialFeedSlivers(),
               ],
-            ),
-          ),
         ],
       ),
         ),
@@ -316,20 +319,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildAvatar() {
-    if (_userPhotoUrl != null && _userPhotoUrl!.isNotEmpty) {
-      if (_userPhotoUrl!.startsWith('data:image')) {
-        return ClipOval(child: Image.memory(base64Decode(_userPhotoUrl!.split(',')[1]), fit: BoxFit.cover, width: 40, height: 40));
-      }
-      return ClipOval(child: Image.network(_userPhotoUrl!, fit: BoxFit.cover, width: 40, height: 40));
-    }
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(color: AppTheme.surfaceVariant, shape: BoxShape.circle),
-      child: Icon(Icons.person, color: AppTheme.textMuted, size: 24),
-    );
-  }
+
 
   Widget _buildHeader() {
     return Row(
@@ -373,16 +363,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     ),
                   ),
               ],
-            ),
-            const SizedBox(width: 8),
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                ).then((_) => _loadData());
-              },
-              child: _buildAvatar(),
             ),
           ],
         ),
@@ -527,11 +507,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
 
 
-  Widget _buildSocialFeed() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
+  List<Widget> _buildSocialFeedSlivers() {
+    return [
+      SliverToBoxAdapter(
+        child: Padding(
           padding: EdgeInsets.symmetric(horizontal: context.spaceXL),
           child: Row(
             children: [
@@ -540,12 +519,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ],
           ),
         ),
-        const SizedBox(height: 24),
+      ),
+      SliverToBoxAdapter(child: const SizedBox(height: 24)),
 
-        if (_isLoadingFeed)
-          Center(child: CircularProgressIndicator(color: AppTheme.accent))
-        else if (_feedPosts.isEmpty)
-          Padding(
+      if (_isLoadingFeed)
+        SliverToBoxAdapter(
+          child: Center(child: CircularProgressIndicator(color: AppTheme.accent)),
+        )
+      else if (_feedPosts.isEmpty)
+        SliverToBoxAdapter(
+          child: Padding(
             padding: EdgeInsets.symmetric(horizontal: context.spaceXL),
             child: Container(
               width: double.infinity,
@@ -571,25 +554,32 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 ],
               ),
             ),
-          )
-        else
-          ..._feedPosts.asMap().entries.map((entry) {
-            final post = entry.value;
+          ),
+        )
+      else
+        SliverList.builder(
+          itemCount: _feedPosts.length,
+          itemBuilder: (context, index) {
+            final post = _feedPosts[index];
             return FeedPostCard(
               key: ValueKey(post['postId']),
               post: post,
               onDataChanged: () => _loadData(silent: true),
             );
-          }),
+          },
+        ),
 
-        // ── Load More indicator ──────────────────────────────────────────
-        if (_isLoadingMore)
-          Padding(
+      // ── Load More indicator ──────────────────────────────────────────
+      if (_isLoadingMore)
+        SliverToBoxAdapter(
+          child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Center(child: CircularProgressIndicator(color: AppTheme.accent, strokeWidth: 2)),
-          )
-        else if (!_hasMoreData && _feedPosts.isNotEmpty)
-          Padding(
+          ),
+        )
+      else if (!_hasMoreData && _feedPosts.isNotEmpty)
+        SliverToBoxAdapter(
+          child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 20),
             child: Center(
               child: Text(
@@ -598,7 +588,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
             ),
           ),
-      ],
-    );
+        ),
+    ];
   }
 }

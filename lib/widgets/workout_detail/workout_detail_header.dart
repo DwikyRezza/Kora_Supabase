@@ -276,15 +276,6 @@ class _WorkoutDetailHeaderState extends State<WorkoutDetailHeader> {
     final url = widget.userPhotoUrl;
     if (url == null) return null;
     if (url.startsWith('http')) return NetworkImage(url);
-    if (url.startsWith('data:image')) {
-      try {
-        return MemoryImage(
-          base64Decode(url.split(',').last.replaceAll(RegExp(r'\s+'), '')),
-        );
-      } catch (_) {
-        return null;
-      }
-    }
     return FileImage(File(url));
   }
 

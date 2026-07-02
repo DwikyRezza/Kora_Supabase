@@ -71,7 +71,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _selectedGoal = goal;
 
       final savedPhoto = profile['photoUrl'] as String?;
-      if (savedPhoto != null && (savedPhoto.startsWith('https://') || savedPhoto.startsWith('data:image'))) {
+      if (savedPhoto != null && savedPhoto.startsWith('http')) {
         _uploadedPhotoUrl = savedPhoto;
       }
 
@@ -286,9 +286,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 : _localPhotoPath != null
                                     ? Image.file(File(_localPhotoPath!), fit: BoxFit.cover)
                                     : _uploadedPhotoUrl != null
-                                        ? (_uploadedPhotoUrl!.startsWith('data:image') 
-                                            ? Image.memory(base64Decode(_uploadedPhotoUrl!.split(',')[1]), fit: BoxFit.cover)
-                                            : Image.network(_uploadedPhotoUrl!, fit: BoxFit.cover))
+                                        ? Image.network(_uploadedPhotoUrl!, fit: BoxFit.cover)
                                         : Icon(Icons.person, size: 64, color: AppTheme.textMuted),
                           ),
                         ),

@@ -134,10 +134,13 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     // Determine the theme
-    final logoPath = 'assets/icons/logo_splash_screen.png';
+    final isDark = AppTheme.isDarkMode;
+    final logoPath = isDark 
+        ? 'assets/icons/logo_splash_screen_dark_mode.png'
+        : 'assets/icons/logo_splash_screen.png';
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.background,
       body: Center(
         child: AnimatedBuilder(
           animation: _animController,

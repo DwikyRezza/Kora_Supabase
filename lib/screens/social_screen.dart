@@ -97,9 +97,6 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
 
   Widget _buildUserAvatar(String? photoUrl) {
     if (photoUrl != null && photoUrl.isNotEmpty) {
-      if (photoUrl.startsWith('data:image')) {
-        return Image.memory(base64Decode(photoUrl.split(',')[1]), fit: BoxFit.cover);
-      }
       return Image.network(photoUrl, fit: BoxFit.cover);
     }
     return Icon(Icons.person, size: 28, color: AppTheme.textMuted);

@@ -63,12 +63,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   Widget _buildAvatar(String? photoUrl) {
     if (photoUrl != null && photoUrl.isNotEmpty) {
       try {
-        if (photoUrl.startsWith('data:image')) {
-          final parts = photoUrl.split(',');
-          if (parts.length > 1) {
-            return ClipOval(child: Image.memory(base64Decode(parts[1]), fit: BoxFit.cover));
-          }
-        }
+        
         return ClipOval(child: Image.network(photoUrl, fit: BoxFit.cover, errorBuilder: (c, e, s) => Icon(Icons.person, size: 48, color: AppTheme.textMuted)));
       } catch (_) {}
     }
@@ -130,10 +125,13 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       body: RefreshIndicator(
         onRefresh: _loadData,
         color: AppTheme.accent,
-        child: SingleChildScrollView(
+        child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            children: [
+          slivers: [
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
               // Profile Header
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -204,30 +202,30 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
               Divider(height: 32, thickness: 8, color: AppTheme.surfaceVariant),
               
               // Posts List
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Aktivitas Terakhir', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
-                    const SizedBox(height: 16),
-                    if (_userPosts.isEmpty)
-                      Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(32.0),
-                          child: Text('Belum ada aktivitas yang dibagikan.', style: TextStyle(color: AppTheme.textMuted)),
-                        ),
-                      )
-                    else
-                      ..._userPosts.map((post) => FeedPostCard(
-                            post: post,
-                            onDataChanged: () => _loadData(silent: true),
-                          )),
-                  ],
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+            if (_userPosts.isEmpty)
+              SliverToBoxAdapter(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32.0),
+                    child: Text('Belum ada aktivitas yang dibagikan.', style: TextStyle(color: AppTheme.textMuted)),
+                  ),
+                ),
+              )
+            else
+              SliverList.builder(
+                itemCount: _userPosts.length,
+                itemBuilder: (context, index) {
+                  return FeedPostCard(
+                    post: _userPosts[index],
+                    onDataChanged: () => _loadData(silent: true),
+                  );
+                },
+              ),
+            SliverToBoxAdapter(child: SizedBox(height: 40)),
+          ],
         ),
       ),
     );

@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../theme/app_theme.dart';
@@ -80,9 +80,6 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildAvatar(String? photoUrl) {
     if (photoUrl != null && photoUrl.isNotEmpty) {
-      if (photoUrl.startsWith('data:image')) {
-        return ClipOval(child: Image.memory(base64Decode(photoUrl.split(',')[1]), fit: BoxFit.cover));
-      }
       return ClipOval(child: Image.network(photoUrl, fit: BoxFit.cover));
     }
     return Icon(Icons.person, size: 28, color: AppTheme.textMuted);

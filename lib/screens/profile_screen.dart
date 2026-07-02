@@ -211,13 +211,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           SizedBox(width: 8),
         ],
       ),
-      body: SingleChildScrollView(
+      body: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: context.spaceXL),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: context.spaceXL),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
               SizedBox(height: context.spaceLG),
               
               // Profile Header Section
@@ -238,9 +240,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           child: ClipOval(
                             child: (photoUrl != null && photoUrl.isNotEmpty)
-                                ? (photoUrl.startsWith('data:image')
-                                    ? Image.memory(base64Decode(photoUrl.split(',')[1]), fit: BoxFit.cover)
-                                    : Image.network(photoUrl, fit: BoxFit.cover))
+                                ? Image.network(photoUrl, fit: BoxFit.cover)
                                 : Container(
                                     color: AppTheme.surfaceVariant,
                                     child: Icon(Icons.person, size: context.iconLG * 1.5, color: AppTheme.textMuted),
@@ -368,15 +368,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               
-              SizedBox(height: 48),
-              
-              // Feed Content
-              _buildListFeed(),
-              
-              SizedBox(height: 40),
-            ],
+                  SizedBox(height: 48),
+                ],
+              ),
+            ),
           ),
-        ),
+              
+          // Feed Content
+          _buildListFeed(),
+            
+          SliverToBoxAdapter(
+            child: SizedBox(height: 40),
+          ),
+        ],
       ),
     );
   }
@@ -409,16 +413,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildListFeed() {
     if (_userPosts.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: EdgeInsets.all(32.0),
-          child: Text('Belum ada aktivitas olahraga.', style: TextStyle(color: AppTheme.textMuted)),
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(32.0),
+            child: Text('Belum ada aktivitas olahraga.', style: TextStyle(color: AppTheme.textMuted)),
+          ),
         ),
       );
     }
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+    return SliverList.builder(
       itemCount: _userPosts.length,
       itemBuilder: (context, index) {
         return FeedPostCard(
