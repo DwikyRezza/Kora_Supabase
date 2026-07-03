@@ -63,6 +63,8 @@ class _HomeScreenState extends State<HomeScreen>
   int _unreadNotifs = 0;
   List<Map<String, dynamic>> _feedPosts = [];
   bool _isLoadingFeed = true;
+  int _dashboardTab = 0; // 0: Nutrition, 1: Activity
+  double _targetCalories = 2500.0;
 
   // ── Metrics Dashboard State ──────────────────────────────────────────────
   int _todayCaloriesConsumed = 0;
@@ -114,6 +116,14 @@ class _HomeScreenState extends State<HomeScreen>
       _userPhotoUrl = pm.userProfile!['photoUrl'];
       _baseTargetProtein =
           (pm.userProfile!['targetProtein'] as num?)?.toDouble() ?? 0.0;
+      final goal = pm.userProfile!['goal']?.toString() ?? 'Bulking';
+      if (goal == 'Bulking' || goal == 'Weightlifter') {
+        _targetCalories = 3000.0;
+      } else if (goal == 'Diet' || goal == 'Runner') {
+        _targetCalories = 2000.0;
+      } else {
+        _targetCalories = 2500.0;
+      }
     }
 
     _unreadNotifs = pm.unreadNotificationCount ?? 0;
@@ -340,6 +350,14 @@ class _HomeScreenState extends State<HomeScreen>
             _userName = profile[ProfileService.keyName] ?? '';
             _userPhotoUrl = profile[ProfileService.keyPhotoUrl];
             _baseTargetProtein = profile[ProfileService.keyTargetProtein] ?? 0.0;
+            final goal = profile[ProfileService.keyGoal]?.toString() ?? 'Bulking';
+            if (goal == 'Bulking' || goal == 'Weightlifter') {
+              _targetCalories = 3000.0;
+            } else if (goal == 'Diet' || goal == 'Runner') {
+              _targetCalories = 2000.0;
+            } else {
+              _targetCalories = 2500.0;
+            }
           }
           _unreadNotifs = unread;
           _feedPosts = posts;
@@ -462,9 +480,7 @@ class _HomeScreenState extends State<HomeScreen>
                             EdgeInsets.symmetric(horizontal: context.spaceXL),
                         child: Column(
                           children: [
-                            _buildProteinCard(),
-                            SizedBox(height: context.space2XL),
-                            _buildStatGrid(),
+                            _buildDashboardCard(),
                             SizedBox(height: context.space2XL),
                           ],
                         ),
@@ -535,15 +551,170 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildProteinCard() {
-    final gap = _totalProteinNeeded - _totalProteinToday;
-    final isSufficient = gap <= 0;
-    final progress = _totalProteinNeeded > 0
+  Widget _buildPillToggle() {
+    return Container(
+      width: 86,
+      height: 30,
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Stack(
+        children: [
+          AnimatedAlign(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            alignment: _dashboardTab == 0 ? Alignment.centerLeft : Alignment.centerRight,
+            child: Container(
+              width: 43,
+              height: 30,
+              decoration: BoxDecoration(
+                color: AppTheme.accent,
+                borderRadius: BorderRadius.circular(15),
+              ),
+            ),
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _dashboardTab = 0),
+                  child: Container(
+                    color: Colors.transparent,
+                    child: Center(
+                      child: Icon(
+                        Icons.restaurant_outlined,
+                        size: 16,
+                        color: _dashboardTab == 0 ? Colors.white : AppTheme.textMuted,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _dashboardTab = 1),
+                  child: Container(
+                    color: Colors.transparent,
+                    child: Center(
+                      child: Icon(
+                        Icons.fitness_center_outlined,
+                        size: 16,
+                        color: _dashboardTab == 1 ? Colors.white : AppTheme.textMuted,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNutritionTab() {
+    final proteinProgress = _totalProteinNeeded > 0
         ? (_totalProteinToday / _totalProteinNeeded).clamp(0.0, 1.0)
         : 0.0;
+        
+    final caloriesProgress = _targetCalories > 0
+        ? (_todayCaloriesConsumed / _targetCalories).clamp(0.0, 1.0)
+        : 0.0;
 
+    return Column(
+      key: const ValueKey('Nutrition'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Kalori
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Kalori', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
+            Text('$_todayCaloriesConsumed / ${_targetCalories.toInt()} Kkal', style: TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.w600, fontSize: 12)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 8,
+          width: double.infinity,
+          decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(4)),
+          child: FractionallySizedBox(
+            alignment: Alignment.centerLeft,
+            widthFactor: caloriesProgress,
+            child: Container(
+              decoration: BoxDecoration(color: AppTheme.accent, borderRadius: BorderRadius.circular(4)),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        // Protein
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Protein', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
+            Text('${_totalProteinToday.toStringAsFixed(1)} / ${_totalProteinNeeded.toStringAsFixed(1)} g', style: TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.w600, fontSize: 12)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 8,
+          width: double.infinity,
+          decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(4)),
+          child: FractionallySizedBox(
+            alignment: Alignment.centerLeft,
+            widthFactor: proteinProgress,
+            child: Container(
+              decoration: BoxDecoration(color: AppTheme.accent, borderRadius: BorderRadius.circular(4)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActivityTab() {
     return Container(
-      padding: EdgeInsets.all(context.spaceXL),
+      key: const ValueKey('Activity'),
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Expanded(child: _buildActivityItem(Icons.local_fire_department_outlined, 'Energi', '$_todayCaloriesBurned', 'Kkal')),
+          Container(width: 1, height: 40, color: AppTheme.border),
+          Expanded(child: _buildActivityItem(Icons.timer_outlined, 'Durasi', '$_todayWorkoutDuration', 'Min')),
+          Container(width: 1, height: 40, color: AppTheme.border),
+          Expanded(child: _buildActivityItem(Icons.route_outlined, 'Jarak', _todayWorkoutDistance.toStringAsFixed(1), 'Km')),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityItem(IconData icon, String label, String value, String unit) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, color: AppTheme.accent, size: 24),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(value, style: TextStyle(color: AppTheme.textPrimary, fontSize: 24, fontWeight: FontWeight.w900)),
+            const SizedBox(width: 2),
+            Text(unit, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(label.toUpperCase(), style: TextStyle(color: AppTheme.textMuted, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+      ],
+    );
+  }
+
+  Widget _buildDashboardCard() {
+    return Container(
+      padding: EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppTheme.surfaceVariant,
         borderRadius: BorderRadius.circular(26),
@@ -553,143 +724,35 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('CAPAIAN PROTEIN',
-                        style: TextStyle(
-                            fontSize: context.fontSM * 0.9,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.textMuted,
-                            letterSpacing: 1.5)),
-                    SizedBox(height: context.spaceXS),
-                    Text(
-                      isSufficient
-                          ? 'Target tercapai!'
-                          : 'Di bawah target harian',
-                      style: TextStyle(
-                          fontSize: context.fontBase,
-                          fontWeight: FontWeight.bold,
-                          color: isSufficient
-                              ? AppTheme.accent
-                              : AppTheme.textPrimary),
-                    ),
-                  ],
+                child: Text(
+                  _dashboardTab == 0 ? 'CAPAIAN NUTRISI' : 'AKTIVITAS HARI INI',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textMuted,
+                    letterSpacing: 1.2,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              SizedBox(width: context.spaceSM),
-              Text(
-                '${(progress * 100).round()}%',
-                style: TextStyle(
-                    fontSize: context.font2XL * 1.15,
-                    fontWeight: FontWeight.w900,
-                    color: AppTheme.textPrimary),
-              ),
+              const SizedBox(width: 8),
+              _buildPillToggle(),
             ],
           ),
           const SizedBox(height: 24),
-          Container(
-            height: 12,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: AppTheme.surface,
-              borderRadius: BorderRadius.circular(6),
+          SizedBox(
+            height: 100, // Fixed height to prevent layout shift during transition
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              switchInCurve: Curves.easeInOut,
+              switchOutCurve: Curves.easeInOut,
+              child: _dashboardTab == 0 ? _buildNutritionTab() : _buildActivityTab(),
             ),
-            child: FractionallySizedBox(
-              alignment: Alignment.centerLeft,
-              widthFactor: progress,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppTheme.accent,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('TERKUMPUL',
-                      style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textMuted)),
-                  Text('${_totalProteinToday.toStringAsFixed(1)}g',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary)),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text('TARGET',
-                      style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textMuted)),
-                  Text('${_totalProteinNeeded.toStringAsFixed(1)}g',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary)),
-                ],
-              ),
-            ],
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildStatGrid() {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: StatBoxWidget(
-                  title: 'ASUPAN',
-                  value: '$_todayCaloriesConsumed',
-                  subValue: 'Kkal',
-                  onTap: widget.onGoToProtein),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: StatBoxWidget(
-                  title: 'ENERGI',
-                  value: '$_todayCaloriesBurned',
-                  subValue: 'Kkal'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: StatBoxWidget(
-                  title: 'DURASI',
-                  value: '$_todayWorkoutDuration',
-                  subValue: 'Menit'),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: StatBoxWidget(
-                  title: 'JARAK',
-                  value: _todayWorkoutDistance.toStringAsFixed(1),
-                  subValue: 'Km'),
-            ),
-          ],
-        ),
-      ],
     );
   }
 
