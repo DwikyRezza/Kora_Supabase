@@ -120,7 +120,12 @@ class _TrainingVolumeChartState extends State<TrainingVolumeChart> {
                 ),
               ),
             ),
-            borderData: FlBorderData(show: false),
+            borderData: FlBorderData(
+              show: true,
+              border: Border(
+                bottom: BorderSide(color: Colors.grey.withOpacity(0.5), width: 1.5),
+              ),
+            ),
             minX: 0,
             maxX: 11,
             minY: 0,
@@ -132,19 +137,28 @@ class _TrainingVolumeChartState extends State<TrainingVolumeChart> {
                   (index) => FlSpot(index.toDouble(), widget.weeklyVolumes[index]),
                 ),
                 isCurved: false, // Grafik volume Strava umumnya tegak lurus ke titik minggu
-                color: Colors.blueAccent,
-                barWidth: 3,
+                color: Colors.deepOrange, // Menggunakan warna orange ala Strava
+                barWidth: 2.5,
                 dotData: FlDotData(
-                  show: true,
-                  checkToShowDot: (spot, barData) => spot.y == 0, // Tetap tampilkan titik jika nilainya 0
+                  show: true, // Tampilkan titik untuk SEMUA minggu
                   getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
-                    radius: 3,
-                    color: Colors.blueAccent,
-                    strokeWidth: 1,
-                    strokeColor: Colors.white,
+                    radius: 3.5,
+                    color: Colors.white, // Titik tengah putih
+                    strokeWidth: 2,
+                    strokeColor: Colors.deepOrange, // Pinggiran orange
                   ),
-                ), // Sembunyikan default dot kecuali jika nilainya 0
-                belowBarData: BarAreaData(show: false),
+                ),
+                belowBarData: BarAreaData(
+                  show: true,
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.deepOrange.withOpacity(0.4),
+                      Colors.deepOrange.withOpacity(0.0),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
               ),
             ],
           ),
