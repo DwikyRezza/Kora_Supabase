@@ -92,7 +92,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     setState(() => _isLoading = true);
     try {
       if (AuthService.isLoggedIn) {
-        await CloudSyncService.restoreAllFromCloud().timeout(const Duration(seconds: 5));
+        bool isEmpty = await CloudSyncService.isLocalDataEmpty();
+        if (isEmpty) {
+          await CloudSyncService.restoreAllFromCloud().timeout(const Duration(seconds: 5));
+        } else {
+          // Hanya upload/backup data lokal ke cloud agar tidak menimpa data yang belum tersinkronisasi
+          await CloudSyncService.syncWorkoutsToCloud();
+          await CloudSyncService.syncNutritionToCloud();
+        }
       }
     } catch (_) {
       // Abaikan error jaringan agar aplikasi tetap bisa dibuka secara offline
@@ -192,7 +199,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     _lastFeedDoc = null;
     _hasMoreData = true;
     try {
-      await CloudSyncService.restoreAllFromCloud().timeout(const Duration(seconds: 5));
+      if (AuthService.isLoggedIn) {
+        bool isEmpty = await CloudSyncService.isLocalDataEmpty();
+        if (isEmpty) {
+          await CloudSyncService.restoreAllFromCloud().timeout(const Duration(seconds: 5));
+        } else {
+          await CloudSyncService.syncWorkoutsToCloud();
+          await CloudSyncService.syncNutritionToCloud();
+        }
+      }
     } catch (_) {}
     await _loadData();
   }
@@ -364,40 +379,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         ),
         Row(
           children: [
-            if (_currentWorkoutStreak > 0)
-              Container(
-                margin: const EdgeInsets.only(right: 12),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.accent.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppTheme.accent.withOpacity(0.3)),
-                ),
-                child: Row(
-                  children: [
-                    Text(
-                      '$_currentWorkoutStreak',
-                      style: TextStyle(
-                        color: AppTheme.accent,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: Lottie.asset(
-                        'assets/lottie/fire_streak.json',
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => const Center(
-                          child: Text('🔥', style: TextStyle(fontSize: 14)),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             IconButton(
               icon: Icon(Icons.search, color: AppTheme.textPrimary),
               onPressed: () {
