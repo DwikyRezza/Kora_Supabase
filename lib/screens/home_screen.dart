@@ -651,103 +651,45 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildStatGrid() {
-    return GridView.count(
-      crossAxisCount: 2,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio:
-          1.3, // Memberikan ruang vertikal lebih agar tidak overflow
+    return Column(
       children: [
-        _buildStatBox(
-            title: 'ASUPAN',
-            value: '$_todayCaloriesConsumed',
-            subValue: 'Kkal',
-            color: AppTheme.accent,
-            onTap: widget.onGoToProtein),
-        _buildStatBox(
-            title: 'ENERGI',
-            value: '$_todayCaloriesBurned',
-            subValue: 'Kkal',
-            color: AppTheme.accent),
-        _buildStatBox(
-            title: 'DURASI',
-            value: '$_todayWorkoutDuration',
-            subValue: 'Menit',
-            color: AppTheme.accent),
-        _buildStatBox(
-            title: 'JARAK',
-            value: _todayWorkoutDistance.toStringAsFixed(1),
-            subValue: 'Km',
-            color: AppTheme.accent),
-      ],
-    );
-  }
-
-  Widget _buildStatBox(
-      {required String title,
-      required String value,
-      String? subValue,
-      required Color color,
-      VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(26),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 15,
-              offset: const Offset(0, 8),
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
+        Row(
           children: [
-            Text(title,
-                style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textMuted,
-                    letterSpacing: 1)),
-            const SizedBox(height: 4),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-                  child: Text(value,
-                      key: ValueKey<String>(value),
-                      style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          color: AppTheme.textPrimary)),
-                ),
-                if (subValue != null) ...[
-                  const SizedBox(width: 4),
-                  Text(subValue,
-                      style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textMuted)),
-                ],
-              ],
+            Expanded(
+              child: StatBoxWidget(
+                  title: 'ASUPAN',
+                  value: '$_todayCaloriesConsumed',
+                  subValue: 'Kkal',
+                  onTap: widget.onGoToProtein),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: StatBoxWidget(
+                  title: 'ENERGI',
+                  value: '$_todayCaloriesBurned',
+                  subValue: 'Kkal'),
             ),
           ],
         ),
-      ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: StatBoxWidget(
+                  title: 'DURASI',
+                  value: '$_todayWorkoutDuration',
+                  subValue: 'Menit'),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: StatBoxWidget(
+                  title: 'JARAK',
+                  value: _todayWorkoutDistance.toStringAsFixed(1),
+                  subValue: 'Km'),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -858,5 +800,184 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ),
     ];
+  }
+}
+
+class StatBoxWidget extends StatefulWidget {
+  final String title;
+  final String value;
+  final String subValue;
+  final VoidCallback? onTap;
+
+  const StatBoxWidget({
+    Key? key,
+    required this.title,
+    required this.value,
+    required this.subValue,
+    this.onTap,
+  }) : super(key: key);
+
+  @override
+  State<StatBoxWidget> createState() => _StatBoxWidgetState();
+}
+
+class _StatBoxWidgetState extends State<StatBoxWidget> with SingleTickerProviderStateMixin {
+  late AnimationController _animController;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.97).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  void _onTapDown(TapDownDetails details) {
+    if (widget.onTap != null) _animController.forward();
+  }
+
+  void _onTapUp(TapUpDetails details) {
+    if (widget.onTap != null) {
+      _animController.reverse();
+      widget.onTap!();
+    }
+  }
+
+  void _onTapCancel() {
+    if (widget.onTap != null) _animController.reverse();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = AppTheme.isDarkMode;
+    
+    // Background with very subtle gradient
+    final bgGradient = isDark
+        ? const LinearGradient(
+            colors: [Color(0xFF2C2C2E), Color(0xFF1C1C1E)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          )
+        : const LinearGradient(
+            colors: [Color(0xFFFFFFFF), Color(0xFFFAFAFA)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          );
+
+    // Layered Shadow
+    final shadows = isDark
+        ? [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
+            ),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.5),
+              blurRadius: 40,
+              offset: const Offset(0, 18),
+            ),
+          ]
+        : [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
+            ),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 40,
+              offset: const Offset(0, 18),
+            ),
+          ];
+
+    final labelColor = isDark ? Colors.grey[400] : Colors.grey[500];
+    final valueColor = isDark ? Colors.white : Colors.black87;
+
+    return GestureDetector(
+      onTapDown: _onTapDown,
+      onTapUp: _onTapUp,
+      onTapCancel: _onTapCancel,
+      child: AnimatedBuilder(
+        animation: _scaleAnimation,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              decoration: BoxDecoration(
+                gradient: bgGradient,
+                borderRadius: BorderRadius.circular(26),
+                border: Border.all(
+                  color: isDark ? Colors.white.withOpacity(0.1) : Colors.white.withOpacity(0.7),
+                  width: 1,
+                ),
+                boxShadow: shadows,
+              ),
+              child: Stack(
+                children: [
+                  // Content
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        widget.title.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: labelColor,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            child: Text(
+                              widget.value,
+                              key: ValueKey<String>(widget.value),
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w900,
+                                color: valueColor,
+                                height: 1.0,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            widget.subValue,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: labelColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 }
