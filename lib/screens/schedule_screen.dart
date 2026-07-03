@@ -31,7 +31,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   Future<void> _refreshEvents() async {
     try {
-      await CloudSyncService.restoreAllFromCloud();
+      await CloudSyncService.syncScheduleToCloud();
     } catch (_) {} 
     await _loadEvents();
   }

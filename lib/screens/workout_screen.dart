@@ -54,8 +54,8 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
 
   Future<void> _refreshData() async {
     try {
-      await CloudSyncService.restoreAllFromCloud();
-    } catch (_) {} 
+      await CloudSyncService.syncWorkoutsToCloud();
+    } catch (_) {}
     await _loadData();
   }
 

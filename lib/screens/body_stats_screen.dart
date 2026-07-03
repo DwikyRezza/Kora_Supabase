@@ -28,7 +28,7 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
   /// Dipanggil saat pull-to-refresh â€” sync dari Firestore dulu
   Future<void> _refreshData() async {
     try {
-      await CloudSyncService.restoreAllFromCloud();
+      await CloudSyncService.syncBodyMeasurementsToCloud();
     } catch (_) {} // silent fail jika offline
     await _loadData();
   }

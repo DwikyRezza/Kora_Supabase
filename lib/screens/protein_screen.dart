@@ -34,9 +34,6 @@ class _ProteinScreenState extends State<ProteinScreen> {
     try {
       await CloudSyncService.syncNutritionToCloud();
     } catch (_) {}
-    try {
-      await CloudSyncService.restoreAllFromCloud();
-    } catch (_) {}
     await _loadData();
   }
 

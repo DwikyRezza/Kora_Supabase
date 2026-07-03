@@ -49,7 +49,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   final _db = DatabaseHelper();
   List<Workout> _todayWorkouts = [];
   List<ProteinEntry> _todayProtein = [];
@@ -73,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   // ── Pagination state ───────────────────────────────────────────────────
   DocumentSnapshot? _lastFeedDoc;
   bool _isLoadingMore = false; // Debounce: prevent multiple simultaneous loads
-  bool _hasMoreData = true;   // Flag: false when last page is empty
+  bool _hasMoreData = true; // Flag: false when last page is empty
   late ScrollController _scrollController;
 
   Timer? _whistleTimer;
@@ -90,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     _whistleTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
       _checkWhistleblower();
     });
-    
+
     final pm = PrefetchManager.instance;
     if (pm.hasData) {
       _applyPrefetchedData(pm);
@@ -103,24 +104,28 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   void _applyPrefetchedData(PrefetchManager pm) {
     _isLoading = false;
     _isLoadingFeed = false;
-    
+
     _todayWorkouts = pm.todayWorkouts ?? [];
     _todayProtein = pm.todayProtein ?? [];
     _upcomingEvents = pm.upcomingEvents ?? [];
-    
+
     if (pm.userProfile != null) {
       _userName = pm.userProfile!['name'] ?? '';
       _userPhotoUrl = pm.userProfile!['photoUrl'];
-      _baseTargetProtein = (pm.userProfile!['targetProtein'] as num?)?.toDouble() ?? 0.0;
+      _baseTargetProtein =
+          (pm.userProfile!['targetProtein'] as num?)?.toDouble() ?? 0.0;
     }
-    
+
     _unreadNotifs = pm.unreadNotificationCount ?? 0;
     _todayCaloriesConsumed = pm.todayCaloriesConsumed ?? 0;
-    _todayCaloriesBurned = (pm.todayWorkoutMetrics?['caloriesBurned'] as num?)?.toInt() ?? 0;
-    _todayWorkoutDuration = (pm.todayWorkoutMetrics?['duration'] as num?)?.toInt() ?? 0;
-    _todayWorkoutDistance = (pm.todayWorkoutMetrics?['distance'] as num?)?.toDouble() ?? 0.0;
+    _todayCaloriesBurned =
+        (pm.todayWorkoutMetrics?['caloriesBurned'] as num?)?.toInt() ?? 0;
+    _todayWorkoutDuration =
+        (pm.todayWorkoutMetrics?['duration'] as num?)?.toInt() ?? 0;
+    _todayWorkoutDistance =
+        (pm.todayWorkoutMetrics?['distance'] as num?)?.toDouble() ?? 0.0;
     _currentWorkoutStreak = pm.currentWorkoutStreak?['current'] ?? 0;
-    
+
     if (pm.limitedActivityFeed != null) {
       _feedPosts = pm.limitedActivityFeed!;
       _hasMoreData = _feedPosts.isNotEmpty;
@@ -132,14 +137,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       if (AuthService.isLoggedIn) {
         bool isEmpty = await CloudSyncService.isLocalDataEmpty();
         if (isEmpty) {
-          await CloudSyncService.restoreAllFromCloud().timeout(const Duration(seconds: 5));
+          await CloudSyncService.restoreAllFromCloud()
+              .timeout(const Duration(seconds: 5));
         } else {
           await CloudSyncService.syncWorkoutsToCloud();
           await CloudSyncService.syncNutritionToCloud();
         }
       }
     } catch (_) {}
-    
+
     if (mounted) {
       _loadData(silent: true);
     }
@@ -151,7 +157,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       if (AuthService.isLoggedIn) {
         bool isEmpty = await CloudSyncService.isLocalDataEmpty();
         if (isEmpty) {
-          await CloudSyncService.restoreAllFromCloud().timeout(const Duration(seconds: 5));
+          await CloudSyncService.restoreAllFromCloud()
+              .timeout(const Duration(seconds: 5));
         } else {
           await CloudSyncService.syncWorkoutsToCloud();
           await CloudSyncService.syncNutritionToCloud();
@@ -222,9 +229,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           event.dateTime.day == now.day &&
           event.dateTime.hour == now.hour &&
           event.dateTime.minute == now.minute) {
-        
         WhistleblowerService.playAlarm();
-        
+
         if (!mounted) return;
         showDialog(
           context: context,
@@ -235,7 +241,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               children: [
                 Icon(Icons.sports, color: AppTheme.accent),
                 const SizedBox(width: 8),
-                Text('Waktunya Action!', style: TextStyle(color: AppTheme.textPrimary)),
+                Text('Waktunya Action!',
+                    style: TextStyle(color: AppTheme.textPrimary)),
               ],
             ),
             content: Text(
@@ -249,13 +256,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   WhistleblowerService.stopAlarm();
                   Navigator.pop(ctx);
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accent),
+                style:
+                    ElevatedButton.styleFrom(backgroundColor: AppTheme.accent),
                 child: const Text('OK', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
         );
-        break; 
+        break;
       }
     }
   }
@@ -268,7 +276,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       if (AuthService.isLoggedIn) {
         bool isEmpty = await CloudSyncService.isLocalDataEmpty();
         if (isEmpty) {
-          await CloudSyncService.restoreAllFromCloud().timeout(const Duration(seconds: 5));
+          await CloudSyncService.restoreAllFromCloud()
+              .timeout(const Duration(seconds: 5));
         } else {
           await CloudSyncService.syncWorkoutsToCloud();
           await CloudSyncService.syncNutritionToCloud();
@@ -313,13 +322,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           _feedPosts = posts;
           _lastFeedDoc = lastDoc;
           _hasMoreData = posts.isNotEmpty;
-          
+
           _todayCaloriesConsumed = consumedCals;
-          _todayCaloriesBurned = (workoutMetrics['caloriesBurned'] as num).toInt();
+          _todayCaloriesBurned =
+              (workoutMetrics['caloriesBurned'] as num).toInt();
           _todayWorkoutDuration = (workoutMetrics['duration'] as num).toInt();
-          _todayWorkoutDistance = (workoutMetrics['distance'] as num).toDouble();
+          _todayWorkoutDistance =
+              (workoutMetrics['distance'] as num).toDouble();
           _currentWorkoutStreak = workoutStreak['current'] ?? 0;
-          
+
           _isLoadingFeed = false;
         });
       }
@@ -354,13 +365,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       case 'running':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => RunningTrackerScreen(userWeight: weight)),
+          MaterialPageRoute(
+              builder: (_) => RunningTrackerScreen(userWeight: weight)),
         ).then((_) => _loadData());
         break;
       case 'weightlifting':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => WorkoutSetupScreen(userWeight: weight)),
+          MaterialPageRoute(
+              builder: (_) => WorkoutSetupScreen(userWeight: weight)),
         ).then((_) => _loadData());
         break;
       default:
@@ -385,8 +398,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             slivers: [
               SliverAppBar(
                 backgroundColor: AppTheme.surface,
-                surfaceTintColor: Colors.transparent, // Mencegah perubahan warna saat di-scroll
-                scrolledUnderElevation: 0, // Memastikan tidak ada bayangan/warna tambahan
+                surfaceTintColor: Colors
+                    .transparent, // Mencegah perubahan warna saat di-scroll
+                scrolledUnderElevation:
+                    0, // Memastikan tidak ada bayangan/warna tambahan
                 elevation: 0,
                 floating: true,
                 snap: false,
@@ -429,7 +444,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     children: [
                       SizedBox(height: context.spaceLG),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: context.spaceXL),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: context.spaceXL),
                         child: Column(
                           children: [
                             _buildProteinCard(),
@@ -444,22 +460,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 ),
                 ..._buildSocialFeedSlivers(),
               ],
-        ],
-      ),
+            ],
+          ),
         ),
       ),
     );
   }
-
-
 
   Widget _buildHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Image.asset(
-          AppTheme.isDarkMode 
-              ? 'assets/icons/logoGelapTanpaIcon.png' 
+          AppTheme.isDarkMode
+              ? 'assets/icons/logoGelapTanpaIcon.png'
               : 'assets/icons/logoTerangTanpaIcon.png',
           height: 14, // Diperkecil lagi sesuai permintaan
           fit: BoxFit.contain,
@@ -469,15 +483,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             IconButton(
               icon: Icon(Icons.search, color: AppTheme.textPrimary),
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchScreen()));
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const SearchScreen()));
               },
             ),
             Stack(
               children: [
                 IconButton(
-                  icon: Icon(Icons.notifications_none, color: AppTheme.textPrimary),
+                  icon: Icon(Icons.notifications_none,
+                      color: AppTheme.textPrimary),
                   onPressed: () async {
-                    await Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen()));
+                    await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const NotificationScreen()));
                     _loadData();
                   },
                 ),
@@ -508,7 +527,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final progress = _totalProteinNeeded > 0
         ? (_totalProteinToday / _totalProteinNeeded).clamp(0.0, 1.0)
         : 0.0;
-        
+
     return Container(
       padding: EdgeInsets.all(context.spaceXL),
       decoration: BoxDecoration(
@@ -526,11 +545,23 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('CAPAIAN PROTEIN', style: TextStyle(fontSize: context.fontSM * 0.9, fontWeight: FontWeight.bold, color: AppTheme.textMuted, letterSpacing: 1.5)),
+                    Text('CAPAIAN PROTEIN',
+                        style: TextStyle(
+                            fontSize: context.fontSM * 0.9,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textMuted,
+                            letterSpacing: 1.5)),
                     SizedBox(height: context.spaceXS),
                     Text(
-                      isSufficient ? 'Target tercapai!' : 'Di bawah target harian',
-                      style: TextStyle(fontSize: context.fontBase, fontWeight: FontWeight.bold, color: isSufficient ? AppTheme.accent : AppTheme.textPrimary),
+                      isSufficient
+                          ? 'Target tercapai!'
+                          : 'Di bawah target harian',
+                      style: TextStyle(
+                          fontSize: context.fontBase,
+                          fontWeight: FontWeight.bold,
+                          color: isSufficient
+                              ? AppTheme.accent
+                              : AppTheme.textPrimary),
                     ),
                   ],
                 ),
@@ -538,7 +569,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               SizedBox(width: context.spaceSM),
               Text(
                 '${(progress * 100).round()}%',
-                style: TextStyle(fontSize: context.font2XL * 1.15, fontWeight: FontWeight.w900, color: AppTheme.textPrimary),
+                style: TextStyle(
+                    fontSize: context.font2XL * 1.15,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.textPrimary),
               ),
             ],
           ),
@@ -568,26 +602,39 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('TERKUMPUL', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textMuted)),
-                  Text('${_totalProteinToday.toStringAsFixed(1)}g', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
+                  Text('TERKUMPUL',
+                      style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textMuted)),
+                  Text('${_totalProteinToday.toStringAsFixed(1)}g',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary)),
                 ],
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('TARGET', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textMuted)),
-                  Text('${_totalProteinNeeded.toStringAsFixed(1)}g', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
+                  Text('TARGET',
+                      style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textMuted)),
+                  Text('${_totalProteinNeeded.toStringAsFixed(1)}g',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary)),
                 ],
               ),
             ],
           ),
-
         ],
       ),
     );
   }
-
-
 
   Widget _buildStatGrid() {
     return GridView.count(
@@ -596,17 +643,40 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       mainAxisSpacing: 16,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 1.3, // Memberikan ruang vertikal lebih agar tidak overflow
+      childAspectRatio:
+          1.3, // Memberikan ruang vertikal lebih agar tidak overflow
       children: [
-        _buildStatBox(title: 'ASUPAN', value: '$_todayCaloriesConsumed', subValue: 'Kkal', color: AppTheme.accent, onTap: widget.onGoToProtein),
-        _buildStatBox(title: 'ENERGI', value: '$_todayCaloriesBurned', subValue: 'Kkal', color: AppTheme.accent),
-        _buildStatBox(title: 'DURASI', value: '$_todayWorkoutDuration', subValue: 'Menit', color: AppTheme.accent),
-        _buildStatBox(title: 'JARAK', value: _todayWorkoutDistance.toStringAsFixed(1), subValue: 'Km', color: AppTheme.accent),
+        _buildStatBox(
+            title: 'ASUPAN',
+            value: '$_todayCaloriesConsumed',
+            subValue: 'Kkal',
+            color: AppTheme.accent,
+            onTap: widget.onGoToProtein),
+        _buildStatBox(
+            title: 'ENERGI',
+            value: '$_todayCaloriesBurned',
+            subValue: 'Kkal',
+            color: AppTheme.accent),
+        _buildStatBox(
+            title: 'DURASI',
+            value: '$_todayWorkoutDuration',
+            subValue: 'Menit',
+            color: AppTheme.accent),
+        _buildStatBox(
+            title: 'JARAK',
+            value: _todayWorkoutDistance.toStringAsFixed(1),
+            subValue: 'Km',
+            color: AppTheme.accent),
       ],
     );
   }
 
-  Widget _buildStatBox({required String title, required String value, String? subValue, required Color color, VoidCallback? onTap}) {
+  Widget _buildStatBox(
+      {required String title,
+      required String value,
+      String? subValue,
+      required Color color,
+      VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -627,7 +697,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(title, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textMuted, letterSpacing: 1)),
+            Text(title,
+                style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textMuted,
+                    letterSpacing: 1)),
             const SizedBox(height: 4),
             Row(
               crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -635,18 +710,24 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               children: [
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
-                  transitionBuilder: (Widget child, Animation<double> animation) {
+                  transitionBuilder:
+                      (Widget child, Animation<double> animation) {
                     return FadeTransition(opacity: animation, child: child);
                   },
-                  child: Text(
-                    value, 
-                    key: ValueKey<String>(value), 
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppTheme.textPrimary)
-                  ),
+                  child: Text(value,
+                      key: ValueKey<String>(value),
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.textPrimary)),
                 ),
                 if (subValue != null) ...[
                   const SizedBox(width: 4),
-                  Text(subValue, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textMuted)),
+                  Text(subValue,
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textMuted)),
                 ],
               ],
             ),
@@ -656,9 +737,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-
-
-
   List<Widget> _buildSocialFeedSlivers() {
     return [
       SliverToBoxAdapter(
@@ -666,8 +744,18 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           padding: EdgeInsets.symmetric(horizontal: context.spaceXL),
           child: Row(
             children: [
-              Text('Aktivitas ', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: AppTheme.textPrimary, letterSpacing: -0.5)),
-              Text('Teman', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: AppTheme.accent, letterSpacing: -0.5)),
+              Text('Aktivitas ',
+                  style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                      letterSpacing: -0.5)),
+              Text('Teman',
+                  style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.accent,
+                      letterSpacing: -0.5)),
             ],
           ),
         ),
@@ -696,11 +784,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
               child: Column(
                 children: [
-                  Icon(Icons.group_outlined, size: 48, color: AppTheme.textMuted),
+                  Icon(Icons.group_outlined,
+                      size: 48, color: AppTheme.textMuted),
                   SizedBox(height: 16),
                   Text(
                     'Belum ada aktivitas',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textPrimary),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: AppTheme.textPrimary),
                   ),
                   SizedBox(height: 8),
                   Text(
@@ -731,7 +823,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Center(child: CircularProgressIndicator(color: AppTheme.accent, strokeWidth: 2)),
+            child: Center(
+                child: CircularProgressIndicator(
+                    color: AppTheme.accent, strokeWidth: 2)),
           ),
         )
       else if (!_hasMoreData && _feedPosts.isNotEmpty)
@@ -741,7 +835,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             child: Center(
               child: Text(
                 '— Sudah mencapai akhir —',
-                style: TextStyle(color: AppTheme.textMuted, fontSize: 12, fontStyle: FontStyle.italic),
+                style: TextStyle(
+                    color: AppTheme.textMuted,
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic),
               ),
             ),
           ),
