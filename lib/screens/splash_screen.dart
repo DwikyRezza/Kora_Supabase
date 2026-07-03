@@ -13,6 +13,9 @@ import '../services/location_service.dart';
 import '../services/notification_service.dart';
 import 'landing_screen.dart';
 import 'onboarding_screen.dart';
+import '../services/database_helper.dart';
+import '../services/social_service.dart';
+import '../utils/prefetch_manager.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -37,10 +40,10 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    // Total duration: 2000ms
+    // Total duration: 1500ms (Minimum splash time)
     _animController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 1500),
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -91,6 +94,15 @@ class _SplashScreenState extends State<SplashScreen>
       // Check Authentication
       _isLoggedIn = AuthService.isLoggedIn;
       _isOnboarded = await ProfileService.isOnboarded();
+
+      if (_isLoggedIn && _isOnboarded) {
+        // Run prefetch, but cap it at 3 seconds maximum (timeout)
+        // If prefetch is slower than 3 seconds, Splash moves on, and prefetch continues in background
+        await Future.any([
+          _performPrefetch(),
+          Future.delayed(const Duration(seconds: 3)),
+        ]);
+      }
     } catch (e) {
       debugPrint('[SplashScreen] Initialization Error: $e');
       // Lanjut navigasi meskipun gagal agar pengguna tidak stuck.
@@ -100,6 +112,53 @@ class _SplashScreenState extends State<SplashScreen>
         _checkAndNavigate();
       }
     }
+  }
+
+  Future<void> _performPrefetch() async {
+    final pm = PrefetchManager.instance;
+    final db = DatabaseHelper();
+    final today = DateTime.now();
+    
+    await Future.wait([
+      ProfileService.getProfile().then((v) => pm.userProfile = v).catchError((e) {
+        debugPrint('[Prefetch Error] getUserProfile gagal: $e');
+        return <String, dynamic>{};
+      }),
+      db.getTodayCaloriesConsumed().then((v) => pm.todayCaloriesConsumed = v).catchError((e) {
+        debugPrint('[Prefetch Error] getTodayCaloriesConsumed gagal: $e');
+        return 0;
+      }),
+      db.getTodayWorkoutMetrics().then((v) => pm.todayWorkoutMetrics = v).catchError((e) {
+        debugPrint('[Prefetch Error] getTodayWorkoutMetrics gagal: $e');
+        return <String, num>{};
+      }),
+      db.getCalculateWorkoutStreak().then((v) => pm.currentWorkoutStreak = v).catchError((e) {
+        debugPrint('[Prefetch Error] getCalculateWorkoutStreak gagal: $e');
+        return <String, int>{};
+      }),
+      NotificationService.getUnreadCount().then((v) => pm.unreadNotificationCount = v).catchError((e) {
+        debugPrint('[Prefetch Error] getUnreadNotificationCount gagal: $e');
+        return 0;
+      }),
+      SocialService.getFeedPosts(limit: 5).then((v) {
+        pm.limitedActivityFeed = v['posts'] as List<Map<String, dynamic>>?;
+      }).catchError((e) {
+        debugPrint('[Prefetch Error] getActivityFeed gagal: $e');
+        return <String, dynamic>{};
+      }),
+      db.getWorkoutsByDate(today).then((v) => pm.todayWorkouts = v).catchError((e) {
+        debugPrint('[Prefetch Error] getWorkoutsByDate gagal: $e');
+        return [];
+      }),
+      db.getProteinEntriesByDate(today).then((v) => pm.todayProtein = v).catchError((e) {
+        debugPrint('[Prefetch Error] getProteinEntriesByDate gagal: $e');
+        return [];
+      }),
+      db.getScheduleEventsByDate(today).then((v) => pm.upcomingEvents = v).catchError((e) {
+        debugPrint('[Prefetch Error] getScheduleEventsByDate gagal: $e');
+        return [];
+      }),
+    ]);
   }
 
   void _checkAndNavigate() {

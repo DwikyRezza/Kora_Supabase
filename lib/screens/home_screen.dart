@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import '../main.dart';
 import '../models/workout.dart';
 import '../models/protein_entry.dart';
 import '../models/schedule_event.dart';
@@ -14,6 +15,7 @@ import '../services/notification_service.dart';
 import '../services/social_service.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/prefetch_manager.dart';
 import 'dart:async';
 import 'search_screen.dart';
 import 'notification_screen.dart';
@@ -84,8 +86,59 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     _whistleTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
       _checkWhistleblower();
     });
-    // Auto-sync dari cloud saat aplikasi baru dibuka (sinkronisasi instan)
-    _initialSyncAndLoad();
+    
+    final pm = PrefetchManager.instance;
+    if (pm.hasData) {
+      _applyPrefetchedData(pm);
+      _backgroundSync(); // Fire and forget
+    } else {
+      _initialSyncAndLoad();
+    }
+  }
+
+  void _applyPrefetchedData(PrefetchManager pm) {
+    _isLoading = false;
+    _isLoadingFeed = false;
+    
+    _todayWorkouts = pm.todayWorkouts ?? [];
+    _todayProtein = pm.todayProtein ?? [];
+    _upcomingEvents = pm.upcomingEvents ?? [];
+    
+    if (pm.userProfile != null) {
+      _userName = pm.userProfile!['name'] ?? '';
+      _userPhotoUrl = pm.userProfile!['photoUrl'];
+      _baseTargetProtein = (pm.userProfile!['targetProtein'] as num?)?.toDouble() ?? 0.0;
+    }
+    
+    _unreadNotifs = pm.unreadNotificationCount ?? 0;
+    _todayCaloriesConsumed = pm.todayCaloriesConsumed ?? 0;
+    _todayCaloriesBurned = (pm.todayWorkoutMetrics?['caloriesBurned'] as num?)?.toInt() ?? 0;
+    _todayWorkoutDuration = (pm.todayWorkoutMetrics?['duration'] as num?)?.toInt() ?? 0;
+    _todayWorkoutDistance = (pm.todayWorkoutMetrics?['distance'] as num?)?.toDouble() ?? 0.0;
+    _currentWorkoutStreak = pm.currentWorkoutStreak?['current'] ?? 0;
+    
+    if (pm.limitedActivityFeed != null) {
+      _feedPosts = pm.limitedActivityFeed!;
+      _hasMoreData = _feedPosts.isNotEmpty;
+    }
+  }
+
+  Future<void> _backgroundSync() async {
+    try {
+      if (AuthService.isLoggedIn) {
+        bool isEmpty = await CloudSyncService.isLocalDataEmpty();
+        if (isEmpty) {
+          await CloudSyncService.restoreAllFromCloud().timeout(const Duration(seconds: 5));
+        } else {
+          await CloudSyncService.syncWorkoutsToCloud();
+          await CloudSyncService.syncNutritionToCloud();
+        }
+      }
+    } catch (_) {}
+    
+    if (mounted) {
+      _loadData(silent: true);
+    }
   }
 
   Future<void> _initialSyncAndLoad() async {
@@ -96,13 +149,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         if (isEmpty) {
           await CloudSyncService.restoreAllFromCloud().timeout(const Duration(seconds: 5));
         } else {
-          // Hanya upload/backup data lokal ke cloud agar tidak menimpa data yang belum tersinkronisasi
           await CloudSyncService.syncWorkoutsToCloud();
           await CloudSyncService.syncNutritionToCloud();
         }
       }
     } catch (_) {
-      // Abaikan error jaringan agar aplikasi tetap bisa dibuka secara offline
+      // Abaikan error jaringan
     }
     await _loadData();
   }
@@ -539,7 +591,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
-                Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppTheme.textPrimary)),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder: (Widget child, Animation<double> animation) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                  child: Text(
+                    value, 
+                    key: ValueKey<String>(value), 
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppTheme.textPrimary)
+                  ),
+                ),
                 if (subValue != null) ...[
                   const SizedBox(width: 4),
                   Text(subValue, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textMuted)),

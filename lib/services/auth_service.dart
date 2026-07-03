@@ -1,8 +1,9 @@
-﻿import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/database_helper.dart';
+import '../utils/prefetch_manager.dart';
 
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -69,6 +70,7 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     await DatabaseHelper().clearAllData();
+    PrefetchManager.instance.clearCache();
   }
 
   /// Get user display name
