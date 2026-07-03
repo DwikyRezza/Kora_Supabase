@@ -134,8 +134,16 @@ class _TrainingVolumeChartState extends State<TrainingVolumeChart> {
                 isCurved: false, // Grafik volume Strava umumnya tegak lurus ke titik minggu
                 color: Colors.blueAccent,
                 barWidth: 3,
-                isStrokeCapRound: true,
-                dotData: const FlDotData(show: false), // Sembunyikan dot default, hanya muncul saat disentuh
+                dotData: FlDotData(
+                  show: true,
+                  checkToShowDot: (spot, barData) => spot.y == 0, // Tetap tampilkan titik jika nilainya 0
+                  getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+                    radius: 3,
+                    color: Colors.blueAccent,
+                    strokeWidth: 1,
+                    strokeColor: Colors.white,
+                  ),
+                ), // Sembunyikan default dot kecuali jika nilainya 0
                 belowBarData: BarAreaData(show: false),
               ),
             ],
