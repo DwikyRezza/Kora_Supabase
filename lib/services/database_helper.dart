@@ -420,7 +420,7 @@ class DatabaseHelper {
   /// Menghitung total hari berturut-turut (Streak) dari tabel workouts
   /// menggunakan Aturan 48 Jam (Aman jika hari ini belum latihan tapi kemarin sudah)
   /// Bug DST (Daylight Saving Time) dicegah dengan menggunakan list hari unik dan DateTime(YYYY-MM-DD).
-  Future<int> getCalculateWorkoutStreak() async {
+  Future<Map<String, int>> getCalculateWorkoutStreak() async {
     final db = await database;
     // Mengambil tanggal unik berformat 'YYYY-MM-DD' secara descending dari SQLite
     final List<Map<String, dynamic>> maps = await db.rawQuery('''
@@ -429,11 +429,29 @@ class DatabaseHelper {
       ORDER BY dateStr DESC
     ''');
     
-    if (maps.isEmpty) return 0;
+    if (maps.isEmpty) return {'current': 0, 'best': 0};
     
     List<String> dates = maps.map((m) => m['dateStr'] as String).toList();
     
-    int streak = 0;
+    // Calculate Best Streak
+    int bestStreak = 0;
+    int tempStreak = 1;
+    for (int i = 0; i < dates.length - 1; i++) {
+      DateTime d1 = DateTime.parse(dates[i]);
+      DateTime d2 = DateTime.parse(dates[i+1]);
+      int diff = DateTime(d1.year, d1.month, d1.day).difference(DateTime(d2.year, d2.month, d2.day)).inDays;
+      if (diff == 1) {
+        tempStreak++;
+      } else {
+        if (tempStreak > bestStreak) bestStreak = tempStreak;
+        tempStreak = 1;
+      }
+    }
+    if (tempStreak > bestStreak) bestStreak = tempStreak;
+    if (dates.length == 1) bestStreak = 1;
+    
+    // Calculate Current Streak
+    int currentStreak = 0;
     DateTime now = DateTime.now();
     DateTime today = DateTime(now.year, now.month, now.day);
     DateTime yesterday = DateTime(now.year, now.month, now.day - 1);
@@ -444,25 +462,27 @@ class DatabaseHelper {
     bool hasToday = dates.contains(todayStr);
     bool hasYesterday = dates.contains(yesterdayStr);
     
-    // Aturan Patah: Jika tidak ada log hari ini DAN kemarin, streak = 0
-    if (!hasToday && !hasYesterday) return 0;
-    
-    // Tentukan titik awal hitung mundur
-    DateTime checkDate = hasToday ? today : yesterday;
-    
-    // Hitung mundur hari secara aman dari DST
-    for (int i = 0; i < dates.length; i++) {
-      DateTime expectedDate = DateTime(checkDate.year, checkDate.month, checkDate.day - i);
-      String expectedDateStr = expectedDate.toIso8601String().split('T')[0];
+    // Aturan Patah: Jika tidak ada log hari ini DAN kemarin, currentStreak = 0
+    if (!hasToday && !hasYesterday) {
+      currentStreak = 0;
+    } else {
+      // Tentukan titik awal hitung mundur
+      DateTime checkDate = hasToday ? today : yesterday;
       
-      if (dates.contains(expectedDateStr)) {
-        streak++;
-      } else {
-        break;
+      // Hitung mundur hari secara aman dari DST
+      for (int i = 0; i < dates.length; i++) {
+        DateTime expectedDate = DateTime(checkDate.year, checkDate.month, checkDate.day - i);
+        String expectedDateStr = expectedDate.toIso8601String().split('T')[0];
+        
+        if (dates.contains(expectedDateStr)) {
+          currentStreak++;
+        } else {
+          break;
+        }
       }
     }
     
-    return streak;
+    return {'current': currentStreak, 'best': bestStreak};
   }
 
   Future<int> deleteWorkout(int id) async {

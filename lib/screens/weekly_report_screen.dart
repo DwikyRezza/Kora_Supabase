@@ -126,40 +126,12 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       }
     }
 
-    // Streak calculation
-    int currentStreak = 0, bestStreak = 0, successDays = 0;
-    int availableFreeze =
-        profile[ProfileService.keyStreakFreezeCount] ?? 0;
+    final globalWorkoutStreak = await _db.getCalculateWorkoutStreak();
+    int currentStreak = globalWorkoutStreak['current'] ?? 0;
+    int bestStreak = globalWorkoutStreak['best'] ?? 0;
+    
+    // We keep frozenDays empty for now since freeze logic for workouts isn't implemented yet
     List<int> frozenDays = [];
-
-    daysInMonth =
-        DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
-    int daysPassed = DateTime.now().day;
-    if (_currentMonth.month != DateTime.now().month ||
-        _currentMonth.year != DateTime.now().year) {
-      daysPassed = daysInMonth;
-    }
-
-    for (int i = 1; i <= daysPassed; i++) {
-      double p = stats[i]!['protein'];
-      if (p >= _targetProtein * 0.9) {
-        currentStreak++;
-        successDays++;
-        if (currentStreak > bestStreak) bestStreak = currentStreak;
-      } else {
-        if (availableFreeze > 0 && i < daysPassed) {
-          availableFreeze--;
-          frozenDays.add(i);
-          currentStreak++;
-          if (currentStreak > bestStreak) bestStreak = currentStreak;
-        } else {
-          if (i < DateTime.now().day ||
-              _currentMonth.month != DateTime.now().month) {
-            currentStreak = 0;
-          }
-        }
-      }
-    }
 
     // Monthly total workouts
     final monthWorkouts = await _db.getWorkoutsByDateRange(
@@ -172,6 +144,13 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       workoutDays.add(w.date.day);
     }
 
+    // Consistency score is based on workout days this month
+    int daysPassed = DateTime.now().day;
+    if (_currentMonth.month != DateTime.now().month ||
+        _currentMonth.year != DateTime.now().year) {
+      daysPassed = daysInMonth;
+    }
+    
     if (mounted) {
       setState(() {
         _dailyStats = stats;
@@ -179,7 +158,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         _bestStreak = bestStreak;
         _frozenDays = frozenDays;
         _consistencyScore =
-            daysPassed > 0 ? (successDays / daysPassed) * 100 : 0.0;
+            daysPassed > 0 ? (workoutDays.length / daysPassed) * 100 : 0.0;
         _totalWorkoutsMonth = monthWorkouts.length;
         _workoutDaysMonth = workoutDays;
         _isLoading = false;

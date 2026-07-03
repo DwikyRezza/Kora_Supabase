@@ -237,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           _todayCaloriesBurned = (workoutMetrics['caloriesBurned'] as num).toInt();
           _todayWorkoutDuration = (workoutMetrics['duration'] as num).toInt();
           _todayWorkoutDistance = (workoutMetrics['distance'] as num).toDouble();
-          _currentWorkoutStreak = workoutStreak;
+          _currentWorkoutStreak = workoutStreak['current'] ?? 0;
           
           _isLoadingFeed = false;
         });
