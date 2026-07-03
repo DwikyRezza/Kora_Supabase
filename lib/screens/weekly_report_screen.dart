@@ -40,6 +40,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   String _selectedFilter = 'all'; // all | running | walking | weightlifting
   Map<int, List<Workout>> _weekWorkouts = {}; // day-of-month → workouts
   int _totalWorkoutsMonth = 0;
+  Set<int> _workoutDaysMonth = {};
 
   static const _filterLabels = {
     'all': 'Semua',
@@ -165,6 +166,11 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       start: DateTime(_currentMonth.year, _currentMonth.month, 1),
       end: DateTime(_currentMonth.year, _currentMonth.month + 1, 0, 23, 59, 59),
     );
+    
+    Set<int> workoutDays = {};
+    for (var w in monthWorkouts) {
+      workoutDays.add(w.date.day);
+    }
 
     if (mounted) {
       setState(() {
@@ -175,6 +181,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         _consistencyScore =
             daysPassed > 0 ? (successDays / daysPassed) * 100 : 0.0;
         _totalWorkoutsMonth = monthWorkouts.length;
+        _workoutDaysMonth = workoutDays;
         _isLoading = false;
       });
     }
@@ -1344,6 +1351,21 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                                 color: AppTheme.textMuted,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14)),
+                      ),
+                    ),
+                  
+                  // Tanda api (🔥) kecil di bagian bawah-kanan jika ada latihan di hari tsb
+                  if (_workoutDaysMonth.contains(day))
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surface, // Supaya tidak tertimpa background
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Text('🔥', style: TextStyle(fontSize: 10)),
                       ),
                     ),
                   if (isSuccess && gglWarn)

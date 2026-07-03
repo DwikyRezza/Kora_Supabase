@@ -64,7 +64,8 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
   Future<void> _loadData({bool silent = false}) async {
     if (!silent) setState(() => _isLoading = true);
     
-    final workouts = await _db.getRecentWorkouts(limit: 50);
+    // Gunakan getAllWorkouts agar perhitungan streak tidak terputus di 50 aktivitas terakhir
+    final workouts = await _db.getAllWorkouts();
     final profile = await ProfileService.getProfile();
     
     List<Map<String, dynamic>> userPosts = [];
@@ -434,7 +435,10 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
     DateTime checkDate = hasToday ? today : yesterday;
     
     for (int i = 0; i < dates.length; i++) {
-      if (dates.contains(checkDate.subtract(Duration(days: i)))) {
+      // Gunakan konstruktor DateTime untuk menghindari bug daylight saving (DST) 
+      // yang timbul jika menggunakan subtract(Duration(days: i)).
+      DateTime expectedDate = DateTime(checkDate.year, checkDate.month, checkDate.day - i);
+      if (dates.contains(expectedDate)) {
         streak++;
       } else {
         break;
