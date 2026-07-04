@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import '../models/protein_entry.dart';
@@ -253,7 +254,12 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
           ),
           child: Row(
             children: [
-              const _GroqLogo(size: 32),
+              Image.asset(
+                'assets/icons/logo.png',
+                width: 56,
+                height: 56,
+                color: AppTheme.isDarkMode ? Colors.white : AppTheme.textPrimary,
+              ),
               SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -384,7 +390,12 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                       child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
                     )
                   else
-                    const _GroqLogo(size: 24, isWhite: true),
+                    Image.asset(
+                      'assets/icons/logo.png',
+                      width: 28,
+                      height: 28,
+                      color: Colors.white,
+                    ),
                   SizedBox(width: 12),
                   Text(_isAnalyzing ? 'Menganalisis...' : 'Catat Makanan',
                       style: TextStyle(
@@ -487,7 +498,12 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                   children: [
                     Row(
                       children: [
-                        _GroqLogo(size: 24),
+                        Image.asset(
+                          'assets/icons/logo.png',
+                          width: 32,
+                          height: 32,
+                          color: AppTheme.isDarkMode ? Colors.white : AppTheme.textPrimary,
+                        ),
                         SizedBox(width: 12),
                         Text('Hasil Analisis',
                             style: TextStyle(
@@ -702,47 +718,4 @@ class _FoodResult {
       salt: _d(m['salt']),
     );
   }
-}
-
-class _GroqLogo extends StatelessWidget {
-  final double size;
-  final bool isWhite;
-  const _GroqLogo({this.size = 24, this.isWhite = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: CustomPaint(painter: _GroqPainter(isWhite: isWhite)),
-    );
-  }
-}
-
-class _GroqPainter extends CustomPainter {
-  final bool isWhite;
-  _GroqPainter({required this.isWhite});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = isWhite ? Colors.white : AppTheme.textPrimary
-      ..style = PaintingStyle.fill;
-    
-    final path = Path()
-      ..moveTo(size.width * 0.5, size.height * 0.1)
-      ..arcToPoint(Offset(size.width * 0.1, size.height * 0.5), radius: Radius.circular(size.width * 0.4), clockwise: false)
-      ..arcToPoint(Offset(size.width * 0.5, size.height * 0.9), radius: Radius.circular(size.width * 0.4), clockwise: false)
-      ..arcToPoint(Offset(size.width * 0.9, size.height * 0.5), radius: Radius.circular(size.width * 0.4), clockwise: false)
-      ..lineTo(size.width * 0.5, size.height * 0.5)
-      ..lineTo(size.width * 0.5, size.height * 0.65)
-      ..lineTo(size.width * 0.7, size.height * 0.65)
-      ..arcToPoint(Offset(size.width * 0.5, size.height * 0.75), radius: Radius.circular(size.width * 0.25))
-      ..arcToPoint(Offset(size.width * 0.25, size.height * 0.5), radius: Radius.circular(size.width * 0.25))
-      ..arcToPoint(Offset(size.width * 0.5, size.height * 0.25), radius: Radius.circular(size.width * 0.25));
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

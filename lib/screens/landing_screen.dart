@@ -385,7 +385,7 @@ class _GoogleGIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SvgPicture.asset(
-      'assets/icons/kora_logo.svg', // using the SVG provided by the user
+      'assets/icons/google_logo.svg',
       width: 22,
       height: 22,
     );

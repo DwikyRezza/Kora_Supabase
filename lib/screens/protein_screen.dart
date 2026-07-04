@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
 import '../models/protein_entry.dart';
 import '../services/database_helper.dart';
@@ -356,7 +357,12 @@ class _ProteinScreenState extends State<ProteinScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _GroqIcon(),
+              Image.asset(
+                'assets/icons/logo.png',
+                width: 28,
+                height: 28,
+                color: Colors.white,
+              ),
               SizedBox(width: 10),
               Text('Catat Makanan',
                   style: TextStyle(
@@ -443,42 +449,3 @@ class _ProteinScreenState extends State<ProteinScreen> {
   }
 }
 
-class _GroqIcon extends StatelessWidget {
-  const _GroqIcon();
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-        width: 20, height: 20, child: CustomPaint(painter: _GroqIconPainter()));
-  }
-}
-
-class _GroqIconPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppTheme.textPrimary
-      ..style = PaintingStyle.fill;
-
-    final path = Path()
-      ..moveTo(size.width * 0.5, size.height * 0.1)
-      ..arcToPoint(Offset(size.width * 0.1, size.height * 0.5),
-          radius: Radius.circular(size.width * 0.4), clockwise: false)
-      ..arcToPoint(Offset(size.width * 0.5, size.height * 0.9),
-          radius: Radius.circular(size.width * 0.4), clockwise: false)
-      ..arcToPoint(Offset(size.width * 0.9, size.height * 0.5),
-          radius: Radius.circular(size.width * 0.4), clockwise: false)
-      ..lineTo(size.width * 0.5, size.height * 0.5)
-      ..lineTo(size.width * 0.5, size.height * 0.65)
-      ..lineTo(size.width * 0.7, size.height * 0.65)
-      ..arcToPoint(Offset(size.width * 0.5, size.height * 0.75),
-          radius: Radius.circular(size.width * 0.25))
-      ..arcToPoint(Offset(size.width * 0.25, size.height * 0.5),
-          radius: Radius.circular(size.width * 0.25))
-      ..arcToPoint(Offset(size.width * 0.5, size.height * 0.25),
-          radius: Radius.circular(size.width * 0.25));
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
