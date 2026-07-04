@@ -358,9 +358,9 @@ class _ProteinScreenState extends State<ProteinScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                'assets/icons/logo.png',
-                width: 28,
-                height: 28,
+                'assets/icons/logoNObg.png',
+                width: 36,
+                height: 36,
                 color: Colors.white,
               ),
               SizedBox(width: 10),

@@ -255,7 +255,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
           child: Row(
             children: [
               Image.asset(
-                'assets/icons/logo.png',
+                'assets/icons/logoNObg.png',
                 width: 56,
                 height: 56,
                 color: AppTheme.isDarkMode ? Colors.white : AppTheme.textPrimary,
@@ -391,9 +391,9 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                     )
                   else
                     Image.asset(
-                      'assets/icons/logo.png',
-                      width: 28,
-                      height: 28,
+                      'assets/icons/logoNObg.png',
+                      width: 36,
+                      height: 36,
                       color: Colors.white,
                     ),
                   SizedBox(width: 12),
@@ -499,7 +499,7 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                     Row(
                       children: [
                         Image.asset(
-                          'assets/icons/logo.png',
+                          'assets/icons/logoNObg.png',
                           width: 32,
                           height: 32,
                           color: AppTheme.isDarkMode ? Colors.white : AppTheme.textPrimary,
