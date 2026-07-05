@@ -15,6 +15,7 @@ import 'screens/body_stats_screen.dart';
 import 'screens/profile_screen.dart';
 import 'services/notification_service.dart';
 import 'services/settings_service.dart';
+import 'repositories/workout_repository.dart';
 
 import 'screens/splash_screen.dart';
 
@@ -52,19 +53,26 @@ class KoraApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<ThemeMode>(
-      valueListenable: AppTheme.themeNotifier,
-      builder: (context, currentMode, _) {
-        return MaterialApp(
-          title: 'Kora',
-          debugShowCheckedModeBanner: false,
-          scrollBehavior: const _GlowScrollBehavior(),
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: currentMode,
-          home: const SplashScreen(),
-        );
-      },
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<WorkoutRepository>(
+          create: (context) => WorkoutRepository(),
+        ),
+      ],
+      child: ValueListenableBuilder<ThemeMode>(
+        valueListenable: AppTheme.themeNotifier,
+        builder: (context, currentMode, _) {
+          return MaterialApp(
+            title: 'Kora',
+            debugShowCheckedModeBanner: false,
+            scrollBehavior: const _GlowScrollBehavior(),
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: currentMode,
+            home: const SplashScreen(),
+          );
+        },
+      ),
     );
   }
 }

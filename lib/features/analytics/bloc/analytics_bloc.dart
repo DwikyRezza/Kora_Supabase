@@ -2,12 +2,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'analytics_event.dart';
 import 'analytics_state.dart';
 import '../../../models/workout.dart';
-import '../../../services/database_helper.dart';
+import '../../../repositories/workout_repository.dart';
 
 class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
-  final DatabaseHelper _db = DatabaseHelper();
+  final WorkoutRepository _workoutRepository;
 
-  AnalyticsBloc() : super(AnalyticsState(currentMonth: DateTime.now())) {
+  AnalyticsBloc({required WorkoutRepository workoutRepository}) 
+    : _workoutRepository = workoutRepository,
+      super(AnalyticsState(currentMonth: DateTime.now())) {
     on<AnalyticsLoadData>(_onLoadData);
     on<AnalyticsFilterChanged>(_onFilterChanged);
     on<AnalyticsMonthChanged>(_onMonthChanged);
@@ -18,12 +20,12 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
     emit(state.copyWith(isLoading: true));
 
     try {
-      final globalWorkoutStreak = await _db.getCalculateWorkoutStreak();
+      final globalWorkoutStreak = await _workoutRepository.getCalculateWorkoutStreak();
       int currentStreak = globalWorkoutStreak['current'] ?? 0;
       int bestStreak = globalWorkoutStreak['best'] ?? 0;
 
       // Monthly total workouts
-      final monthWorkouts = await _db.getWorkoutsByDateRange(
+      final monthWorkouts = await _workoutRepository.getWorkoutsByDateRange(
         start: DateTime(event.month.year, event.month.month, 1),
         end: DateTime(event.month.year, event.month.month + 1, 0, 23, 59, 59),
       );
@@ -94,7 +96,7 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
     // Usually we show the last 7 days or current week in the chart
     final startOfWeek = now.subtract(Duration(days: 6));
     
-    final allWorkouts = await _db.getWorkoutsByDateRange(
+    final allWorkouts = await _workoutRepository.getWorkoutsByDateRange(
       start: DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day, 0, 0, 0),
       end: DateTime(now.year, now.month, now.day, 23, 59, 59),
     );

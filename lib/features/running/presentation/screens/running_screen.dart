@@ -18,6 +18,7 @@ import '../../../../utils/tab_visibility.dart';
 import '../../../../widgets/running_tracker/running_tracker_components.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../repositories/workout_repository.dart';
 import '../../bloc/running_bloc.dart';
 import '../../bloc/running_event.dart';
 import '../../bloc/running_state.dart';
@@ -29,7 +30,9 @@ class RunningTrackerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => RunningBloc(),
+      create: (context) => RunningBloc(
+        workoutRepository: context.read<WorkoutRepository>(),
+      ),
       child: RunningTrackerView(userWeight: userWeight),
     );
   }

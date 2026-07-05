@@ -4,6 +4,7 @@ import 'package:lottie/lottie.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../theme/app_theme.dart';
+import '../../../../repositories/workout_repository.dart';
 import '../../bloc/analytics_bloc.dart';
 import '../../bloc/analytics_event.dart';
 import '../../bloc/analytics_state.dart';
@@ -15,7 +16,9 @@ class WeeklyReportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => AnalyticsBloc()..add(AnalyticsLoadData(DateTime.now(), 'all')),
+      create: (context) => AnalyticsBloc(
+        workoutRepository: context.read<WorkoutRepository>(),
+      )..add(AnalyticsLoadData(DateTime.now(), 'all')),
       child: WeeklyReportView(embedMode: embedMode),
     );
   }

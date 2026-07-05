@@ -8,11 +8,14 @@ import '../../../services/database_helper.dart';
 import '../../../services/cloud_sync_service.dart';
 import '../../../services/social_service.dart';
 import '../../../services/profile_service.dart';
+import '../../../repositories/workout_repository.dart';
 
 class RunningBloc extends Bloc<RunningEvent, RunningState> {
-  final DatabaseHelper _db = DatabaseHelper();
+  final WorkoutRepository _workoutRepository;
 
-  RunningBloc() : super(const RunningState()) {
+  RunningBloc({required WorkoutRepository workoutRepository}) 
+    : _workoutRepository = workoutRepository,
+      super(const RunningState()) {
     on<RunningInit>((event, emit) {
       emit(const RunningState());
     });
@@ -69,10 +72,7 @@ class RunningBloc extends Bloc<RunningEvent, RunningState> {
 
     try {
       final workout = event.workout;
-      await _db.insertWorkout(workout);
-
-      // Cloud Sync
-      CloudSyncService.backupToCloud().catchError((_) {});
+      await _workoutRepository.insertWorkout(workout);
 
       // Social Post
       try {
