@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import '../models/protein_entry.dart';
 import '../services/database_helper.dart';
 import '../services/cloud_sync_service.dart';
 import '../utils/prefetch_manager.dart';
 import '../utils/background_task_queue.dart';
+import '../models/protein_entry.dart';
 
 class AiNutritionScreen extends StatefulWidget {
   const AiNutritionScreen({super.key});
@@ -170,26 +170,18 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
     final mealType = _detectMealType(now);
 
     // Build the list of entries to insert
-    final entries = results.map((r) => ProteinEntry(
-      foodName: r.name,
-      proteinGrams: r.protein,
-      calories: r.calories,
-      carbsGrams: r.carbs,
-      fatGrams: r.fat,
-      fiberGrams: r.fiber,
-      sugarGrams: r.sugar,
-      saltGrams: r.salt,
-      waterMl: 0,
-      mealType: mealType,
-      date: now,
-    )).toList();
-
+    
     // ── OPTIMISTIC UPDATE ──────────────────────────────────────────────────
     // Snapshot previous state for rollback
     final pm = PrefetchManager.instance;
     final prevCalories = pm.todayCaloriesConsumed;
+    final prevProtein = pm.todayProtein;
+    
     final totalNewCalories = results.fold<double>(0, (s, r) => s + r.calories).toInt();
+    final totalNewProtein = results.fold<double>(0, (s, r) => s + r.protein);
+    
     pm.todayCaloriesConsumed = (prevCalories ?? 0) + totalNewCalories;
+    pm.todayProtein = (prevProtein ?? 0.0) + totalNewProtein;
 
     // Close screen instantly — user sees updated metric on HomeScreen immediately
     if (!mounted) return;
@@ -197,10 +189,27 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
 
     // ── BACKGROUND SAVE (with 10s timeout and rollback on failure) ──────────
     BackgroundTaskQueue.instance.enqueue<void>(
-      task: () => Future.wait(entries.map((e) => db.insertProteinEntry(e))),
+      task: () async {
+        for (var r in results) {
+          final entry = ProteinEntry(
+            foodName: r.name,
+            proteinGrams: r.protein,
+            calories: r.calories,
+            carbsGrams: r.carbs,
+            fatGrams: r.fat,
+            fiberGrams: r.fiber,
+            sugarGrams: r.sugar,
+            saltGrams: r.salt,
+            date: now,
+            mealType: mealType,
+          );
+          await db.insertProteinEntry(entry);
+        }
+      },
       onError: (e) {
         // Rollback the optimistic update
         pm.todayCaloriesConsumed = prevCalories;
+        pm.todayProtein = prevProtein;
 
         // Show retry SnackBar — but we are now in background, so we need a global key or messenger.
         // We show it via the app's root scaffold by broadcasting via the main navigator
@@ -244,53 +253,57 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
   Widget _buildInputView() {
     return Column(
       children: [
-        Container(
-          margin: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: AppTheme.surfaceVariant,
-            borderRadius: BorderRadius.circular(26),
-          ),
-          child: Row(
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(0, 16, 0, 24),
             children: [
-              Image.asset(
-                'assets/icons/logoNObg.png',
-                width: 56,
-                height: 56,
-                color: AppTheme.isDarkMode ? Colors.white : AppTheme.textPrimary,
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              // Header Card
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceVariant,
+                  borderRadius: BorderRadius.circular(26),
+                ),
+                child: Row(
                   children: [
-                    Text(
-                      'Catat Apa yang Kamu Makan',
-                      style: TextStyle(
-                        color: AppTheme.textPrimary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+                    Image.asset(
+                      'assets/icons/logoNObg.png',
+                      width: 56,
+                      height: 56,
+                      color: AppTheme.isDarkMode ? Colors.white : AppTheme.textPrimary,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Tulis menu makananmu secara natural.',
-                      style: TextStyle(
-                          color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.bold),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Catat Apa yang Kamu Makan',
+                            style: TextStyle(
+                              color: AppTheme.textPrimary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Tulis menu makananmu secara natural.',
+                            style: TextStyle(
+                                color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
 
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
+              const SizedBox(height: 24),
+
+              // Labels
               Padding(
-                padding: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 24).copyWith(bottom: 12),
                 child: Row(
                   children: [
                     Expanded(
@@ -310,61 +323,72 @@ Catatan: semua nilai dalam angka (double). Jika tidak tahu, perkirakan dengan be
                               fontSize: 13,
                               fontWeight: FontWeight.bold)),
                     ),
-                    const SizedBox(width: 48), // Padding allowance for the IconButton
+                    const SizedBox(width: 48),
                   ],
                 ),
               ),
 
-              ...List.generate(_rows.length, (i) => _buildInputRow(i)),
+              // Rows
+              ...List.generate(_rows.length, (i) => Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: _buildInputRow(i)
+              )),
 
               const SizedBox(height: 16),
-              GestureDetector(
-                onTap: _addRow,
-                child: Container(
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: AppTheme.surface,
-                    borderRadius: BorderRadius.circular(26),
-                    border: Border.all(
-                      color: AppTheme.surfaceVariant,
-                      width: 2,
+              
+              // Add Button
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: GestureDetector(
+                  onTap: _addRow,
+                  child: Container(
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: AppTheme.surface,
+                      borderRadius: BorderRadius.circular(26),
+                      border: Border.all(
+                        color: AppTheme.surfaceVariant,
+                        width: 2,
+                      ),
                     ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.add_circle_outline_rounded,
-                          color: AppTheme.textPrimary, size: 24),
-                      const SizedBox(width: 8),
-                      Text('Tambah Makanan',
-                          style: TextStyle(
-                              color: AppTheme.textPrimary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16)),
-                    ],
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add_circle_outline_rounded,
+                            color: AppTheme.textPrimary, size: 24),
+                        const SizedBox(width: 8),
+                        Text('Tambah Makanan',
+                            style: TextStyle(
+                                color: AppTheme.textPrimary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16)),
+                      ],
+                    ),
                   ),
                 ),
               ),
 
               if (_errorMsg != null) ...[
                 const SizedBox(height: 24),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFF3400).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(26),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF3400).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(26),
+                    ),
+                    child: Text(_errorMsg!,
+                        style:
+                            const TextStyle(color: Color(0xFFFF3400), fontSize: 13, fontWeight: FontWeight.bold)),
                   ),
-                  child: Text(_errorMsg!,
-                      style:
-                          const TextStyle(color: Color(0xFFFF3400), fontSize: 13, fontWeight: FontWeight.bold)),
                 ),
               ],
-
-              const SizedBox(height: 100),
             ],
           ),
         ),
 
+        // Footer Button
         Container(
           padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
           color: AppTheme.surface,

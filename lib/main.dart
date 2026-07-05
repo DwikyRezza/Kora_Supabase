@@ -8,6 +8,7 @@ import 'features/home/presentation/screens/home_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'features/home/bloc/home_bloc.dart';
 import 'screens/workout_screen.dart';
+import 'screens/ai_nutrition_screen.dart';
 import 'screens/protein_screen.dart';
 import 'screens/schedule_screen.dart';
 import 'screens/body_stats_screen.dart';

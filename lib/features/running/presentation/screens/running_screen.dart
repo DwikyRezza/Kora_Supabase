@@ -85,6 +85,7 @@ class _RunningTrackerViewState extends State<RunningTrackerView>
   double _maxElevation = 0.0;
   List<String> _splits = [];
   bool _isSaving = false; // Guard agar tidak double-save
+  bool _hasSavedDatabase = false; // Guard strict untuk insert DB
 
   // ── Marker kustom ─────────────────────────────────────────────────────
   BitmapDescriptor? _locationMarker;
@@ -827,7 +828,8 @@ class _RunningTrackerViewState extends State<RunningTrackerView>
 
   // ── Simpan ke Database ────────────────────────────────────────────────
   Future<void> _saveRunToDatabase() async {
-    if (!_isSaving) return;
+    if (!_isSaving || _hasSavedDatabase) return;
+    _hasSavedDatabase = true;
     await LocationService.stopService();
 
     if (_distanceKm < 0.01) {

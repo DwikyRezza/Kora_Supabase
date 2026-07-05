@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
+import '../models/protein_entry.dart';
 import 'package:path/path.dart';
 import '../models/workout.dart';
-import '../models/protein_entry.dart';
 import '../models/schedule_event.dart';
 import '../models/body_measurement.dart';
 
@@ -55,23 +55,7 @@ class DatabaseHelper {
       )
     ''');
 // ... (rest of onCreate same as before)
-    await db.execute('''
-      CREATE TABLE protein_entries (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        foodName TEXT NOT NULL,
-        proteinGrams REAL NOT NULL,
-        calories REAL NOT NULL,
-        carbsGrams REAL DEFAULT 0.0,
-        fatGrams REAL DEFAULT 0.0,
-        fiberGrams REAL DEFAULT 0.0,
-        sugarGrams REAL DEFAULT 0.0,
-        saltGrams REAL DEFAULT 0.0,
-        waterMl INTEGER DEFAULT 0,
-        mealType TEXT NOT NULL,
-        emojiStr TEXT,
-        date TEXT NOT NULL
-      )
-    ''');
+    
 
     await db.execute('''
       CREATE TABLE schedule_events (
@@ -243,6 +227,20 @@ class DatabaseHelper {
           )
         ''');
         await db.execute('''
+          CREATE TABLE IF NOT EXISTS protein_entries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT NOT NULL,
+            foodName TEXT NOT NULL,
+            proteinGrams REAL NOT NULL,
+            calories REAL DEFAULT 0.0,
+            carbsGrams REAL DEFAULT 0.0,
+            fatGrams REAL DEFAULT 0.0,
+            fiberGrams REAL DEFAULT 0.0,
+            sugarGrams REAL DEFAULT 0.0,
+            saltGrams REAL DEFAULT 0.0,
+            waterMl INTEGER DEFAULT 0,
+            emojiStr TEXT
+          );
           CREATE TABLE IF NOT EXISTS temp_tracking_points (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             lat REAL NOT NULL,
@@ -625,36 +623,8 @@ class DatabaseHelper {
   }
 
   // ---- PROTEIN METHODS ----
-  Future<int> insertProteinEntry(ProteinEntry entry) async {
-    final db = await database;
-    return await db.insert('protein_entries', entry.toMap());
-  }
 
-  Future<List<ProteinEntry>> getProteinEntriesByDate(DateTime date) async {
-    final db = await database;
-    final start = DateTime(date.year, date.month, date.day).toIso8601String();
-    final end = DateTime(date.year, date.month, date.day, 23, 59, 59).toIso8601String();
-    final maps = await db.query(
-      'protein_entries',
-      where: 'date BETWEEN ? AND ?',
-      whereArgs: [start, end],
-      orderBy: 'date ASC',
-    );
-    return maps.map((m) => ProteinEntry.fromMap(m)).toList();
-  }
 
-  Future<List<ProteinEntry>> getProteinEntriesByMonth(int year, int month) async {
-    final db = await database;
-    final start = DateTime(year, month, 1).toIso8601String();
-    final end = DateTime(year, month + 1, 0, 23, 59, 59).toIso8601String();
-    final maps = await db.query(
-      'protein_entries',
-      where: 'date BETWEEN ? AND ?',
-      whereArgs: [start, end],
-      orderBy: 'date ASC',
-    );
-    return maps.map((m) => ProteinEntry.fromMap(m)).toList();
-  }
 
   // Predictive search for frequent foods
   Future<List<String>> getFrequentFoods({String? mealType, int limit = 10}) async {
@@ -680,10 +650,6 @@ class DatabaseHelper {
     return maps.map((m) => m['foodName'] as String).toList();
   }
 
-  Future<int> deleteProteinEntry(int id) async {
-    final db = await database;
-    return await db.delete('protein_entries', where: 'id = ?', whereArgs: [id]);
-  }
 
   // ---- SCHEDULE METHODS ----
   Future<int> insertScheduleEvent(ScheduleEvent event) async {
@@ -822,5 +788,72 @@ class DatabaseHelper {
   Future<void> deleteUserProfile(String uid) async {
     final db = await database;
     await db.delete('user_profiles', where: 'uid = ?', whereArgs: [uid]);
+  }
+
+  Future<void> insertNutritionLog({
+    required String foodName,
+    required double protein,
+    required double calories,
+    required double carbs,
+    required double fat,
+    required double fiber,
+    required double sugar,
+    required double salt,
+  }) async {
+    final db = await database;
+    await db.insert(
+      'protein_entries',
+      {
+        'date': DateTime.now().toIso8601String(),
+        'foodName': foodName,
+        'proteinGrams': protein,
+        'calories': calories,
+        'carbsGrams': carbs,
+        'fatGrams': fat,
+        'fiberGrams': fiber,
+        'sugarGrams': sugar,
+        'saltGrams': salt,
+      },
+    );
+  }
+
+  Future<List<ProteinEntry>> getProteinEntriesByDate(DateTime date) async {
+    final db = await database;
+    final start = DateTime(date.year, date.month, date.day).toIso8601String();
+    final end = DateTime(date.year, date.month, date.day, 23, 59, 59).toIso8601String();
+    final maps = await db.query(
+      'protein_entries',
+      where: 'date BETWEEN ? AND ?',
+      whereArgs: [start, end],
+      orderBy: 'date DESC',
+    );
+    return maps.map((e) => ProteinEntry.fromMap(e)).toList();
+  }
+
+  Future<List<ProteinEntry>> getProteinEntriesByMonth(int year, int month) async {
+    final db = await database;
+    final start = DateTime(year, month, 1).toIso8601String();
+    final end = DateTime(year, month + 1, 0, 23, 59, 59).toIso8601String();
+    final maps = await db.query(
+      'protein_entries',
+      where: 'date BETWEEN ? AND ?',
+      whereArgs: [start, end],
+      orderBy: 'date DESC',
+    );
+    return maps.map((e) => ProteinEntry.fromMap(e)).toList();
+  }
+
+  Future<void> deleteProteinEntry(int id) async {
+    final db = await database;
+    await db.delete(
+      'protein_entries',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<int> insertProteinEntry(ProteinEntry entry) async {
+    final db = await database;
+    return await db.insert('protein_entries', entry.toMap());
   }
 }

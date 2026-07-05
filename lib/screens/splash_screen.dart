@@ -189,13 +189,7 @@ class _SplashScreenState extends State<SplashScreen>
         debugPrint('[Prefetch Error] getWorkoutsByDate gagal: $e');
         return [];
       }),
-      db
-          .getProteinEntriesByDate(today)
-          .then((v) => pm.todayProtein = v)
-          .catchError((e) {
-        debugPrint('[Prefetch Error] getProteinEntriesByDate gagal: $e');
-        return [];
-      }),
+
       db
           .getScheduleEventsByDate(today)
           .then((v) => pm.upcomingEvents = v)

@@ -9,7 +9,7 @@ import '../models/workout.dart';
 import '../services/database_helper.dart';
 import '../services/profile_service.dart';
 import '../services/cloud_sync_service.dart';
-import 'running_tracker_screen.dart';
+import '../features/running/presentation/screens/running_screen.dart';
 import 'workout_setup_screen.dart';
 import 'weekly_report_screen.dart';
 import '../services/social_service.dart';

@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 class TrainingVolumeChart extends StatefulWidget {
   final List<double> weeklyVolumes; // Data untuk 12 minggu (3 bulan x 4 minggu)
   final List<String>? bottomLabels; // Label khusus untuk sumbu X
-  final double? maxY; // Memaksa max Y agar sejajar dengan label di luar
+  final double? maxY;
+  final String unit; // Memaksa max Y agar sejajar dengan label di luar
   final void Function(int?)? onIndexChanged; // Callback saat digeser
 
   const TrainingVolumeChart({
@@ -12,6 +13,7 @@ class TrainingVolumeChart extends StatefulWidget {
     required this.weeklyVolumes,
     this.bottomLabels,
     this.maxY,
+    this.unit = "km",
     this.onIndexChanged,
   }) : assert(weeklyVolumes.length == 12, 'Must provide exactly 12 weekly data points (4 weeks x 3 months)');
 
@@ -32,7 +34,7 @@ class _TrainingVolumeChartState extends State<TrainingVolumeChart> {
     return AspectRatio(
       aspectRatio: 1.70,
       child: Padding(
-        padding: const EdgeInsets.only(right: 18, left: 12, top: 24, bottom: 12),
+        padding: const EdgeInsets.only(right: 4, left: 12, top: 24, bottom: 12),
         child: LineChart(
           LineChartData(
             // KUNCI: Konfigurasi Touch/Drag (Continuous tracking ala Strava)
@@ -108,7 +110,24 @@ class _TrainingVolumeChartState extends State<TrainingVolumeChart> {
             ),
             titlesData: FlTitlesData(
               show: true,
-              rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              rightTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 45,
+                  interval: widget.maxY != null ? widget.maxY! / 2 : (maxVolume * 1.2).clamp(1.0, double.infinity) / 2,
+                  getTitlesWidget: (value, meta) {
+                    if (value == meta.max || value == meta.min || value == meta.max / 2) {
+                        return SideTitleWidget(
+                          axisSide: meta.axisSide,
+                          space: 4,
+                          child: Text(' ', 
+                            style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.w500)),
+                        );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ),
               topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
               leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)), // Sembunyikan y-axis labels agar clean
               bottomTitles: AxisTitles(

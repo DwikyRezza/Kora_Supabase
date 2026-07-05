@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import '../../../../utils/tab_visibility.dart';
 import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 import '../../../../models/workout.dart';
-import '../../../../models/protein_entry.dart';
 import '../../../../models/schedule_event.dart';
 import '../../../../services/database_helper.dart';
 import '../../../../services/profile_service.dart';
@@ -60,7 +60,6 @@ class _HomeScreenState extends State<HomeScreen> {
   double get _targetCalories => state.targetCalories;
   int get _unreadNotifs => state.unreadNotifs;
   List<Workout> get _todayWorkouts => state.todayWorkouts;
-  List<ProteinEntry> get _todayProtein => state.todayProtein;
   List<ScheduleEvent> get _upcomingEvents => state.upcomingEvents;
   int get _todayCaloriesConsumed => state.todayCaloriesConsumed;
   int get _todayCaloriesBurned => state.todayCaloriesBurned;
@@ -80,10 +79,19 @@ class _HomeScreenState extends State<HomeScreen> {
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
     context.read<HomeBloc>().add(const HomeLoadData());
+    
+    TabVisibility.instance.addListener(_onTabChanged);
+  }
+
+  void _onTabChanged() {
+    if (TabVisibility.instance.activeTab == 0 && mounted) {
+      context.read<HomeBloc>().add(const HomeLoadData());
+    }
   }
 
   @override
   void dispose() {
+    TabVisibility.instance.removeListener(_onTabChanged);
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();

@@ -12,8 +12,6 @@ import '../models/workout.dart';
 import '../services/database_helper.dart';
 import '../services/profile_service.dart';
 import '../widgets/activity/training_volume_chart.dart';
-import '../widgets/feed_post_card.dart';
-import '../widgets/weekly_report/weekly_report_components.dart';
 
 class WeeklyReportScreen extends StatefulWidget {
   final bool embedMode;
@@ -28,7 +26,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   final AudioPlayer _audioPlayer = AudioPlayer();
   final ScreenshotController _screenshotController = ScreenshotController();
 
-  // ── Existing streak / protein state ──────────────────────────────────────
+  // ΓöÇΓöÇ Existing streak / protein state ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   bool _isLoading = true;
   int _currentStreak = 0;
   int _bestStreak = 0;
@@ -38,9 +36,9 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   DateTime _currentMonth = DateTime.now();
   Map<int, Map<String, dynamic>> _dailyStats = {};
 
-  // ── New workout-analysis state ───────────────────────────────────────────
+  // ΓöÇΓöÇ New workout-analysis state ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   String _selectedFilter = 'all'; // all | running | walking | weightlifting
-  Map<int, List<Workout>> _weekWorkouts = {}; // day-of-month → workouts
+  Map<int, List<Workout>> _weekWorkouts = {}; // day-of-month ΓåÆ workouts
   int _totalWorkoutsMonth = 0;
   Set<int> _workoutDaysMonth = {};
 
@@ -54,20 +52,20 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   static final _filterColors = {
     'all': AppTheme.textPrimary,
     'running': AppTheme.accent,
-    'walking': const Color(0xFF0099F9),
+    'walking': Color(0xFF0099F9),
     'weightlifting': AppTheme.accent,
   };
 
-  // ── Apple Fitness-style progress section state ───────────────────────────
+  // ΓöÇΓöÇ Apple Fitness-style progress section state ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   // 'run' | 'walk' | 'lift'
   String _progressFilter = 'run';
-  // Dynamic chart data — either 4 weekly (1-month) or 3 monthly (3-month) points
+  // Dynamic chart data ΓÇö either 4 weekly (1-month) or 3 monthly (3-month) points
   List<_ChartPoint> _chartData = [];
   bool _twelveWeekLoading = true;
   bool _isMonthlyScale = false; // false = 1-month/weekly, true = 3-month/monthly
   int? _selectedChartIndex; // null = show latest point
 
-  // ── Lifecycle ────────────────────────────────────────────────────────────
+  // ΓöÇΓöÇ Lifecycle ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   @override
   void initState() {
     super.initState();
@@ -91,9 +89,9 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     }
   }
 
-  // ── Data loading ─────────────────────────────────────────────────────────
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
+  // ΓöÇΓöÇ Data loading ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  Future<void> _loadData({bool showLoading = true}) async {
+    if (showLoading) setState(() => _isLoading = true);
 
     final profile = await ProfileService.getProfile();
     _targetProtein = profile[ProfileService.keyTargetProtein] ?? 150.0;
@@ -168,7 +166,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     }
   }
 
-  // ── Dynamic chart data loader ─────────────────────────────────────────────
+  // ΓöÇΓöÇ Dynamic chart data loader ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   Future<void> _loadChartData() async {
     setState(() {
       _twelveWeekLoading = true;
@@ -269,7 +267,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     _loadWorkoutData();
   }
 
-  // ── Share ────────────────────────────────────────────────────────────────
+  // ΓöÇΓöÇ Share ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   Future<void> _shareReport() async {
     try {
       final image = await _screenshotController.capture(
@@ -280,7 +278,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       final file = File('${dir.path}/kora_report.png');
       await file.writeAsBytes(image);
       await Share.shareXFiles([XFile(file.path)],
-          text: 'Laporan latihan saya dari Kora! 🔥');
+          text: 'Laporan latihan saya dari Kora! ≡ƒöÑ');
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -290,7 +288,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     }
   }
 
-  // ── Helpers ──────────────────────────────────────────────────────────────
+  // ΓöÇΓöÇ Helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   List<DateTime> get _last7Days {
     final now = DateTime.now();
     return List.generate(7, (i) => DateTime(now.year, now.month, now.day - 6 + i));
@@ -316,44 +314,44 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         sets: sets.round());
   }
 
-  // _computeProgressWeekMetrics removed — metrics now computed via _computeMetricsFromWorkouts
+  // _computeProgressWeekMetrics removed ΓÇö metrics now computed via _computeMetricsFromWorkouts
 
-  // ═══════════════════════════════════════════════════════════════════════
+  // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
   // BUILD
-  // ═══════════════════════════════════════════════════════════════════════
+  // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
   @override
   Widget build(BuildContext context) {
     final bodyWidget = _isLoading
         ? Center(
             child: CircularProgressIndicator(color: AppTheme.accent))
         : SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 100),
+            padding: EdgeInsets.only(bottom: 100),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Apple Fitness-style Progress Section ─────────────────
+                // ΓöÇΓöÇ Apple Fitness-style Progress Section ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
                 _buildAppleFitnessProgressSection(),
                 Divider(height: 1, thickness: 1, color: AppTheme.divider),
-                const SizedBox(height: 24),
-                // ── Existing Sections ─────────────────────────────────────
+                SizedBox(height: 24),
+                // ΓöÇΓöÇ Existing Sections ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
                 _buildFilterChips(),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: EdgeInsets.symmetric(horizontal: 24),
                   child: _buildDynamicMetrics(),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: EdgeInsets.symmetric(horizontal: 24),
                   child: _buildSummaryCard(),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: EdgeInsets.symmetric(horizontal: 24),
                   child: Screenshot(
                     controller: _screenshotController,
                     child: Container(
-                      padding: const EdgeInsets.all(24),
+                      padding: EdgeInsets.all(24),
                       decoration: BoxDecoration(
                         color: AppTheme.surface,
                         borderRadius: BorderRadius.circular(26),
@@ -361,17 +359,16 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                       child: Column(
                         children: [
                           _buildStreakHero(),
-                          const SizedBox(height: 24),
+                          SizedBox(height: 24),
                           _buildAiryFireGrid(),
                         ],
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
                 _buildMonthlyLinearChart(),
-                const SizedBox(height: 32),
-                _buildAssistantEvaluation(),
+                
               ],
             ),
           );
@@ -402,16 +399,16 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 color: AppTheme.textPrimary, size: 22),
             onPressed: _shareReport,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
         ],
       ),
       body: bodyWidget,
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
   // APPLE FITNESS-STYLE PROGRESS SECTION
-  // ══════════════════════════════════════════════════════════════════════════
+  // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 
   Widget _buildAppleFitnessProgressSection() {
     return ValueListenableBuilder<ThemeMode>(
@@ -422,12 +419,12 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Filter pills: Run | Walk | Lift ─────────────────────────────
+              // ΓöÇΓöÇ Filter pills: Run | Walk | Lift ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  physics: const AlwaysScrollableScrollPhysics(),
+                  physics: AlwaysScrollableScrollPhysics(),
                   child: Row(
                   children: [
                     _buildProgressPill(
@@ -435,13 +432,13 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                       icon: Icons.directions_run_rounded,
                       key: 'run',
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: 10),
                     _buildProgressPill(
                       label: 'Jalan',
                       icon: Icons.directions_walk_rounded,
                       key: 'walk',
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: 10),
                     _buildProgressPill(
                       label: 'Workout',
                       icon: Icons.fitness_center_rounded,
@@ -451,19 +448,19 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 ),
                 ),
               ),
-              const SizedBox(height: 18),
+              SizedBox(height: 18),
 
-              // ── Date range & stats ─────────────────────────────────────
+              // ΓöÇΓöÇ Date range & stats ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
               _buildProgressStats(),
 
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
 
-              // ── 12-week line chart ─────────────────────────────────────
+              // ΓöÇΓöÇ 12-week line chart ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
               _buildTwelveWeekChart(),
 
-              // ── See more button ─────────────────────────────────────────
+              // ΓöÇΓöÇ See more button ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+                padding: EdgeInsets.fromLTRB(16, 4, 16, 20),
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -471,12 +468,12 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.accent,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      padding: EdgeInsets.symmetric(vertical: 18),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(50)),
                       elevation: 0,
                     ),
-                    child: const Text(
+                    child: Text(
                       'Lihat lebih banyak progres',
                       style: TextStyle(
                           fontSize: 16,
@@ -502,8 +499,8 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     return GestureDetector(
       onTap: () => _onProgressFilterChanged(key),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        duration: Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: isActive
               ? Colors.transparent
@@ -522,7 +519,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               size: 18,
               color: isActive ? AppTheme.accent : AppTheme.textSecondary,
             ),
-            const SizedBox(width: 6),
+            SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
@@ -539,7 +536,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
   Widget _buildProgressStats() {
     if (_chartData.isEmpty) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.symmetric(horizontal: 16),
         child: SizedBox(height: 60),
       );
@@ -582,12 +579,12 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     final String thirdVal = _progressFilter == 'lift' ? '${m.sets}' : '${m.elevation.round()} m';
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AnimatedSwitcher(
-            duration: const Duration(milliseconds: 180),
+            duration: Duration(milliseconds: 180),
             child: Text(
               dateLabel,
               key: ValueKey(dateLabel),
@@ -599,7 +596,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           Wrap(
             spacing: 24,
             runSpacing: 12,
@@ -623,7 +620,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
           style: TextStyle(
               color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w500),
         ),
-        const SizedBox(height: 2),
+        SizedBox(height: 2),
         Text(
           value,
           style: TextStyle(
@@ -679,15 +676,16 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     });
 
     return Padding(
-      padding: const EdgeInsets.only(top: 12, bottom: 8),
+      padding: EdgeInsets.only(top: 12, bottom: 8),
       child: SizedBox(
         height: 220,
         child: Stack(
           children: [
-            // ── Menggunakan Reusable TrainingVolumeChart ──
+            // ΓöÇΓöÇ Menggunakan Reusable TrainingVolumeChart ΓöÇΓöÇ
             Padding(
-              padding: const EdgeInsets.only(right: 56),
+              padding: EdgeInsets.only(right: 8),
               child: TrainingVolumeChart(
+                unit: _progressFilter == "lift" ? "kg" : "km",
                 weeklyVolumes: chartValues,
                 bottomLabels: xLabels,
                 maxY: yMax,
@@ -699,7 +697,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               ),
             ),
 
-            // ── Y-axis labels kanan (Tetap ada di luar chart) ──
+            // ΓöÇΓöÇ Y-axis labels kanan (Tetap ada di luar chart) ΓöÇΓöÇ
             Positioned(
               right: 0,
               top: 0,
@@ -721,11 +719,11 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     );
   }
 
-  // Static helper — fl_chart requires a static/top-level function for getTooltipItems
+  // Static helper ΓÇö fl_chart requires a static/top-level function for getTooltipItems
   static List<LineTooltipItem?> _emptyTooltip(List<LineBarSpot> spots) =>
       spots.map((_) => null).toList();
 
-  // ── 1. Filter Chips ──────────────────────────────────────────────────────
+  // ΓöÇΓöÇ 1. Filter Chips ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   Widget _buildFilterChips() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -759,7 +757,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     );
   }
 
-  // ── 2. Dynamic Metrics ───────────────────────────────────────────────────
+  // ΓöÇΓöÇ 2. Dynamic Metrics ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   Widget _buildDynamicMetrics() {
     final m = _computeWeekMetrics();
     final isAll = _selectedFilter == 'all';
@@ -768,7 +766,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     final accent = isAll ? AppTheme.accent : _filterColors[_selectedFilter]!;
 
     if (isAll) {
-      // "Semua" — aggregate global metrics
+      // "Semua" ΓÇö aggregate global metrics
       final totalSessions =
           _weekWorkouts.values.fold(0, (s, list) => s + list.length);
       final activeDays =
@@ -777,11 +775,11 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         Expanded(
             child: _metricBox('Total Sesi', '$totalSessions',
                 Icons.fitness_center, accent)),
-        const SizedBox(width: 12),
+        SizedBox(width: 12),
         Expanded(
             child: _metricBox('Durasi', '${m.duration.round()} m',
                 Icons.timer_outlined, accent)),
-        const SizedBox(width: 12),
+        SizedBox(width: 12),
         Expanded(
             child: _metricBox('Hari Aktif', '$activeDays / 7',
                 Icons.calendar_today_outlined, accent)),
@@ -791,11 +789,11 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         Expanded(
             child: _metricBox('Jarak', '${m.distance.toStringAsFixed(2)} km',
                 Icons.straighten, accent)),
-        const SizedBox(width: 12),
+        SizedBox(width: 12),
         Expanded(
             child: _metricBox('Durasi', '${m.duration.round()} m',
                 Icons.timer_outlined, accent)),
-        const SizedBox(width: 12),
+        SizedBox(width: 12),
         Expanded(
             child: _metricBox('Elevasi', '${m.elevation.round()} m',
                 Icons.terrain, accent)),
@@ -806,11 +804,11 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
             child: _metricBox('Volume',
                 '${m.volume > 999 ? '${(m.volume / 1000).toStringAsFixed(1)}k' : m.volume.round().toString()} kg',
                 Icons.fitness_center, accent)),
-        const SizedBox(width: 12),
+        SizedBox(width: 12),
         Expanded(
             child: _metricBox('Durasi', '${m.duration.round()} m',
                 Icons.timer_outlined, accent)),
-        const SizedBox(width: 12),
+        SizedBox(width: 12),
         Expanded(
             child: _metricBox(
                 'Total Set', '${m.sets}', Icons.layers_outlined, accent)),
@@ -830,13 +828,13 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: accent, size: 18),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(value,
               style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
                   color: AppTheme.textPrimary)),
-          const SizedBox(height: 2),
+          SizedBox(height: 2),
           Text(label,
               style: TextStyle(
                   fontSize: 11,
@@ -848,7 +846,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     );
   }
 
-  // ── 3. Seven-Day Bar Chart ───────────────────────────────────────────────
+  // ΓöÇΓöÇ 3. Seven-Day Bar Chart ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   Widget _build7DayBarChart() {
     final days = _last7Days;
     final isCardio =
@@ -886,7 +884,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
             toY: normalised,
             color: v > 0 ? accent : Colors.transparent,
             width: 14,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(7)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(7)),
             backDrawRodData: BackgroundBarChartRodData(
               show: true,
               toY: 1.0,
@@ -909,7 +907,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                   fontSize: 18,
                   fontWeight: FontWeight.bold)),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         SizedBox(
           height: 200,
           child: Padding(
@@ -927,7 +925,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                     getTooltipItem: (group, gIdx, rod, rIdx) {
                       final v = values[group.x];
                       if (v <= 0) {
-                        return BarTooltipItem('', const TextStyle());
+                        return BarTooltipItem('', TextStyle());
                       }
                       String label;
                       if (isAll) {
@@ -984,7 +982,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     );
   }
 
-  // ── 4. Summary Card ──────────────────────────────────────────────────────
+  // ΓöÇΓöÇ 4. Summary Card ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   Widget _buildSummaryCard() {
     final m = _computeWeekMetrics();
     final isAll = _selectedFilter == 'all';
@@ -1012,7 +1010,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               child: _summaryMetric(
                 label: 'Streak',
                 value: '$_currentStreak',
-                suffix: 'Hari 🔥',
+                suffix: 'Hari ≡ƒöÑ',
                 color: AppTheme.accent,
               ),
             ),
@@ -1061,7 +1059,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
             child: _summaryMetric(
               label: 'Konsistensi',
               value: '$_currentStreak',
-              suffix: 'Hari 🔥',
+              suffix: 'Hari ≡ƒöÑ',
               color: AppTheme.accent,
             ),
           ),
@@ -1111,7 +1109,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textMuted,
                   letterSpacing: 1.2)),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Row(
             mainAxisAlignment: mainAxis,
             crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -1123,7 +1121,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                       fontWeight: FontWeight.w900,
                       color: color,
                       height: 1)),
-              const SizedBox(width: 3),
+              SizedBox(width: 3),
               Flexible(
                 child: Text(suffix,
                     style: TextStyle(
@@ -1139,7 +1137,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     );
   }
 
-  // ── 5. Streak Hero (inside screenshot) ───────────────────────────────────
+  // ΓöÇΓöÇ 5. Streak Hero (inside screenshot) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   Widget _buildStreakHero() {
     return Column(
       children: [
@@ -1149,7 +1147,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 fontSize: 13,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 1.5)),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -1159,9 +1157,9 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               child: Lottie.asset('assets/lottie/fire_streak.json',
                   fit: BoxFit.contain,
                   errorBuilder: (_, __, ___) =>
-                      const Text('🔥', style: TextStyle(fontSize: 40))),
+                      Text('🔥', style: TextStyle(fontSize: 40))),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Text('$_currentStreak',
                 style: TextStyle(
                     color: AppTheme.textPrimary,
@@ -1170,7 +1168,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                     letterSpacing: -2)),
           ],
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: 20),
         Row(children: [
           Expanded(
             child: Container(
@@ -1184,7 +1182,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                         color: AppTheme.textMuted,
                         fontSize: 12,
                         fontWeight: FontWeight.bold)),
-                const SizedBox(height: 6),
+                SizedBox(height: 6),
                 Text('$_bestStreak',
                     style: TextStyle(
                         color: AppTheme.textPrimary,
@@ -1193,7 +1191,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               ]),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Container(
               padding: const EdgeInsets.all(20),
@@ -1206,7 +1204,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                         color: AppTheme.textMuted,
                         fontSize: 12,
                         fontWeight: FontWeight.bold)),
-                const SizedBox(height: 6),
+                SizedBox(height: 6),
                 Text('${_consistencyScore.toStringAsFixed(0)}%',
                     style: TextStyle(
                         color: AppTheme.textPrimary,
@@ -1220,7 +1218,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     );
   }
 
-  // ── 6. Calendar Grid (existing, adapted) ─────────────────────────────────
+  // ΓöÇΓöÇ 6. Calendar Grid (existing, adapted) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   Widget _buildAiryFireGrid() {
     int daysInMonth =
         DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
@@ -1247,7 +1245,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                   setState(() {
                     _currentMonth =
                         DateTime(_currentMonth.year, _currentMonth.month - 1);
-                    _loadData();
+                    _loadData(showLoading: false);
                   });
                 },
               ),
@@ -1256,20 +1254,18 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                     color: AppTheme.textPrimary),
                 onPressed: () {
                   if (_currentMonth.month == DateTime.now().month &&
-                      _currentMonth.year == DateTime.now().year) {
-                    return;
-                  }
+                      _currentMonth.year == DateTime.now().year) return;
                   setState(() {
                     _currentMonth =
                         DateTime(_currentMonth.year, _currentMonth.month + 1);
-                    _loadData();
+                    _loadData(showLoading: false);
                   });
                 },
               ),
             ])
           ],
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: weekdays
@@ -1283,7 +1279,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                           fontSize: 14))))
               .toList(),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -1296,7 +1292,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
           itemCount: 42,
           itemBuilder: (context, index) {
             int day = index - firstWeekday + 2;
-            if (day < 1 || day > daysInMonth) return const SizedBox();
+            if (day < 1 || day > daysInMonth) return SizedBox();
 
             final stat = _dailyStats[day]!;
             final progress = stat['protein'] / _targetProtein;
@@ -1322,15 +1318,15 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                         alignment: Alignment.center,
                         children: [
                           if (_workoutDaysMonth.contains(day))
-                            const Opacity(
+                            Opacity(
                               opacity: 0.35,
-                              child: Text('🔥', style: TextStyle(fontSize: 26)),
+                              child: const Text('🔥', style: TextStyle(fontSize: 26)),
                             )
                           else if (isSuccess)
                             // Fallback protein success marker if no workout
-                            const Opacity(
+                            Opacity(
                               opacity: 0.15,
-                              child: Text('🍗', style: TextStyle(fontSize: 22)),
+                              child: const Text('🍗', style: TextStyle(fontSize: 22)),
                             ),
                           Text(
                             '$day',
@@ -1353,7 +1349,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                       child: Container(
                         width: 7,
                         height: 7,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                             color: Color(0xFFFF3400), shape: BoxShape.circle),
                       ),
                     ),
@@ -1366,7 +1362,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     );
   }
 
-  // ── 7. Monthly Protein Trend (Line Chart style) ─────────────────────────
+  // ΓöÇΓöÇ 7. Monthly Protein Trend (Line Chart style) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   Widget _buildMonthlyLinearChart() {
     int daysInMonth =
         DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
@@ -1391,7 +1387,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                   fontSize: 18,
                   fontWeight: FontWeight.bold)),
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: 24),
         SizedBox(
           height: 200,
           child: SingleChildScrollView(
@@ -1535,84 +1531,10 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     );
   }
 
-  // ── 8. Assistant Evaluation (existing) ───────────────────────────────────
-  Widget _buildAssistantEvaluation() {
-    int gglFails = 0;
-    for (int i = 1; i <= 31; i++) {
-      if (_dailyStats.containsKey(i)) {
-        var s = _dailyStats[i]!;
-        if (s['sugar'] > 50 || s['salt'] > 5 || s['fat'] > 67) gglFails++;
-      }
-    }
+  // ΓöÇΓöÇ 8. Assistant Evaluation (existing) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  
 
-    String msg;
-    IconData icon;
-    Color color;
-
-    if (_currentStreak >= 15) {
-      msg =
-          '$_currentStreak hari tanpa putus! Kamu sedang di jalur yang benar. Jangan biarkan godaan akhir pekan memadamkan apimu!';
-      icon = Icons.local_fire_department;
-      color = AppTheme.accent;
-    } else if (_consistencyScore < 50 && _currentStreak < 3) {
-      msg =
-          'Apimu padam beberapa kali belakangan ini. Jangan biarkan satu hari malas merusak progres sebulan. Bangkit lagi!';
-      icon = Icons.warning_amber_rounded;
-      color = const Color(0xFFFF3400);
-    } else if (gglFails > 5) {
-      msg =
-          'Streak harianmu cukup aman, tapi konsumsi GGL-mu bulan ini tinggi ($gglFails hari jebol). Perbaiki kualitas makananmu.';
-      icon = Icons.health_and_safety_rounded;
-      color = Colors.yellow[700]!;
-    } else {
-      msg =
-          'Konsistensimu terjaga dengan baik di ${_consistencyScore.toStringAsFixed(0)}%. Tetap pertahankan ritme ini!';
-      icon = Icons.thumb_up_alt_rounded;
-      color = AppTheme.accent;
-    }
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceVariant,
-        borderRadius: BorderRadius.circular(26),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-            color: AppTheme.surface, borderRadius: BorderRadius.circular(16)),
-            child: Icon(icon, color: color, size: 32),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('The Intelligent Coach',
-                    style: TextStyle(
-                        color: color,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Text(msg,
-                    style: TextStyle(
-                        color: AppTheme.textPrimary,
-                        fontSize: 15,
-                        height: 1.5,
-                        fontWeight: FontWeight.w600)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Day Detail Sheet ─────────────────────────────────────────────────────
+  // ΓöÇΓöÇ Day Detail Sheet ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   void _showDayDetail(int day, Map<String, dynamic> stat) {
     bool sugarWarn = stat['sugar'] > 50.0;
     bool saltWarn = stat['salt'] > 5.0;
@@ -1621,7 +1543,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.surface,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(26))),
       builder: (_) => Padding(
         padding: const EdgeInsets.all(32.0),
@@ -1634,41 +1556,66 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 decoration: BoxDecoration(
                     color: AppTheme.surfaceVariant,
                     borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             Text(
-                '$day ${DateFormat('MMMM yyyy').format(_currentMonth)}',
+                '${day} ${DateFormat('MMMM yyyy').format(_currentMonth)}',
                 style: TextStyle(
                     color: AppTheme.textPrimary,
                     fontSize: 20,
                     fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
-            StatRow(label: 'Protein', value: '${stat['protein'].toStringAsFixed(1)}g',
-                color: const Color(0xFFBD4BE5)),
-            StatRow(label: 'Kalori', value: '${stat['calories'].toStringAsFixed(0)} kcal',
-                color: const Color(0xFFFF3400)),
-            const SizedBox(height: 16),
+            SizedBox(height: 24),
+            _statRow('Protein', '${stat['protein'].toStringAsFixed(1)}g',
+                const Color(0xFFBD4BE5)),
+            _statRow('Kalori', '${stat['calories'].toStringAsFixed(0)} kcal',
+                const Color(0xFFFF3400)),
+            SizedBox(height: 16),
             Divider(color: AppTheme.surfaceVariant, thickness: 2),
-            const SizedBox(height: 16),
-            StatRow(label: 'Gula', value: '${stat['sugar'].toStringAsFixed(1)}g',
-                color: sugarWarn ? const Color(0xFFFF3400) : AppTheme.textMuted,
+            SizedBox(height: 16),
+            _statRow('Gula', '${stat['sugar'].toStringAsFixed(1)}g',
+                sugarWarn ? const Color(0xFFFF3400) : AppTheme.textMuted,
                 isWarning: sugarWarn),
-            StatRow(label: 'Garam', value: '${stat['salt'].toStringAsFixed(1)}g',
-                color: saltWarn ? const Color(0xFFFF3400) : AppTheme.textMuted,
+            _statRow('Garam', '${stat['salt'].toStringAsFixed(1)}g',
+                saltWarn ? const Color(0xFFFF3400) : AppTheme.textMuted,
                 isWarning: saltWarn),
-            StatRow(label: 'Lemak', value: '${stat['fat'].toStringAsFixed(1)}g',
-                color: fatWarn ? const Color(0xFFFF3400) : AppTheme.textMuted,
+            _statRow('Lemak', '${stat['fat'].toStringAsFixed(1)}g',
+                fatWarn ? const Color(0xFFFF3400) : AppTheme.textMuted,
                 isWarning: fatWarn),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
 
-
+  Widget _statRow(String label, String value, Color color,
+      {bool isWarning = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(children: [
+            Text(label,
+                style: TextStyle(
+                    color: AppTheme.textMuted,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold)),
+            if (isWarning) ...[
+              SizedBox(width: 8),
+              Icon(Icons.warning_amber_rounded,
+                  color: Color(0xFFFF3400), size: 18),
+            ]
+          ]),
+          Text(value,
+              style: TextStyle(
+                  color: color, fontSize: 18, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
 }
 
-/// Data point untuk dynamic chart — bisa mingguan (4 titik) atau bulanan (3 titik).
+/// Data point untuk dynamic chart ΓÇö bisa mingguan (4 titik) atau bulanan (3 titik).
 class _ChartPoint {
   final DateTime rangeStart;
   final DateTime rangeEnd;

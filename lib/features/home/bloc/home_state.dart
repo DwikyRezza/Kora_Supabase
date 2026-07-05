@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../models/workout.dart';
-import '../../../models/protein_entry.dart';
 import '../../../models/schedule_event.dart';
 
 enum HomeStatus { initial, loading, success, failure }
@@ -15,10 +14,10 @@ class HomeState extends Equatable {
   final int unreadNotifs;
   
   final List<Workout> todayWorkouts;
-  final List<ProteinEntry> todayProtein;
   final List<ScheduleEvent> upcomingEvents;
   
   final int todayCaloriesConsumed;
+  final double todayProtein;
   final int todayCaloriesBurned;
   final int todayWorkoutDuration;
   final double todayWorkoutDistance;
@@ -39,9 +38,9 @@ class HomeState extends Equatable {
     this.targetCalories = 2500.0,
     this.unreadNotifs = 0,
     this.todayWorkouts = const [],
-    this.todayProtein = const [],
-    this.upcomingEvents = const [],
+        this.upcomingEvents = const [],
     this.todayCaloriesConsumed = 0,
+    this.todayProtein = 0.0,
     this.todayCaloriesBurned = 0,
     this.todayWorkoutDuration = 0,
     this.todayWorkoutDistance = 0.0,
@@ -53,7 +52,7 @@ class HomeState extends Equatable {
     this.dashboardTab = 0,
   });
 
-  double get totalProteinToday => todayProtein.fold(0, (sum, e) => sum + e.proteinGrams);
+  double get totalProteinToday => todayProtein;
   double get totalProteinNeeded => baseTargetProtein;
 
   HomeState copyWith({
@@ -64,9 +63,9 @@ class HomeState extends Equatable {
     double? targetCalories,
     int? unreadNotifs,
     List<Workout>? todayWorkouts,
-    List<ProteinEntry>? todayProtein,
     List<ScheduleEvent>? upcomingEvents,
     int? todayCaloriesConsumed,
+    double? todayProtein,
     int? todayCaloriesBurned,
     int? todayWorkoutDuration,
     double? todayWorkoutDistance,
@@ -85,9 +84,9 @@ class HomeState extends Equatable {
       targetCalories: targetCalories ?? this.targetCalories,
       unreadNotifs: unreadNotifs ?? this.unreadNotifs,
       todayWorkouts: todayWorkouts ?? this.todayWorkouts,
-      todayProtein: todayProtein ?? this.todayProtein,
-      upcomingEvents: upcomingEvents ?? this.upcomingEvents,
+            upcomingEvents: upcomingEvents ?? this.upcomingEvents,
       todayCaloriesConsumed: todayCaloriesConsumed ?? this.todayCaloriesConsumed,
+      todayProtein: todayProtein ?? this.todayProtein,
       todayCaloriesBurned: todayCaloriesBurned ?? this.todayCaloriesBurned,
       todayWorkoutDuration: todayWorkoutDuration ?? this.todayWorkoutDuration,
       todayWorkoutDistance: todayWorkoutDistance ?? this.todayWorkoutDistance,
@@ -109,9 +108,9 @@ class HomeState extends Equatable {
         targetCalories,
         unreadNotifs,
         todayWorkouts,
-        todayProtein,
-        upcomingEvents,
+                upcomingEvents,
         todayCaloriesConsumed,
+        todayProtein,
         todayCaloriesBurned,
         todayWorkoutDuration,
         todayWorkoutDistance,

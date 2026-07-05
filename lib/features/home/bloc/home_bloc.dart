@@ -51,10 +51,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final today = DateTime.now();
       
       final workouts = await _db.getWorkoutsByDate(today);
-      final protein = await _db.getProteinEntriesByDate(today);
       final events = await _db.getScheduleEventsByDate(today);
       final workoutStreak = await _db.getCalculateWorkoutStreak();
       final consumedCals = await _db.getTodayCaloriesConsumed();
+      
+      final proteinEntries = await _db.getProteinEntriesByDate(today);
+      double todayProtein = 0.0;
+      for (var entry in proteinEntries) {
+        todayProtein += entry.proteinGrams;
+      }
+      
       final workoutMetrics = await _db.getTodayWorkoutMetrics();
 
       Map<String, dynamic> profile = {};
@@ -107,9 +113,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         targetCalories: targetCalories,
         unreadNotifs: unread,
         todayWorkouts: workouts,
-        todayProtein: protein,
         upcomingEvents: events,
         todayCaloriesConsumed: consumedCals,
+        todayProtein: todayProtein,
         todayCaloriesBurned: (workoutMetrics['caloriesBurned'] as num?)?.toInt() ?? 0,
         todayWorkoutDuration: (workoutMetrics['duration'] as num?)?.toInt() ?? 0,
         todayWorkoutDistance: (workoutMetrics['distance'] as num?)?.toDouble() ?? 0.0,
@@ -148,7 +154,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       emit(state.copyWith(
         status: HomeStatus.success,
         todayWorkouts: pm.todayWorkouts ?? [],
-        todayProtein: pm.todayProtein ?? [],
         upcomingEvents: pm.upcomingEvents ?? [],
         userName: userName,
         userPhotoUrl: userPhotoUrl,
