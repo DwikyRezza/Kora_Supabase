@@ -7,12 +7,15 @@ import 'utils/tab_visibility.dart';
 import 'features/home/presentation/screens/home_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'features/home/bloc/home_bloc.dart';
-import 'screens/workout_screen.dart';
-import 'features/nutrition/presentation/screens/ai_nutrition_screen.dart';
-import 'screens/protein_screen.dart';
+import 'features/workout/presentation/screens/workout_screen.dart';
+import 'features/ainutrition/presentation/screens/ai_nutrition_screen.dart';
+import 'features/running/presentation/screens/running_screen.dart';
+import 'features/workout/presentation/screens/workout_setup_screen.dart';
+import 'services/profile_service.dart';
+import 'features/nutrition/presentation/screens/protein_screen.dart';
 import 'features/schedule/presentation/screens/schedule_screen.dart';
 import 'screens/body_stats_screen.dart';
-import 'screens/profile_screen.dart';
+import 'features/profile/presentation/screens/profile_screen.dart';
 import 'services/notification_service.dart';
 import 'services/settings_service.dart';
 import 'repositories/workout_repository.dart';
@@ -91,7 +94,6 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation>
     with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
-  final GlobalKey<WorkoutScreenState> _workoutScreenKey = GlobalKey<WorkoutScreenState>();
   late AnimationController _pulseController;
 
   void _goToTab(int index) {
@@ -108,9 +110,107 @@ class _MainNavigationState extends State<MainNavigation>
     // Auto-trigger the modal after transition
     Future.delayed(const Duration(milliseconds: 100), () {
       if (mounted) {
-        _workoutScreenKey.currentState?.showWorkoutSelectionSheet(context);
+        _showWorkoutSelectionSheet(context);
       }
     });
+  }
+
+  void _showWorkoutSelectionSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.surface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(26))),
+      builder: (_) {
+        return Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 32, top: 24, left: 24, right: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppTheme.surfaceVariant, borderRadius: BorderRadius.circular(2)))),
+              const SizedBox(height: 32),
+              Text('Mulai Latihan', style: TextStyle(color: AppTheme.textPrimary, fontSize: 24, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+              const SizedBox(height: 32),
+              
+              _buildBoldGatewayCard(
+                context,
+                title: 'Lari / Jalan (GPS)',
+                subtitle: 'Lacak rute & pace',
+                icon: Icons.directions_run_rounded,
+                accentColor: AppTheme.accent,
+                onTap: () async {
+                  Navigator.pop(context);
+                  final profile = await ProfileService.getProfile();
+                  final weight = profile[ProfileService.keyWeight] ?? 70.0;
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => RunningTrackerScreen(userWeight: weight)));
+                },
+              ),
+              const SizedBox(height: 16),
+              
+              _buildBoldGatewayCard(
+                context,
+                title: 'Workout',
+                subtitle: 'Gym log',
+                icon: Icons.fitness_center_rounded,
+                accentColor: AppTheme.accent,
+                onTap: () async {
+                  Navigator.pop(context);
+                  final profile = await ProfileService.getProfile();
+                  final weight = profile[ProfileService.keyWeight] ?? 70.0;
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => WorkoutSetupScreen(userWeight: weight)));
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBoldGatewayCard(BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color accentColor,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(26),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceVariant,
+          borderRadius: BorderRadius.circular(26),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: AppTheme.surface,
+                shape: BoxShape.circle,
+              ),
+              child: Center(child: Icon(icon, color: accentColor, size: 24)),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(subtitle, style: TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios_rounded, color: AppTheme.textMuted, size: 16),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -176,7 +276,7 @@ class _MainNavigationState extends State<MainNavigation>
                 ),
               ),
               const ProteinScreen(),
-              WorkoutScreen(key: _workoutScreenKey),
+              const WorkoutScreen(),
               const ScheduleScreen(),
               const ProfileScreen(), // Diubah dari SettingScreen() menjadi ProfileScreen()
             ],

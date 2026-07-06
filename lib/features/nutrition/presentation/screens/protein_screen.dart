@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
-import '../models/protein_entry.dart';
-import '../services/database_helper.dart';
-import '../services/profile_service.dart';
-import '../services/cloud_sync_service.dart';
-import '../services/notification_service.dart';
-import '../features/nutrition/presentation/screens/ai_nutrition_screen.dart';
-import '../utils/responsive.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../theme/app_theme.dart';
+import '../../../../models/protein_entry.dart';
+import '../../../ainutrition/presentation/screens/ai_nutrition_screen.dart';
+import '../../bloc/daily_nutrition/daily_nutrition_bloc.dart';
+import '../../bloc/daily_nutrition/daily_nutrition_event.dart';
+import '../../bloc/daily_nutrition/daily_nutrition_state.dart';
+import '../../../../utils/responsive.dart';
 
 class ProteinScreen extends StatefulWidget {
   const ProteinScreen({super.key});
@@ -16,64 +16,37 @@ class ProteinScreen extends StatefulWidget {
 }
 
 class _ProteinScreenState extends State<ProteinScreen> {
-  final _db = DatabaseHelper();
-  List<ProteinEntry> _entries = [];
-  bool _isLoading = true;
-  double _targetProtein = 150.0;
-  final double _targetCalories = 2500.0;
+  late final DailyNutritionBloc _bloc;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _bloc = DailyNutritionBloc()..add(DailyNutritionLoadRequested());
   }
 
-  Future<void> _refreshData() async {
-    try {
-      await CloudSyncService.syncNutritionToCloud();
-    } catch (_) {}
-    await _loadData();
+  @override
+  void dispose() {
+    _bloc.close();
+    super.dispose();
   }
-
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
-    final today = DateTime.now();
-    final entries = await _db.getProteinEntriesByDate(today);
-    final profile = await ProfileService.getProfile();
-
-    if (mounted) {
-      setState(() {
-        _entries = entries;
-        _targetProtein = profile[ProfileService.keyTargetProtein] ?? 150.0;
-        if (_targetProtein == 0) _targetProtein = 150.0;
-
-        if (_totalProtein < _targetProtein * 0.9) {
-          NotificationService().scheduleNutritionReminders();
-        } else {
-          NotificationService().cancelNutritionReminders();
-        }
-
-        _isLoading = false;
-      });
-    }
-  }
-
-  double get _totalProtein =>
-      _entries.fold(0, (sum, e) => sum + e.proteinGrams);
-  double get _totalCalories => _entries.fold(0, (sum, e) => sum + e.calories);
-  double get _totalCarbs => _entries.fold(0, (sum, e) => sum + e.carbsGrams);
-  double get _totalFat => _entries.fold(0, (sum, e) => sum + e.fatGrams);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.surface, // Flat UI: Pure White
-      body: SafeArea(
-        child: _isLoading
-            ? Center(
-                child: CircularProgressIndicator(color: AppTheme.accent))
-            : RefreshIndicator(
-                onRefresh: _refreshData,
+    return BlocProvider.value(
+      value: _bloc,
+      child: Scaffold(
+        backgroundColor: AppTheme.surface,
+        body: SafeArea(
+          child: BlocBuilder<DailyNutritionBloc, DailyNutritionState>(
+            builder: (context, state) {
+              if (state.isLoading) {
+                return Center(child: CircularProgressIndicator(color: AppTheme.accent));
+              }
+
+              return RefreshIndicator(
+                onRefresh: () async {
+                  context.read<DailyNutritionBloc>().add(DailyNutritionRefreshRequested());
+                },
                 color: AppTheme.accent,
                 backgroundColor: AppTheme.surface,
                 child: CustomScrollView(
@@ -81,14 +54,13 @@ class _ProteinScreenState extends State<ProteinScreen> {
                   slivers: [
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24.0, vertical: 16.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildHeader(),
+                            _buildHeader(context),
                             const SizedBox(height: 32),
-                            _buildHeroRings(),
+                            _buildHeroRings(context, state),
                             const SizedBox(height: 32),
                             Text('Riwayat Hari Ini',
                                 style: TextStyle(
@@ -100,8 +72,9 @@ class _ProteinScreenState extends State<ProteinScreen> {
                         ),
                       ),
                     ),
-                    if (_entries.isEmpty)
+                    if (state.entries.isEmpty)
                       SliverFillRemaining(
+                        hasScrollBody: false,
                         child: Center(
                           child: Text('Belum ada asupan yang dicatat.',
                               style: TextStyle(color: AppTheme.textMuted)),
@@ -111,23 +84,26 @@ class _ProteinScreenState extends State<ProteinScreen> {
                       SliverList(
                         delegate: SliverChildBuilderDelegate(
                           (context, index) {
-                            final entry = _entries[index];
-                            return _buildFoodRow(entry);
+                            final entry = state.entries[index];
+                            return _buildFoodRow(context, entry);
                           },
-                          childCount: _entries.length,
+                          childCount: state.entries.length,
                         ),
                       ),
                     const SliverToBoxAdapter(child: SizedBox(height: 100)),
                   ],
                 ),
-              ),
+              );
+            },
+          ),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: _buildStickyBottomActions(context),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: _buildStickyBottomActions(),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,14 +129,13 @@ class _ProteinScreenState extends State<ProteinScreen> {
         Row(
           children: [
             GestureDetector(
-              onTap: _showAddWaterSheet,
+              onTap: () => _showAddWaterSheet(context),
               child: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                     color: AppTheme.surfaceVariant,
                     borderRadius: BorderRadius.circular(26)),
-                child: const Icon(Icons.water_drop,
-                    color: Color(0xFF00A9DD), size: 24),
+                child: const Icon(Icons.water_drop, color: Color(0xFF00A9DD), size: 24),
               ),
             ),
           ],
@@ -169,21 +144,21 @@ class _ProteinScreenState extends State<ProteinScreen> {
     );
   }
 
-  Widget _buildHeroRings() {
+  Widget _buildHeroRings(BuildContext context, DailyNutritionState state) {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceVariant, // Fog Gray
-        borderRadius: BorderRadius.circular(26), // 26px radius everywhere
+        color: AppTheme.surfaceVariant,
+        borderRadius: BorderRadius.circular(26),
       ),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _macroRing('Kalori', _totalCalories, _targetCalories,
+              _macroRing(context, 'Kalori', state.totalCalories, state.targetCalories,
                   const Color(0xFFFF3400), 'kcal'),
-              _macroRing('Protein', _totalProtein, _targetProtein,
+              _macroRing(context, 'Protein', state.totalProtein, state.targetProtein,
                   const Color(0xFFBD4BE5), 'g'),
             ],
           ),
@@ -191,9 +166,8 @@ class _ProteinScreenState extends State<ProteinScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _macroRing(
-                  'Karbo', _totalCarbs, 250, const Color(0xFF00A9DD), 'g'),
-              _macroRing('Lemak', _totalFat, 65, AppTheme.accent, 'g'),
+              _macroRing(context, 'Karbo', state.totalCarbs, 250, const Color(0xFF00A9DD), 'g'),
+              _macroRing(context, 'Lemak', state.totalFat, 65, AppTheme.accent, 'g'),
             ],
           ),
         ],
@@ -201,8 +175,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
     );
   }
 
-  Widget _macroRing(
-      String label, double current, double target, Color color, String unit) {
+  Widget _macroRing(BuildContext context, String label, double current, double target, Color color, String unit) {
     double progress = target > 0 ? (current / target).clamp(0.0, 1.0) : 0.0;
     return Column(
       children: [
@@ -215,13 +188,13 @@ class _ProteinScreenState extends State<ProteinScreen> {
               const CircularProgressIndicator(
                 value: 1.0,
                 strokeWidth: 8,
-                color: Colors.white, // background track
+                color: Colors.white,
               ),
               CircularProgressIndicator(
                 value: progress,
                 strokeWidth: 8,
                 backgroundColor: Colors.transparent,
-                color: color, // macro color
+                color: color,
               ),
               Center(
                 child: Column(
@@ -245,13 +218,12 @@ class _ProteinScreenState extends State<ProteinScreen> {
         ),
         const SizedBox(height: 12),
         Text(label,
-            style: TextStyle(
-                color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.bold)),
       ],
     );
   }
 
-  Widget _buildFoodRow(ProteinEntry entry) {
+  Widget _buildFoodRow(BuildContext context, ProteinEntry entry) {
     final isWater = entry.waterMl > 0 && entry.calories == 0;
 
     return Dismissible(
@@ -263,18 +235,14 @@ class _ProteinScreenState extends State<ProteinScreen> {
         color: const Color(0xFFFF3400),
         child: const Icon(Icons.delete_rounded, color: Colors.white),
       ),
-      onDismissed: (_) async {
-        await _db.deleteProteinEntry(entry.id!);
-        CloudSyncService.syncNutritionToCloud().catchError((_) {});
-        _loadData();
+      onDismissed: (_) {
+        context.read<DailyNutritionBloc>().add(DailyNutritionEntryDeleted(entry.id!));
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 24),
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          border: Border(
-              bottom: BorderSide(
-                  color: AppTheme.surfaceVariant, width: 1.5)), // Hairline separator
+          border: Border(bottom: BorderSide(color: AppTheme.surfaceVariant, width: 1.5)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -306,20 +274,14 @@ class _ProteinScreenState extends State<ProteinScreen> {
                   width: 8,
                   height: 8,
                   decoration: BoxDecoration(
-                      color: isWater
-                          ? const Color(0xFF00A9DD)
-                          : const Color(0xFFBD4BE5),
+                      color: isWater ? const Color(0xFF00A9DD) : const Color(0xFFBD4BE5),
                       shape: BoxShape.circle),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  isWater
-                      ? 'Air'
-                      : '${entry.proteinGrams.toStringAsFixed(0)}g Pro',
+                  isWater ? 'Air' : '${entry.proteinGrams.toStringAsFixed(0)}g Pro',
                   style: TextStyle(
-                    color: isWater
-                        ? const Color(0xFF00A9DD)
-                        : const Color(0xFFBD4BE5),
+                    color: isWater ? const Color(0xFF00A9DD) : const Color(0xFFBD4BE5),
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
@@ -332,7 +294,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
     );
   }
 
-  Widget _buildStickyBottomActions() {
+  Widget _buildStickyBottomActions(BuildContext context) {
     return Container(
       color: AppTheme.background,
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
@@ -340,16 +302,17 @@ class _ProteinScreenState extends State<ProteinScreen> {
         width: double.infinity,
         child: ElevatedButton(
           onPressed: () async {
-            final result = await Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const AiNutritionScreen()));
-            if (result == true) _loadData();
+            final result = await Navigator.push(
+                context, MaterialPageRoute(builder: (_) => const AiNutritionScreen()));
+            if (result == true && context.mounted) {
+              context.read<DailyNutritionBloc>().add(DailyNutritionLoadRequested());
+            }
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: AppTheme.accent,
             elevation: 0,
             padding: const EdgeInsets.symmetric(vertical: 18),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -362,10 +325,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
               ),
               const SizedBox(width: 10),
               const Text('Catat Makanan',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16)),
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(width: 8),
               const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
             ],
@@ -375,9 +335,9 @@ class _ProteinScreenState extends State<ProteinScreen> {
     );
   }
 
-  void _showAddWaterSheet() {
+  void _showAddWaterSheet(BuildContext parentContext) {
     showModalBottomSheet(
-        context: context,
+        context: parentContext,
         backgroundColor: AppTheme.surface,
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(26))),
@@ -396,9 +356,9 @@ class _ProteinScreenState extends State<ProteinScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _waterButton(250, '1 Gelas'),
-                    _waterButton(600, 'Botol Sedang'),
-                    _waterButton(1000, 'Botol Besar'),
+                    _waterButton(parentContext, 250, '1 Gelas'),
+                    _waterButton(parentContext, 600, 'Botol Sedang'),
+                    _waterButton(parentContext, 1000, 'Botol Besar'),
                   ],
                 ),
                 const SizedBox(height: 32),
@@ -408,20 +368,11 @@ class _ProteinScreenState extends State<ProteinScreen> {
         });
   }
 
-  Widget _waterButton(int ml, String label) {
+  Widget _waterButton(BuildContext context, int ml, String label) {
     return InkWell(
-      onTap: () async {
+      onTap: () {
         Navigator.pop(context);
-        await _db.insertProteinEntry(ProteinEntry(
-          foodName: 'Air Putih ($label)',
-          proteinGrams: 0,
-          calories: 0,
-          waterMl: ml,
-          mealType: 'water',
-          date: DateTime.now(),
-        ));
-        CloudSyncService.syncNutritionToCloud().catchError((_) {});
-        _loadData();
+        this.context.read<DailyNutritionBloc>().add(DailyNutritionWaterAdded(ml, label));
       },
       borderRadius: BorderRadius.circular(26),
       child: Container(
@@ -436,13 +387,10 @@ class _ProteinScreenState extends State<ProteinScreen> {
             const SizedBox(height: 12),
             Text('+$ml ml',
                 style: const TextStyle(
-                    color: Color(0xFF00A9DD),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16)),
+                    color: Color(0xFF00A9DD), fontWeight: FontWeight.bold, fontSize: 16)),
           ],
         ),
       ),
     );
   }
 }
-
