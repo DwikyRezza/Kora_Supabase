@@ -4,7 +4,7 @@ import '../services/social_service.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import '../screens/public_profile_screen.dart';
-import '../screens/workout_detail_screen.dart';
+import '../features/workout/presentation/screens/workout_detail_screen.dart';
 import '../models/workout.dart';
 import 'comment_bottom_sheet.dart';
 import 'mini_route_painter.dart';

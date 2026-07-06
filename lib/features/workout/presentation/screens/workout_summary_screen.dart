@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../theme/app_theme.dart';
-import '../models/workout.dart';
-import '../models/exercise_definition.dart';
-import '../services/database_helper.dart';
-import '../services/cloud_sync_service.dart';
-import '../services/social_service.dart';
-import '../features/workout/bloc/active_workout/active_workout_state.dart' show SetLog;
+import '../../../../theme/app_theme.dart';
+import '../../../../models/workout.dart';
+import '../../../../models/exercise_definition.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../bloc/workout_summary/workout_summary_bloc.dart';
+import '../../bloc/workout_summary/workout_summary_event.dart';
+import '../../bloc/workout_summary/workout_summary_state.dart';
+import '../../bloc/active_workout/active_workout_state.dart' show SetLog;
 
 class WorkoutSummaryScreen extends StatefulWidget {
   final List<ExerciseDefinition> exercises;
@@ -94,98 +95,91 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
     super.dispose();
   }
 
-  Future<void> _saveFinalNotes() async {
-    final durationMins = widget.sessionSeconds / 60.0;
-    
-    // Hitung total set
-    final int totalSets = widget.allLogs.fold(0, (sum, logs) => sum + logs.length);
-    
-    // Buat judul latihan cerdas
-    final List<String> exNames = widget.exercises.map((e) => e.name).toList();
-    String title = exNames.length > 2 
-        ? '${exNames.take(2).join(', ')} +${exNames.length - 2} lainnya' 
-        : exNames.join(' & ');
-        
-    // Buat string rincian latihan untuk notes
-    String detailLogs = '';
-    for (int i = 0; i < widget.exercises.length; i++) {
-      if (widget.allLogs[i].isEmpty) continue;
-      detailLogs += '${widget.exercises[i].name}:\n';
-      for (int s = 0; s < widget.allLogs[i].length; s++) {
-        final l = widget.allLogs[i][s];
-        detailLogs += '  Set ${s+1}: ${l.reps} reps ${l.weightKg != null ? 'x ${l.weightKg}kg' : ''}\n';
-      }
-    }
-
-    // Buat 1 objek Workout untuk mewakili seluruh sesi
-    final workout = Workout(
-      type: 'weightlifting',
-      duration: durationMins.clamp(1, 9999),
-      reps: _totalReps,
-      sets: totalSets,
-      weight: _totalVolumeKg,
-      caloriesBurned: _totalCalories,
-      proteinNeeded: Workout.calculateProteinNeeded('weightlifting', durationMins.clamp(1, 9999), weight: widget.userWeight),
-      date: DateTime.now(),
-      title: title,
-      notes: '${_notesCtrl.text.isNotEmpty ? 'Catatan: ${_notesCtrl.text}\n' : ''}Intensitas (RPE): ${_rpe.toInt()}/10\n\nDetail Latihan:\n$detailLogs',
-    );
-    
-    // Simpan ke DB Lokal dan sinkronkan ke Cloud Firestore
-    await DatabaseHelper().insertWorkout(workout);
-    // Sync ke Firestore di background
-    CloudSyncService.syncWorkoutsToCloud().catchError((_) {});
-    
-    // Publish ke Social Feed
-    SocialService.publishWorkoutToFeed(workout.toMap()).catchError((_) {});
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Latihan berhasil disimpan ke Cloud & Lokal!'),
-          backgroundColor: AppTheme.neonGreen,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
-    }
+  Future<void> _saveFinalNotes(BuildContext context) async {
+    context.read<WorkoutSummaryBloc>().add(WorkoutSummarySaveRequested(
+      exercises: widget.exercises,
+      allLogs: widget.allLogs,
+      sessionSeconds: widget.sessionSeconds,
+      userWeight: widget.userWeight,
+      notes: _notesCtrl.text,
+      rpe: _rpe,
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      body: FadeTransition(
-        opacity: _fadeAnim,
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 24),
-                _buildTopBar(),
-                const SizedBox(height: 32),
-                _buildHeroStats(),
-                const SizedBox(height: 32),
-                _buildAchievements(),
-                const SizedBox(height: 32),
-                _buildChartSection(),
-                const SizedBox(height: 28),
-                _buildMuscleDistribution(),
-                const SizedBox(height: 28),
-                _buildExerciseLogs(),
-                const SizedBox(height: 28),
-                _buildRPESection(),
-                const SizedBox(height: 28),
-                _buildNotesSection(),
-                const SizedBox(height: 28),
-                _buildDoneButton(),
-                const SizedBox(height: 40),
-              ],
+    return BlocProvider(
+      create: (context) => WorkoutSummaryBloc(),
+      child: BlocConsumer<WorkoutSummaryBloc, WorkoutSummaryState>(
+        listener: (context, state) {
+          if (state.status == WorkoutSummaryStatus.success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Latihan berhasil disimpan!'),
+                backgroundColor: AppTheme.neonGreen,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            );
+            Navigator.popUntil(context, (route) => route.isFirst);
+          } else if (state.status == WorkoutSummaryStatus.failure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Gagal menyimpan: ${state.errorMessage}'),
+                backgroundColor: const Color(0xFFFF3400),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          return Scaffold(
+            backgroundColor: AppTheme.background,
+            body: FadeTransition(
+              opacity: _fadeAnim,
+              child: SafeArea(
+                child: Stack(
+                  children: [
+                    SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 24),
+                          _buildTopBar(),
+                          const SizedBox(height: 32),
+                          _buildHeroStats(),
+                          const SizedBox(height: 32),
+                          _buildAchievements(),
+                          const SizedBox(height: 32),
+                          _buildChartSection(),
+                          const SizedBox(height: 28),
+                          _buildMuscleDistribution(),
+                          const SizedBox(height: 28),
+                          _buildExerciseLogs(),
+                          const SizedBox(height: 28),
+                          _buildRPESection(),
+                          const SizedBox(height: 28),
+                          _buildNotesSection(),
+                          const SizedBox(height: 28),
+                          _buildDoneButton(context, state.status == WorkoutSummaryStatus.saving),
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
+                    if (state.status == WorkoutSummaryStatus.saving)
+                      Container(
+                        color: Colors.black54,
+                        child: Center(
+                          child: CircularProgressIndicator(color: AppTheme.accent),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
@@ -499,24 +493,26 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen>
     );
   }
 
-  Widget _buildDoneButton() {
-    return GestureDetector(
-      onTap: () async {
-        await _saveFinalNotes();
-        if (!mounted) return;
-        Navigator.of(context).popUntil((route) => route.isFirst);
-      },
-      child: Container(
-        width: double.infinity,
-        height: 60,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [AppTheme.accent, const Color(0xFFFF7A3D)]),
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [BoxShadow(color: AppTheme.accent.withOpacity(0.35), blurRadius: 20, offset: const Offset(0, 6))],
+  Widget _buildDoneButton(BuildContext context, bool isSaving) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: isSaving ? null : () async {
+          await _saveFinalNotes(context);
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppTheme.accent,
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 4,
+          shadowColor: AppTheme.accent.withValues(alpha: 0.4),
         ),
-        child: const Center(
-          child: Text('SELESAI & KEMBALI', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
-        ),
+        child: isSaving
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Text(
+                'Selesai & Simpan',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.2),
+              ),
       ),
     );
   }

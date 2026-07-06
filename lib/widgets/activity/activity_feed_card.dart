@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/workout.dart';
 import '../../theme/app_theme.dart';
-import '../../screens/workout_detail_screen.dart';
+import '../../features/workout/presentation/screens/workout_detail_screen.dart';
 import '../mini_route_painter.dart';
 import 'package:geocoding/geocoding.dart';
 

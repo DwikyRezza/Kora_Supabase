@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../theme/app_theme.dart';
 import '../../../../../models/exercise_definition.dart';
-import '../../../../screens/workout_summary_screen.dart'; // We can refactor summary later
+import 'workout_summary_screen.dart';
 import '../../bloc/active_workout/active_workout_bloc.dart';
 import '../../bloc/active_workout/active_workout_event.dart';
 import '../../bloc/active_workout/active_workout_state.dart';

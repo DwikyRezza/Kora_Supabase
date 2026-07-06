@@ -6,19 +6,21 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
-import '../models/workout.dart';
-import '../models/exercise_definition.dart';
-import '../services/database_helper.dart';
-import '../theme/app_theme.dart';
-import '../services/auth_service.dart';
-import '../services/profile_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../models/workout.dart';
+import '../../../../models/exercise_definition.dart';
+import '../../../../services/database_helper.dart';
+import '../../../../theme/app_theme.dart';
+import '../../bloc/workout_detail/workout_detail_bloc.dart';
+import '../../bloc/workout_detail/workout_detail_event.dart';
+import '../../bloc/workout_detail/workout_detail_state.dart';
 
 // Modular components imports
-import '../widgets/workout_detail/workout_detail_header.dart';
-import '../widgets/workout_detail/workout_detail_map.dart';
-import '../widgets/workout_detail/workout_detail_results.dart';
-import '../widgets/workout_detail/workout_analysis_splits.dart';
-import '../widgets/workout_detail/workout_charts_container.dart';
+import '../../../../widgets/workout_detail/workout_detail_header.dart';
+import '../../../../widgets/workout_detail/workout_detail_map.dart';
+import '../../../../widgets/workout_detail/workout_detail_results.dart';
+import '../../../../widgets/workout_detail/workout_analysis_splits.dart';
+import '../../../../widgets/workout_detail/workout_charts_container.dart';
 
 class WorkoutDetailScreen extends StatefulWidget {
   final Workout workout;
@@ -45,52 +47,29 @@ class WorkoutDetailScreen extends StatefulWidget {
 }
 
 class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
-  late Workout _workout;
-  bool _isLoading = false;
   final ScreenshotController _screenshotController = ScreenshotController();
   final ValueNotifier<LatLng?> _trackingPinPositionNotifier = ValueNotifier<LatLng?>(null);
 
-  String _userName = 'Atlet';
-  String? _userPhotoUrl;
-
-  /// Incremented to force FutureBuilder to re-fetch photos from DB
-  int _photoRefreshKey = 0;
+  late final WorkoutDetailBloc _bloc;
+  late Workout _workout;
 
   @override
   void initState() {
     super.initState();
     _workout = widget.workout;
     
-    // Gunakan data author dari Feed jika tersedia, jika tidak maka load profil user saat ini
-    if (widget.authorName != null && widget.authorName!.isNotEmpty) {
-      _userName = widget.authorName!;
-      _userPhotoUrl = widget.authorPhotoUrl;
-    } else {
-      _loadUserProfile();
-    }
+    _bloc = WorkoutDetailBloc()
+      ..add(WorkoutDetailLoadRequested(
+        authorName: widget.authorName,
+        authorPhotoUrl: widget.authorPhotoUrl,
+      ));
   }
 
   @override
   void dispose() {
+    _bloc.close();
     _trackingPinPositionNotifier.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadUserProfile() async {
-    try {
-      final profile = await ProfileService.getProfile();
-      if (mounted) {
-        setState(() {
-          String name = profile[ProfileService.keyName] ?? '';
-          if (name.isEmpty) name = AuthService.displayName;
-          if (name.isEmpty) name = 'Atlet';
-          _userName = name;
-          _userPhotoUrl = profile['photoUrl'] ?? AuthService.photoUrl;
-        });
-      }
-    } catch (e) {
-      // ignore
-    }
   }
 
   Future<void> _pickImage() async {
@@ -103,22 +82,13 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
     );
 
     if (pickedFile != null) {
-      setState(() => _isLoading = true);
-      
       final appDir = await getApplicationDocumentsDirectory();
       final fileName = '${DateTime.now().millisecondsSinceEpoch}_${p.basename(pickedFile.path)}';
       final savedImage = await File(pickedFile.path).copy('${appDir.path}/$fileName');
 
-      // Simpan ke tabel terpisah workout_photos (lazy loading)
       if (_workout.id != null) {
-        await DatabaseHelper().addWorkoutPhoto(_workout.id!, savedImage.path);
+        _bloc.add(WorkoutDetailPhotoAdded(_workout.id!, savedImage.path));
       }
-
-      setState(() {
-        _isLoading = false;
-        // Trigger rebuild — FutureBuilder akan re-fetch foto dari DB
-        _photoRefreshKey++;
-      });
     }
   }
 
@@ -133,16 +103,48 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
     }
   }
 
+  void _showDeleteDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus Latihan'),
+        content: const Text('Anda yakin ingin menghapus data latihan ini?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              if (_workout.id != null) {
+                _bloc.add(WorkoutDetailDeleted(_workout.id!));
+              }
+            },
+            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final double workoutDistance = _workout.distance ?? 0.0;
+    return BlocProvider.value(
+      value: _bloc,
+      child: BlocConsumer<WorkoutDetailBloc, WorkoutDetailState>(
+        listener: (context, state) {
+          if (state.status == WorkoutDetailStatus.deleted) {
+            Navigator.pop(context, true); // true = was deleted
+          } else if (state.status == WorkoutDetailStatus.failure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.errorMessage ?? 'Terjadi kesalahan')),
+            );
+          }
+        },
+        builder: (context, state) {
+          final double workoutDistance = _workout.distance ?? 0.0;
 
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      body: ValueListenableBuilder<ThemeMode>(
-        valueListenable: AppTheme.themeNotifier,
-        builder: (context, _, __) {
-          return Screenshot(
+          return Scaffold(
+            backgroundColor: AppTheme.background,
+            body: Screenshot(
             controller: _screenshotController,
             child: Stack(
               children: [
@@ -221,8 +223,8 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                               // A. HEADER & METRIK UTAMA (3x2)
                               WorkoutDetailHeader(
                                 workout: _workout,
-                                userName: _userName,
-                                userPhotoUrl: _userPhotoUrl,
+                                userName: state.userName,
+                                userPhotoUrl: state.userPhotoUrl,
                                 postId: widget.postId,
                                 likedBy: widget.likedBy,
                                 commentsCount: widget.commentsCount,
@@ -282,7 +284,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                                     _buildSectionTitle('Foto Latihan'),
                                     IconButton(
                                       icon: Icon(Icons.add_a_photo, color: AppTheme.electricBlue),
-                                      onPressed: _isLoading ? null : _pickImage,
+                                      onPressed: state.status == WorkoutDetailStatus.loading ? null : _pickImage,
                                     )
                                   ],
                                 ),
@@ -292,7 +294,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 16),
                                   child: FutureBuilder<List<String>>(
-                                    key: ValueKey('photos_$_photoRefreshKey'),
+                                    key: ValueKey('photos_${state.photoRefreshKey}'),
                                     future: DatabaseHelper().getWorkoutPhotos(_workout.id!),
                                     builder: (context, snapshot) {
                                       if (snapshot.connectionState == ConnectionState.waiting) {
@@ -337,6 +339,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                 ),
               ],
             ),
+          ),
           );
         },
       ),
