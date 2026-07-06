@@ -6,8 +6,12 @@ import '../../../../models/workout.dart';
 import '../../../../services/profile_service.dart';
 import '../../../../services/auth_service.dart';
 import '../../../../theme/app_theme.dart';
-import '../../../../screens/setting_screen.dart';
-import '../../../../screens/edit_profile_screen.dart';
+import 'setting_screen.dart';
+import 'edit_profile_screen.dart';
+import 'body_stats_screen.dart';
+import '../../bloc/body_stats/body_stats_bloc.dart';
+import '../../bloc/edit_profile/edit_profile_bloc.dart';
+import '../../bloc/settings/settings_bloc.dart';
 import '../../../../screens/social_screen.dart';
 import '../../../../widgets/feed_post_card.dart';
 import '../../../../utils/responsive.dart';
@@ -236,27 +240,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const SizedBox(height: 12),
 
                           // BMI Badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: AppTheme.accent.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: AppTheme.accent.withOpacity(0.2)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.monitor_weight_rounded, color: AppTheme.accent, size: 18),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'BMI $bmiStr $bmiStatus',
-                                  style: TextStyle(
-                                    color: AppTheme.accent,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => BlocProvider<BodyStatsBloc>(
+                                    create: (context) => BodyStatsBloc(),
+                                    child: const BodyStatsScreen(),
                                   ),
                                 ),
-                              ],
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: AppTheme.accent.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: AppTheme.accent.withOpacity(0.2)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.monitor_weight_rounded, color: AppTheme.accent, size: 18),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'BMI $bmiStr $bmiStatus',
+                                    style: TextStyle(
+                                      color: AppTheme.accent,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
 

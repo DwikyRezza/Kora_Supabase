@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../models/body_measurement.dart';
-import '../services/database_helper.dart';
-import '../services/profile_service.dart';
-import '../services/cloud_sync_service.dart';
-import '../theme/app_theme.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../models/body_measurement.dart';
+import '../../../../theme/app_theme.dart';
+import '../../bloc/body_stats/body_stats_bloc.dart';
+import '../../bloc/body_stats/body_stats_event.dart';
+import '../../bloc/body_stats/body_stats_state.dart';
 
 class BodyStatsScreen extends StatefulWidget {
   const BodyStatsScreen({super.key});
@@ -15,57 +16,18 @@ class BodyStatsScreen extends StatefulWidget {
 }
 
 class _BodyStatsScreenState extends State<BodyStatsScreen> {
-  final _db = DatabaseHelper();
-  List<BodyMeasurement> _measurements = [];
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    _loadData();
+    context.read<BodyStatsBloc>().add(LoadBodyStats());
   }
 
-  /// Dipanggil saat pull-to-refresh â€” sync dari Firestore dulu
   Future<void> _refreshData() async {
-    try {
-      await CloudSyncService.syncBodyMeasurementsToCloud();
-    } catch (_) {} // silent fail jika offline
-    await _loadData();
-  }
-
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
-    final data = await _db.getAllBodyMeasurements();
-    
-    // If empty, try to seed from profile for the very first time
-    if (data.isEmpty) {
-      final profile = await ProfileService.getProfile();
-      final weight = profile[ProfileService.keyWeight] ?? 0.0;
-      final height = profile[ProfileService.keyHeight] ?? 0.0;
-      
-      if (weight > 0 && height > 0) {
-        final initial = BodyMeasurement(
-          weight: weight,
-          height: height,
-          date: DateTime.now().subtract(const Duration(days: 7)), // Fake past week for visual graph
-        );
-        await _db.insertBodyMeasurement(initial);
-        data.add(initial);
-      }
-    }
-    
-    if (mounted) {
-      setState(() {
-        _measurements = data;
-        _isLoading = false;
-      });
-    }
+    context.read<BodyStatsBloc>().add(RefreshBodyStats());
   }
 
   @override
   Widget build(BuildContext context) {
-    BodyMeasurement? latest = _measurements.isNotEmpty ? _measurements.first : null;
-    
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
@@ -73,17 +35,35 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
         backgroundColor: AppTheme.background,
         elevation: 0,
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'bodyStatsFab',
-        onPressed: _showAddMeasurementSheet,
-        backgroundColor: AppTheme.electricBlue,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('Perbarui Data', style: TextStyle(fontWeight: FontWeight.w700)),
+      floatingActionButton: BlocBuilder<BodyStatsBloc, BodyStatsState>(
+        builder: (context, state) {
+          return FloatingActionButton.extended(
+            heroTag: 'bodyStatsFab',
+            onPressed: () => _showAddMeasurementSheet(context, state.measurements),
+            backgroundColor: AppTheme.electricBlue,
+            foregroundColor: Colors.white,
+            icon: const Icon(Icons.add),
+            label: const Text('Perbarui Data', style: TextStyle(fontWeight: FontWeight.w700)),
+          );
+        },
       ),
-      body: _isLoading 
-        ? Center(child: CircularProgressIndicator(color: AppTheme.electricBlue))
-        : RefreshIndicator(
+      body: BlocConsumer<BodyStatsBloc, BodyStatsState>(
+        listener: (context, state) {
+          if (state.status == BodyStatsStatus.failure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.errorMessage ?? 'Terjadi kesalahan')),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state.status == BodyStatsStatus.loading && state.measurements.isEmpty) {
+            return Center(child: CircularProgressIndicator(color: AppTheme.electricBlue));
+          }
+
+          final measurements = state.measurements;
+          BodyMeasurement? latest = measurements.isNotEmpty ? measurements.first : null;
+
+          return RefreshIndicator(
             onRefresh: _refreshData,
             color: AppTheme.electricBlue,
             backgroundColor: AppTheme.surface,
@@ -100,20 +80,20 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
                         const SizedBox(height: 24),
                         Text('Grafik Berat Badan (kg)', style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 16),
-                        _buildWeightChart(),
+                        _buildWeightChart(measurements),
                         const SizedBox(height: 24),
                         Text('Riwayat Pengukuran', style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
                 ),
-                if (_measurements.isEmpty)
+                if (measurements.isEmpty)
                   SliverFillRemaining(child: Center(child: Text('Belum ada riwayat', style: TextStyle(color: AppTheme.textMuted))))
                 else
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        final m = _measurements[index];
+                        final m = measurements[index];
                         return Card(
                           color: AppTheme.surface,
                           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -124,21 +104,24 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
                             subtitle: Text('BMI: ${m.bmi.toStringAsFixed(1)} • ${DateFormat('dd MMM yy', 'id').format(m.date)}', style: TextStyle(color: AppTheme.textMuted)),
                             trailing: IconButton(
                               icon: Icon(Icons.delete_outline, color: AppTheme.accentRed),
-                              onPressed: () async {
-                                await _db.deleteBodyMeasurement(m.id!);
-                                _loadData();
+                              onPressed: () {
+                                if (m.id != null) {
+                                  context.read<BodyStatsBloc>().add(DeleteBodyMeasurement(m.id!));
+                                }
                               },
                             ),
                           ),
                         );
                       },
-                      childCount: _measurements.length,
+                      childCount: measurements.length,
                     ),
                   ),
                 const SliverToBoxAdapter(child: SizedBox(height: 100)),
               ],
             ),
-        ),
+          );
+        },
+      ),
     );
   }
 
@@ -184,8 +167,8 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
     );
   }
 
-  Widget _buildWeightChart() {
-    if (_measurements.length < 2) {
+  Widget _buildWeightChart(List<BodyMeasurement> measurements) {
+    if (measurements.length < 2) {
       return Container(
         height: 200,
         decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppTheme.border)),
@@ -195,7 +178,7 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
     }
 
     // Sort ascending for chart (oldest to newest)
-    final sortedData = List<BodyMeasurement>.from(_measurements)..sort((a, b) => a.date.compareTo(b.date));
+    final sortedData = List<BodyMeasurement>.from(measurements)..sort((a, b) => a.date.compareTo(b.date));
     
     double minW = sortedData.map((e) => e.weight).reduce((a, b) => a < b ? a : b) - 5;
     double maxW = sortedData.map((e) => e.weight).reduce((a, b) => a > b ? a : b) + 5;
@@ -259,18 +242,18 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
     );
   }
 
-  void _showAddMeasurementSheet() {
+  void _showAddMeasurementSheet(BuildContext parentContext, List<BodyMeasurement> measurements) {
     showModalBottomSheet(
-      context: context,
+      context: parentContext,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding: EdgeInsets.only(bottom: MediaQuery.of(parentContext).viewInsets.bottom),
         child: _AddMeasurementSheet(
-          latestMeasurement: _measurements.isNotEmpty ? _measurements.first : null,
-          onSaved: () {
-            Navigator.pop(context);
-            _loadData();
+          latestMeasurement: measurements.isNotEmpty ? measurements.first : null,
+          onSaved: (weight, height) {
+            parentContext.read<BodyStatsBloc>().add(AddBodyMeasurement(weight: weight, height: height));
+            Navigator.pop(parentContext);
           }
         ),
       ),
@@ -280,7 +263,8 @@ class _BodyStatsScreenState extends State<BodyStatsScreen> {
 
 class _AddMeasurementSheet extends StatefulWidget {
   final BodyMeasurement? latestMeasurement;
-  final VoidCallback onSaved;
+  final Function(double, double) onSaved;
+  
   const _AddMeasurementSheet({this.latestMeasurement, required this.onSaved});
 
   @override
@@ -288,7 +272,6 @@ class _AddMeasurementSheet extends StatefulWidget {
 }
 
 class _AddMeasurementSheetState extends State<_AddMeasurementSheet> {
-  final _db = DatabaseHelper();
   late TextEditingController _weightCtrl;
   late TextEditingController _heightCtrl;
 
@@ -299,37 +282,12 @@ class _AddMeasurementSheetState extends State<_AddMeasurementSheet> {
     _heightCtrl = TextEditingController(text: widget.latestMeasurement?.height.toString() ?? '');
   }
 
-  Future<void> _save() async {
+  void _save() {
     final weight = double.tryParse(_weightCtrl.text);
     final height = double.tryParse(_heightCtrl.text);
 
     if (weight == null || height == null) return;
-
-    final m = BodyMeasurement(
-      weight: weight,
-      height: height,
-      date: DateTime.now(),
-    );
-
-    await _db.insertBodyMeasurement(m);
-    
-    // Read old profile to preserve required arguments
-    final prefs = await ProfileService.getProfile();
-    final name = prefs[ProfileService.keyName] ?? "Athlete";
-    final age = prefs[ProfileService.keyAge] ?? 20;
-    final gender = prefs[ProfileService.keyGender] ?? "Pria";
-    final goal = prefs[ProfileService.keyGoal] ?? "Bulking";
-    // Also update Profile Base target
-    await ProfileService.saveProfile(
-      name: name,
-      username: name.toLowerCase().replaceAll(' ', '_'),
-      age: age,
-      gender: gender,
-      weight: weight, 
-      height: height, 
-      goal: goal,
-      status: prefs['status'] ?? "",
-    );widget.onSaved();
+    widget.onSaved(weight, height);
   }
 
   @override

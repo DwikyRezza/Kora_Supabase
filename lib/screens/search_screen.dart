@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../theme/app_theme.dart';
 import 'dart:async';
-import 'public_profile_screen.dart';
+import '../features/profile/presentation/screens/public_profile_screen.dart';
+import '../features/profile/bloc/public_profile/public_profile_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -150,7 +152,12 @@ class _SearchScreenState extends State<SearchScreen> {
                                 onTap: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (_) => PublicProfileScreen(uid: user['uid'])),
+                                    MaterialPageRoute(
+                                      builder: (_) => BlocProvider<PublicProfileBloc>(
+                                        create: (_) => PublicProfileBloc(),
+                                        child: PublicProfileScreen(uid: user['uid']),
+                                      ),
+                                    ),
                                   );
                                 },
                                 behavior: HitTestBehavior.opaque,

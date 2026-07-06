@@ -3,7 +3,9 @@ import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'public_profile_screen.dart';
+import '../features/profile/presentation/screens/public_profile_screen.dart';
+import '../features/profile/bloc/public_profile/public_profile_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -137,7 +139,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => PublicProfileScreen(uid: relatedUid),
+                              builder: (_) => BlocProvider<PublicProfileBloc>(
+                                create: (_) => PublicProfileBloc(),
+                                child: PublicProfileScreen(uid: relatedUid),
+                              ),
                             ),
                           );
                         }

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../services/social_service.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
-import 'public_profile_screen.dart';
+import '../features/profile/presentation/screens/public_profile_screen.dart';
+import '../features/profile/bloc/public_profile/public_profile_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SocialScreen extends StatefulWidget {
   final String initialTab; // 'followers' atau 'following'
@@ -106,7 +108,12 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => PublicProfileScreen(uid: user['uid'])),
+          MaterialPageRoute(
+            builder: (_) => BlocProvider<PublicProfileBloc>(
+              create: (_) => PublicProfileBloc(),
+              child: PublicProfileScreen(uid: user['uid']),
+            ),
+          ),
         );
       },
       behavior: HitTestBehavior.opaque,

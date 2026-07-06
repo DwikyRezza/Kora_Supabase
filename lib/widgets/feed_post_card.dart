@@ -3,7 +3,9 @@ import 'package:intl/intl.dart';
 import '../services/social_service.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
-import '../screens/public_profile_screen.dart';
+import '../features/profile/presentation/screens/public_profile_screen.dart';
+import '../features/profile/bloc/public_profile/public_profile_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../features/workout/presentation/screens/workout_detail_screen.dart';
 import '../models/workout.dart';
 import 'comment_bottom_sheet.dart';
@@ -300,7 +302,12 @@ class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => PublicProfileScreen(uid: widget.post['uid'])),
+              MaterialPageRoute(
+                builder: (_) => BlocProvider<PublicProfileBloc>(
+                  create: (_) => PublicProfileBloc(),
+                  child: PublicProfileScreen(uid: widget.post['uid']),
+                ),
+              ),
             );
           },
           child: CircleAvatar(
@@ -324,7 +331,12 @@ class _FeedPostCardState extends State<FeedPostCard> with WidgetsBindingObserver
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => PublicProfileScreen(uid: widget.post['uid'])),
+                    MaterialPageRoute(
+                      builder: (_) => BlocProvider<PublicProfileBloc>(
+                        create: (_) => PublicProfileBloc(),
+                        child: PublicProfileScreen(uid: widget.post['uid']),
+                      ),
+                    ),
                   );
                 },
                 child: Text(
