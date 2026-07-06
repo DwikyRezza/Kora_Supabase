@@ -24,6 +24,8 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
       int currentStreak = globalWorkoutStreak['current'] ?? 0;
       int bestStreak = globalWorkoutStreak['best'] ?? 0;
 
+      final allWorkouts = await _workoutRepository.getAllWorkouts();
+
       // Monthly total workouts
       final monthWorkouts = await _workoutRepository.getWorkoutsByDateRange(
         start: DateTime(event.month.year, event.month.month, 1),
@@ -60,11 +62,12 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
         isLoading: false,
         currentStreak: currentStreak,
         bestStreak: bestStreak,
+        totalWorkoutsMonth: totalWorkoutsMonth,
         consistencyScore: consistencyScore,
+        weekWorkouts: weekWorkouts,
+        allWorkouts: allWorkouts,
         currentMonth: event.month,
         selectedFilter: event.filter,
-        weekWorkouts: weekWorkouts,
-        totalWorkoutsMonth: monthWorkouts.length,
         workoutDaysMonth: workoutDays,
         coachMessage: coachMessage,
         lottieAnimationUrl: lottieAnimationUrl,

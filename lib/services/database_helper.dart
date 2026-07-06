@@ -685,6 +685,15 @@ class DatabaseHelper {
     return maps.map((m) => ScheduleEvent.fromMap(m)).toList();
   }
 
+  Future<List<ScheduleEvent>> getAllScheduleEvents() async {
+    final db = await database;
+    final maps = await db.query(
+      'schedule_events',
+      orderBy: 'dateTime ASC',
+    );
+    return maps.map((m) => ScheduleEvent.fromMap(m)).toList();
+  }
+
   Future<void> checkLateSchedules() async {
     final db = await database;
     // Anggap gagal jika lewat 2 jam

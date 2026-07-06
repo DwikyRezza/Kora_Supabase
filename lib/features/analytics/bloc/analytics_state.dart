@@ -12,6 +12,7 @@ class AnalyticsState extends Equatable {
   final Map<int, Map<String, dynamic>> dailyStats;
   final String selectedFilter;
   final Map<int, List<Workout>> weekWorkouts;
+  final List<Workout> allWorkouts;
   final int totalWorkoutsMonth;
   final Set<int> workoutDaysMonth;
   
@@ -30,6 +31,7 @@ class AnalyticsState extends Equatable {
     this.dailyStats = const {},
     this.selectedFilter = 'all',
     this.weekWorkouts = const {},
+    this.allWorkouts = const [],
     this.totalWorkoutsMonth = 0,
     this.workoutDaysMonth = const {},
     this.coachMessage = '',
@@ -47,6 +49,7 @@ class AnalyticsState extends Equatable {
     Map<int, Map<String, dynamic>>? dailyStats,
     String? selectedFilter,
     Map<int, List<Workout>>? weekWorkouts,
+    List<Workout>? allWorkouts,
     int? totalWorkoutsMonth,
     Set<int>? workoutDaysMonth,
     String? coachMessage,
@@ -63,6 +66,7 @@ class AnalyticsState extends Equatable {
       dailyStats: dailyStats ?? this.dailyStats,
       selectedFilter: selectedFilter ?? this.selectedFilter,
       weekWorkouts: weekWorkouts ?? this.weekWorkouts,
+      allWorkouts: allWorkouts ?? this.allWorkouts,
       totalWorkoutsMonth: totalWorkoutsMonth ?? this.totalWorkoutsMonth,
       workoutDaysMonth: workoutDaysMonth ?? this.workoutDaysMonth,
       coachMessage: coachMessage ?? this.coachMessage,
@@ -82,6 +86,7 @@ class AnalyticsState extends Equatable {
         dailyStats,
         selectedFilter,
         weekWorkouts,
+        allWorkouts,
         totalWorkoutsMonth,
         workoutDaysMonth,
         coachMessage,

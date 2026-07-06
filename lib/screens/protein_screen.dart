@@ -5,7 +5,7 @@ import '../services/database_helper.dart';
 import '../services/profile_service.dart';
 import '../services/cloud_sync_service.dart';
 import '../services/notification_service.dart';
-import 'ai_nutrition_screen.dart';
+import '../features/nutrition/presentation/screens/ai_nutrition_screen.dart';
 import '../utils/responsive.dart';
 
 class ProteinScreen extends StatefulWidget {

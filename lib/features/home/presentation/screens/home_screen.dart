@@ -21,7 +21,7 @@ import 'dart:async';
 import '../../../../screens/search_screen.dart';
 import '../../../../screens/notification_screen.dart';
 import '../../../../features/running/presentation/screens/running_screen.dart';
-import '../../../../screens/workout_setup_screen.dart';
+import '../../../workout/presentation/screens/workout_setup_screen.dart';
 import '../../../../widgets/feed_post_card.dart';
 import '../../../../utils/responsive.dart';
 

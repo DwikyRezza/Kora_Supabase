@@ -5,6 +5,7 @@ class TrainingVolumeChart extends StatefulWidget {
   final List<double> weeklyVolumes; // Data untuk 12 minggu (3 bulan x 4 minggu)
   final List<String>? bottomLabels; // Label khusus untuk sumbu X
   final double? maxY;
+  final double minY;
   final String unit; // Memaksa max Y agar sejajar dengan label di luar
   final void Function(int?)? onIndexChanged; // Callback saat digeser
 
@@ -13,6 +14,7 @@ class TrainingVolumeChart extends StatefulWidget {
     required this.weeklyVolumes,
     this.bottomLabels,
     this.maxY,
+    this.minY = 0.0,
     this.unit = "km",
     this.onIndexChanged,
   }) : assert(weeklyVolumes.length == 12, 'Must provide exactly 12 weekly data points (4 weeks x 3 months)');
@@ -99,8 +101,9 @@ class _TrainingVolumeChartState extends State<TrainingVolumeChart> {
               drawVerticalLine: false,
               horizontalInterval: widget.maxY != null ? widget.maxY! / 2 : (maxVolume * 1.2).clamp(1.0, double.infinity) / 2,
               getDrawingHorizontalLine: (value) {
-                // Sembunyikan garis Y=0 karena sudah ditangani oleh borderData
-                if (value == 0) return const FlLine(color: Colors.transparent, strokeWidth: 0);
+                if (value == 0) {
+                  return FlLine(color: Colors.grey.withOpacity(0.5), strokeWidth: 1.5);
+                }
                 return FlLine(
                   color: Colors.grey.withOpacity(0.3),
                   strokeWidth: 1,
@@ -167,15 +170,12 @@ class _TrainingVolumeChartState extends State<TrainingVolumeChart> {
               ),
             ),
             borderData: FlBorderData(
-              show: true,
-              border: Border(
-                bottom: BorderSide(color: Colors.grey.withOpacity(0.5), width: 1.5),
-              ),
+              show: false,
             ),
             minX: 0,
             maxX: 11,
-            minY: 0,
-            maxY: widget.maxY ?? (maxVolume * 1.2).clamp(1.0, double.infinity), // Buffer ruang 20% di atas agar titik max tidak tertutup tooltip
+            minY: widget.minY < 0 ? widget.minY : -(widget.maxY ?? ((maxVolume < 10) ? 10 : maxVolume * 1.35)) * 0.08,
+            maxY: widget.maxY ?? ((maxVolume < 10) ? 10 : (maxVolume * 1.35).ceilToDouble()),
             lineBarsData: [
               LineChartBarData(
                 spots: List.generate(

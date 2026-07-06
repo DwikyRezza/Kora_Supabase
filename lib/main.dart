@@ -8,14 +8,15 @@ import 'features/home/presentation/screens/home_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'features/home/bloc/home_bloc.dart';
 import 'screens/workout_screen.dart';
-import 'screens/ai_nutrition_screen.dart';
+import 'features/nutrition/presentation/screens/ai_nutrition_screen.dart';
 import 'screens/protein_screen.dart';
-import 'screens/schedule_screen.dart';
+import 'features/schedule/presentation/screens/schedule_screen.dart';
 import 'screens/body_stats_screen.dart';
 import 'screens/profile_screen.dart';
 import 'services/notification_service.dart';
 import 'services/settings_service.dart';
 import 'repositories/workout_repository.dart';
+import 'repositories/schedule_repository.dart';
 
 import 'screens/splash_screen.dart';
 
@@ -57,6 +58,9 @@ class KoraApp extends StatelessWidget {
       providers: [
         RepositoryProvider<WorkoutRepository>(
           create: (context) => WorkoutRepository(),
+        ),
+        RepositoryProvider<ScheduleRepository>(
+          create: (context) => ScheduleRepository(),
         ),
       ],
       child: ValueListenableBuilder<ThemeMode>(

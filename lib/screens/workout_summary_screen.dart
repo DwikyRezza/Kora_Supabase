@@ -6,7 +6,7 @@ import '../models/exercise_definition.dart';
 import '../services/database_helper.dart';
 import '../services/cloud_sync_service.dart';
 import '../services/social_service.dart';
-import 'active_workout_screen.dart' show SetLog;
+import '../features/workout/bloc/active_workout/active_workout_state.dart' show SetLog;
 
 class WorkoutSummaryScreen extends StatefulWidget {
   final List<ExerciseDefinition> exercises;
