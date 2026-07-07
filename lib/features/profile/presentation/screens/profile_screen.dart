@@ -12,7 +12,8 @@ import 'body_stats_screen.dart';
 import '../../bloc/body_stats/body_stats_bloc.dart';
 import '../../bloc/edit_profile/edit_profile_bloc.dart';
 import '../../bloc/settings/settings_bloc.dart';
-import '../../../../screens/social_screen.dart';
+import '../../../social/presentation/screens/social_screen.dart';
+import '../../../social/bloc/social_network/social_network_bloc.dart';
 import '../../../../widgets/feed_post_card.dart';
 import '../../../../utils/responsive.dart';
 import '../../bloc/profile_bloc.dart';
@@ -56,7 +57,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _goToSettings() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const SettingScreen()),
+      MaterialPageRoute(
+        builder: (_) => BlocProvider<SettingsBloc>(
+          create: (_) => SettingsBloc(),
+          child: const SettingScreen(),
+        ),
+      ),
     );
   }
 
@@ -194,7 +200,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       child: GestureDetector(
                                         onTap: () async {
                                           final uname = state.profile[ProfileService.keyUsername] ?? state.profile[ProfileService.keyName] ?? 'user';
-                                          await Navigator.push(context, MaterialPageRoute(builder: (_) => SocialScreen(initialTab: 'followers', username: uname, uid: AuthService.uid)));
+                                          await Navigator.push(context, MaterialPageRoute(
+                                            builder: (_) => BlocProvider<SocialNetworkBloc>(
+                                              create: (_) => SocialNetworkBloc(),
+                                              child: SocialScreen(initialTab: 'followers', username: uname, uid: AuthService.uid),
+                                            )
+                                          ));
                                           context.read<ProfileBloc>().add(const ProfileLoadRequested());
                                         },
                                         child: _buildStatColumn(state.followersCount.toString(), 'Pengikut'),
@@ -204,7 +215,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       child: GestureDetector(
                                         onTap: () async {
                                           final uname = state.profile[ProfileService.keyUsername] ?? state.profile[ProfileService.keyName] ?? 'user';
-                                          await Navigator.push(context, MaterialPageRoute(builder: (_) => SocialScreen(initialTab: 'following', username: uname, uid: AuthService.uid)));
+                                          await Navigator.push(context, MaterialPageRoute(
+                                            builder: (_) => BlocProvider<SocialNetworkBloc>(
+                                              create: (_) => SocialNetworkBloc(),
+                                              child: SocialScreen(initialTab: 'following', username: uname, uid: AuthService.uid),
+                                            )
+                                          ));
                                           context.read<ProfileBloc>().add(const ProfileLoadRequested());
                                         },
                                         child: _buildStatColumn(state.followingCount.toString(), 'Mengikuti'),

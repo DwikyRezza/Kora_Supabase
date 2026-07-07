@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import '../services/social_service.dart';
-import '../services/auth_service.dart';
-import '../theme/app_theme.dart';
-import '../features/profile/presentation/screens/public_profile_screen.dart';
-import '../features/profile/bloc/public_profile/public_profile_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../services/auth_service.dart';
+import '../../../../theme/app_theme.dart';
+import '../../../profile/presentation/screens/public_profile_screen.dart';
+import '../../../profile/bloc/public_profile/public_profile_bloc.dart';
+import '../../bloc/social_network/social_network_bloc.dart';
+import '../../bloc/social_network/social_network_event.dart';
+import '../../bloc/social_network/social_network_state.dart';
 
 class SocialScreen extends StatefulWidget {
   final String initialTab; // 'followers' atau 'following'
@@ -24,10 +26,6 @@ class SocialScreen extends StatefulWidget {
 
 class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  
-  List<Map<String, dynamic>> _followers = [];
-  List<Map<String, dynamic>> _following = [];
-  bool _isLoading = true;
 
   @override
   void initState() {
@@ -37,28 +35,10 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
       vsync: this, 
       initialIndex: widget.initialTab == 'followers' ? 0 : 1
     );
-    _loadData();
+    context.read<SocialNetworkBloc>().add(LoadSocialData(widget.uid));
   }
 
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
-    if (AuthService.isLoggedIn) {
-      final uid = widget.uid;
-      final followingData = await SocialService.getFollowing(uid);
-      final followersData = await SocialService.getFollowers(uid);
-      
-      setState(() {
-        _following = followingData;
-        _followers = followersData;
-        _isLoading = false;
-      });
-    } else {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _handleUnfollow(String targetUid) async {
-    // Tampilkan dialog konfirmasi seperti Instagram
+  Future<void> _handleUnfollow(BuildContext context, String targetUid) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -71,13 +51,12 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
       ),
     );
 
-    if (confirm == true) {
-      await SocialService.unfollowUser(targetUid);
-      _loadData(); // Refresh list
+    if (confirm == true && context.mounted) {
+      context.read<SocialNetworkBloc>().add(UnfollowUserEvent(targetUid));
     }
   }
 
-  Future<void> _handleRemoveFollower(String followerUid) async {
+  Future<void> _handleRemoveFollower(BuildContext context, String followerUid) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -90,9 +69,8 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
       ),
     );
 
-    if (confirm == true) {
-      await SocialService.removeFollower(followerUid);
-      _loadData(); // Refresh list
+    if (confirm == true && context.mounted) {
+      context.read<SocialNetworkBloc>().add(RemoveFollowerEvent(followerUid));
     }
   }
 
@@ -103,7 +81,7 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
     return Icon(Icons.person, size: 28, color: AppTheme.textMuted);
   }
 
-  Widget _buildUserRow(Map<String, dynamic> user, bool isFollowersTab) {
+  Widget _buildUserRow(BuildContext context, Map<String, dynamic> user, bool isFollowersTab) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -155,10 +133,10 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
             if (widget.uid == AuthService.uid)
               isFollowersTab
                   ? ElevatedButton(
-                      onPressed: () => _handleRemoveFollower(user['uid']),
+                      onPressed: () => _handleRemoveFollower(context, user['uid']),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.surfaceVariant, // Abu-abu terang (Fog)
-                        foregroundColor: AppTheme.textPrimary, // Graphite
+                        backgroundColor: AppTheme.surfaceVariant,
+                        foregroundColor: AppTheme.textPrimary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -166,9 +144,9 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
                       child: const Text('Hapus', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                     )
                   : ElevatedButton(
-                      onPressed: () => _handleUnfollow(user['uid']),
+                      onPressed: () => _handleUnfollow(context, user['uid']),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.surfaceVariant, // Abu-abu
+                        backgroundColor: AppTheme.surfaceVariant,
                         foregroundColor: AppTheme.textPrimary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
@@ -182,11 +160,13 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildList(List<Map<String, dynamic>> users, bool isFollowersTab) {
-    if (_isLoading) {
+  Widget _buildList(SocialNetworkState state, bool isFollowersTab) {
+    if (state.status == SocialNetworkStatus.loading || state.status == SocialNetworkStatus.initial) {
       return Center(child: CircularProgressIndicator(color: AppTheme.accent));
     }
     
+    final users = isFollowersTab ? state.followers : state.following;
+
     if (users.isEmpty) {
       return Center(
         child: Text(
@@ -202,69 +182,81 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
       itemCount: users.length,
       separatorBuilder: (context, index) => Divider(color: AppTheme.border, height: 16),
       itemBuilder: (context, index) {
-        return _buildUserRow(users[index], isFollowersTab);
+        return _buildUserRow(context, users[index], isFollowersTab);
       },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.surface,
-      appBar: AppBar(
-        backgroundColor: AppTheme.surface,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded, color: AppTheme.accent),
-          onPressed: () => Navigator.pop(context, true),
-        ),
-        title: Text(
-          '@${widget.username}',
-          style: TextStyle(color: AppTheme.textPrimary, fontSize: 22, fontWeight: FontWeight.w700),
-        ),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-            child: Container(
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceVariant,
-                borderRadius: BorderRadius.circular(26),
-              ),
-              child: TabBar(
-                controller: _tabController,
-                indicator: BoxDecoration(
-                  borderRadius: BorderRadius.circular(22),
-                  color: AppTheme.surface, // Background color of the pill
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, spreadRadius: 1),
-                  ]
+    return BlocConsumer<SocialNetworkBloc, SocialNetworkState>(
+      listener: (context, state) {
+        if (state.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(state.errorMessage!),
+            backgroundColor: AppTheme.accentRed,
+          ));
+        }
+      },
+      builder: (context, state) {
+        return Scaffold(
+          backgroundColor: AppTheme.surface,
+          appBar: AppBar(
+            backgroundColor: AppTheme.surface,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back_rounded, color: AppTheme.accent),
+              onPressed: () => Navigator.pop(context, true),
+            ),
+            title: Text(
+              '@${widget.username}',
+              style: TextStyle(color: AppTheme.textPrimary, fontSize: 22, fontWeight: FontWeight.w700),
+            ),
+          ),
+          body: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceVariant,
+                    borderRadius: BorderRadius.circular(26),
+                  ),
+                  child: TabBar(
+                    controller: _tabController,
+                    indicator: BoxDecoration(
+                      borderRadius: BorderRadius.circular(22),
+                      color: AppTheme.surface,
+                      boxShadow: [
+                        BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, spreadRadius: 1),
+                      ]
+                    ),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    labelColor: AppTheme.accent,
+                    unselectedLabelColor: AppTheme.textSecondary,
+                    labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, letterSpacing: 0.05),
+                    dividerColor: Colors.transparent,
+                    tabs: const [
+                      Tab(text: 'Pengikut'),
+                      Tab(text: 'Mengikuti'),
+                    ],
+                  ),
                 ),
-                indicatorSize: TabBarIndicatorSize.tab,
-                labelColor: AppTheme.accent, // Primary
-                unselectedLabelColor: AppTheme.textSecondary, // Secondary
-                labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, letterSpacing: 0.05),
-                dividerColor: Colors.transparent,
-                tabs: const [
-                  Tab(text: 'Pengikut'),
-                  Tab(text: 'Mengikuti'),
-                ],
               ),
-            ),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildList(state, true),
+                    _buildList(state, false),
+                  ],
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildList(_followers, true),
-                _buildList(_following, false),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

@@ -18,8 +18,10 @@ import '../../../../widgets/shimmer_stat_box.dart';
 import '../../../../widgets/shimmer_feed_card.dart';
 import '../../../../widgets/home_screen/home_screen_components.dart';
 import 'dart:async';
-import '../../../../screens/search_screen.dart';
-import '../../../../screens/notification_screen.dart';
+import '../../../social/presentation/screens/search_screen.dart';
+import '../../../social/bloc/search/search_bloc.dart';
+import '../../../social/presentation/screens/notification_screen.dart';
+import '../../../social/bloc/notification/notification_bloc.dart';
 import '../../../../features/running/presentation/screens/running_screen.dart';
 import '../../../workout/presentation/screens/workout_setup_screen.dart';
 import '../../../../widgets/feed_post_card.dart';
@@ -206,7 +208,13 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: Icon(Icons.search, color: AppTheme.textPrimary),
               onPressed: () {
                 Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const SearchScreen()));
+                    MaterialPageRoute(
+                      builder: (_) => BlocProvider<SearchBloc>(
+                        create: (_) => SearchBloc(),
+                        child: const SearchScreen(),
+                      ),
+                    ),
+                );
               },
             ),
             Stack(
@@ -218,7 +226,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     await Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) => const NotificationScreen()));
+                            builder: (_) => BlocProvider<NotificationBloc>(
+                              create: (_) => NotificationBloc(),
+                              child: const NotificationScreen(),
+                            )));
                     context.read<HomeBloc>().add(const HomeLoadData(isRefresh: true));
                   },
                 ),

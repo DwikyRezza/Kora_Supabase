@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../screens/social_screen.dart';
+import '../../../social/presentation/screens/social_screen.dart';
+import '../../../social/bloc/social_network/social_network_bloc.dart';
 import '../../../../theme/app_theme.dart';
 import '../../../../widgets/feed_post_card.dart';
 import '../../bloc/public_profile/public_profile_bloc.dart';
@@ -120,14 +121,24 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                               children: [
                                 GestureDetector(
                                   onTap: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (_) => SocialScreen(initialTab: 'followers', username: username, uid: widget.uid)));
+                                    Navigator.push(context, MaterialPageRoute(
+                                      builder: (_) => BlocProvider<SocialNetworkBloc>(
+                                        create: (_) => SocialNetworkBloc(),
+                                        child: SocialScreen(initialTab: 'followers', username: username, uid: widget.uid),
+                                      )
+                                    ));
                                   },
                                   child: _buildStat('Pengikut', state.followersCount),
                                 ),
                                 Container(width: 1, height: 24, color: AppTheme.surfaceVariant),
                                 GestureDetector(
                                   onTap: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (_) => SocialScreen(initialTab: 'following', username: username, uid: widget.uid)));
+                                    Navigator.push(context, MaterialPageRoute(
+                                      builder: (_) => BlocProvider<SocialNetworkBloc>(
+                                        create: (_) => SocialNetworkBloc(),
+                                        child: SocialScreen(initialTab: 'following', username: username, uid: widget.uid),
+                                      )
+                                    ));
                                   },
                                   child: _buildStat('Mengikuti', state.followingCount),
                                 ),
