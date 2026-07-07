@@ -29,7 +29,7 @@ import 'features/auth/presentation/screens/splash_screen.dart' as new_splash;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // WAJIB: inisialisasi port komunikasi antara TaskHandler (background service)
   // dan Flutter UI. Harus dipanggil SEBELUM runApp().
   FlutterForegroundTask.initCommunicationPort();
@@ -41,7 +41,8 @@ Future<void> main() async {
   AppTheme.themeNotifier.addListener(() {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: AppTheme.isDarkMode ? Brightness.light : Brightness.dark,
+      statusBarIconBrightness:
+          AppTheme.isDarkMode ? Brightness.light : Brightness.dark,
       systemNavigationBarColor: Colors.transparent,
     ));
   });
@@ -49,7 +50,8 @@ Future<void> main() async {
   // Terapkan initial status bar style
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
-    statusBarIconBrightness: AppTheme.isDarkMode ? Brightness.light : Brightness.dark,
+    statusBarIconBrightness:
+        AppTheme.isDarkMode ? Brightness.light : Brightness.dark,
     systemNavigationBarColor: Colors.transparent,
   ));
 
@@ -127,19 +129,34 @@ class _MainNavigationState extends State<MainNavigation>
       context: context,
       backgroundColor: AppTheme.surface,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(26))),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(26))),
       builder: (_) {
         return Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 32, top: 24, left: 24, right: 24),
+          padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+              top: 24,
+              left: 24,
+              right: 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppTheme.surfaceVariant, borderRadius: BorderRadius.circular(2)))),
+              Center(
+                  child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                          color: AppTheme.surfaceVariant,
+                          borderRadius: BorderRadius.circular(2)))),
               const SizedBox(height: 32),
-              Text('Mulai Latihan', style: TextStyle(color: AppTheme.textPrimary, fontSize: 24, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+              Text('Mulai Latihan',
+                  style: TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center),
               const SizedBox(height: 32),
-              
               _buildBoldGatewayCard(
                 context,
                 title: 'Lari / Jalan (GPS)',
@@ -150,11 +167,12 @@ class _MainNavigationState extends State<MainNavigation>
                   Navigator.pop(context);
                   final profile = await ProfileService.getProfile();
                   final weight = profile[ProfileService.keyWeight] ?? 70.0;
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => RunningTrackerScreen(userWeight: weight)));
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) =>
+                          RunningTrackerScreen(userWeight: weight)));
                 },
               ),
               const SizedBox(height: 16),
-              
               _buildBoldGatewayCard(
                 context,
                 title: 'Workout',
@@ -165,7 +183,8 @@ class _MainNavigationState extends State<MainNavigation>
                   Navigator.pop(context);
                   final profile = await ProfileService.getProfile();
                   final weight = profile[ProfileService.keyWeight] ?? 70.0;
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => WorkoutSetupScreen(userWeight: weight)));
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => WorkoutSetupScreen(userWeight: weight)));
                 },
               ),
             ],
@@ -175,7 +194,8 @@ class _MainNavigationState extends State<MainNavigation>
     );
   }
 
-  Widget _buildBoldGatewayCard(BuildContext context, {
+  Widget _buildBoldGatewayCard(
+    BuildContext context, {
     required String title,
     required String subtitle,
     required IconData icon,
@@ -207,13 +227,22 @@ class _MainNavigationState extends State<MainNavigation>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text(title,
+                      style: TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  Text(subtitle, style: TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.bold)),
+                  Text(subtitle,
+                      style: TextStyle(
+                          color: AppTheme.textMuted,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios_rounded, color: AppTheme.textMuted, size: 16),
+            Icon(Icons.arrow_forward_ios_rounded,
+                color: AppTheme.textMuted, size: 16),
           ],
         ),
       ),
@@ -243,9 +272,14 @@ class _MainNavigationState extends State<MainNavigation>
     });
 
     quickActions.setShortcutItems(<ShortcutItem>[
-      const ShortcutItem(type: 'catat_telur', localizedTitle: 'Catat Telur', icon: 'icon_egg'),
-      const ShortcutItem(type: 'mulai_lari', localizedTitle: 'Mulai Lari', icon: 'icon_run'),
-      const ShortcutItem(type: 'lihat_jadwal', localizedTitle: 'Lihat Jadwal', icon: 'icon_calendar'),
+      const ShortcutItem(
+          type: 'catat_telur', localizedTitle: 'Catat Telur', icon: 'icon_egg'),
+      const ShortcutItem(
+          type: 'mulai_lari', localizedTitle: 'Mulai Lari', icon: 'icon_run'),
+      const ShortcutItem(
+          type: 'lihat_jadwal',
+          localizedTitle: 'Lihat Jadwal',
+          icon: 'icon_calendar'),
     ]);
   }
 
@@ -300,7 +334,8 @@ class _MainNavigationState extends State<MainNavigation>
 
   Widget _buildBottomNav() {
     return Container(
-      color: Colors.transparent, // Transparan agar tombol tengah bisa keluar dari garis atas
+      color: Colors
+          .transparent, // Transparan agar tombol tengah bisa keluar dari garis atas
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.bottomCenter,
@@ -310,10 +345,11 @@ class _MainNavigationState extends State<MainNavigation>
             height: 80, // Tinggi standar navbar
             decoration: BoxDecoration(
               color: AppTheme.surface,
-              border: Border(top: BorderSide(color: AppTheme.border, width: 1.5)),
+              border:
+                  Border(top: BorderSide(color: AppTheme.border, width: 1.5)),
             ),
           ),
-          
+
           // Items Row
           SafeArea(
             top: false,
@@ -323,9 +359,12 @@ class _MainNavigationState extends State<MainNavigation>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Expanded(child: _buildNavItem(0, Icons.home_rounded, 'Beranda')),
-                  Expanded(child: _buildNavItem(1, Icons.restaurant_menu_rounded, 'Nutrisi')),
-                  
+                  Expanded(
+                      child: _buildNavItem(0, Icons.home_rounded, 'Beranda')),
+                  Expanded(
+                      child: _buildNavItem(
+                          1, Icons.restaurant_menu_rounded, 'Nutrisi')),
+
                   // Center Training Button
                   Expanded(
                     child: GestureDetector(
@@ -343,7 +382,8 @@ class _MainNavigationState extends State<MainNavigation>
                               decoration: BoxDecoration(
                                 color: AppTheme.textPrimary,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: AppTheme.surface, width: 5),
+                                border: Border.all(
+                                    color: AppTheme.surface, width: 5),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.15),
@@ -353,7 +393,8 @@ class _MainNavigationState extends State<MainNavigation>
                                 ],
                               ),
                               child: Center(
-                                child: Icon(Icons.add_rounded, color: AppTheme.background, size: 32),
+                                child: Icon(Icons.add_rounded,
+                                    color: AppTheme.background, size: 32),
                               ),
                             ),
                           ),
@@ -370,9 +411,12 @@ class _MainNavigationState extends State<MainNavigation>
                       ),
                     ),
                   ),
-                  
-                  Expanded(child: _buildNavItem(3, Icons.calendar_month_rounded, 'Jadwal')),
-                  Expanded(child: _buildNavItem(4, Icons.person_rounded, 'Profil')),
+
+                  Expanded(
+                      child: _buildNavItem(
+                          3, Icons.calendar_month_rounded, 'Jadwal')),
+                  Expanded(
+                      child: _buildNavItem(4, Icons.person_rounded, 'Profil')),
                 ],
               ),
             ),
@@ -384,7 +428,7 @@ class _MainNavigationState extends State<MainNavigation>
 
   Widget _buildNavItem(int index, IconData icon, String label) {
     final isActive = _currentIndex == index;
-    
+
     return GestureDetector(
       onTap: () => _goToTab(index),
       behavior: HitTestBehavior.opaque,
@@ -392,12 +436,12 @@ class _MainNavigationState extends State<MainNavigation>
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isActive ? AppTheme.accent : Colors.transparent,
-                shape: BoxShape.circle,
-                boxShadow: isActive 
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isActive ? AppTheme.accent : Colors.transparent,
+              shape: BoxShape.circle,
+              boxShadow: isActive
                   ? [
                       BoxShadow(
                         color: AppTheme.accent.withValues(alpha: 0.5),
@@ -405,32 +449,31 @@ class _MainNavigationState extends State<MainNavigation>
                         spreadRadius: 2,
                         offset: const Offset(0, 6),
                       ),
-                    ] 
+                    ]
                   : null,
-              ),
-              child: Icon(
-                icon, 
-                color: isActive ? Colors.white : AppTheme.textMuted, 
-                size: 26,
-              ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              label.toUpperCase(),
-              maxLines: 1,
-              overflow: TextOverflow.visible,
-              style: TextStyle(
-                color: isActive ? AppTheme.accent : AppTheme.textMuted,
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.2,
-              ),
+            child: Icon(
+              icon,
+              color: isActive ? Colors.white : AppTheme.textMuted,
+              size: 26,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label.toUpperCase(),
+            maxLines: 1,
+            overflow: TextOverflow.visible,
+            style: TextStyle(
+              color: isActive ? AppTheme.accent : AppTheme.textMuted,
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.2,
+            ),
+          ),
+        ],
+      ),
     );
   }
-
 }
 
 class _GlowScrollBehavior extends ScrollBehavior {

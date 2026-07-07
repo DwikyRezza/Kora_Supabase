@@ -40,12 +40,15 @@ class _ProteinScreenState extends State<ProteinScreen> {
           child: BlocBuilder<DailyNutritionBloc, DailyNutritionState>(
             builder: (context, state) {
               if (state.isLoading) {
-                return Center(child: CircularProgressIndicator(color: AppTheme.accent));
+                return Center(
+                    child: CircularProgressIndicator(color: AppTheme.accent));
               }
 
               return RefreshIndicator(
                 onRefresh: () async {
-                  context.read<DailyNutritionBloc>().add(DailyNutritionRefreshRequested());
+                  context
+                      .read<DailyNutritionBloc>()
+                      .add(DailyNutritionRefreshRequested());
                 },
                 color: AppTheme.accent,
                 backgroundColor: AppTheme.surface,
@@ -54,7 +57,8 @@ class _ProteinScreenState extends State<ProteinScreen> {
                   slivers: [
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24.0, vertical: 16.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -135,7 +139,8 @@ class _ProteinScreenState extends State<ProteinScreen> {
                 decoration: BoxDecoration(
                     color: AppTheme.surfaceVariant,
                     borderRadius: BorderRadius.circular(26)),
-                child: const Icon(Icons.water_drop, color: Color(0xFF00A9DD), size: 24),
+                child: const Icon(Icons.water_drop,
+                    color: Color(0xFF00A9DD), size: 24),
               ),
             ),
           ],
@@ -156,18 +161,20 @@ class _ProteinScreenState extends State<ProteinScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _macroRing(context, 'Kalori', state.totalCalories, state.targetCalories,
-                  const Color(0xFFFF3400), 'kcal'),
-              _macroRing(context, 'Protein', state.totalProtein, state.targetProtein,
-                  const Color(0xFFBD4BE5), 'g'),
+              _macroRing(context, 'Kalori', state.totalCalories,
+                  state.targetCalories, const Color(0xFFFF3400), 'kcal'),
+              _macroRing(context, 'Protein', state.totalProtein,
+                  state.targetProtein, const Color(0xFFBD4BE5), 'g'),
             ],
           ),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _macroRing(context, 'Karbo', state.totalCarbs, 250, const Color(0xFF00A9DD), 'g'),
-              _macroRing(context, 'Lemak', state.totalFat, 65, AppTheme.accent, 'g'),
+              _macroRing(context, 'Karbo', state.totalCarbs, 250,
+                  const Color(0xFF00A9DD), 'g'),
+              _macroRing(
+                  context, 'Lemak', state.totalFat, 65, AppTheme.accent, 'g'),
             ],
           ),
         ],
@@ -175,7 +182,8 @@ class _ProteinScreenState extends State<ProteinScreen> {
     );
   }
 
-  Widget _macroRing(BuildContext context, String label, double current, double target, Color color, String unit) {
+  Widget _macroRing(BuildContext context, String label, double current,
+      double target, Color color, String unit) {
     double progress = target > 0 ? (current / target).clamp(0.0, 1.0) : 0.0;
     return Column(
       children: [
@@ -218,7 +226,10 @@ class _ProteinScreenState extends State<ProteinScreen> {
         ),
         const SizedBox(height: 12),
         Text(label,
-            style: TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.bold)),
+            style: TextStyle(
+                color: AppTheme.textMuted,
+                fontSize: 13,
+                fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -236,13 +247,16 @@ class _ProteinScreenState extends State<ProteinScreen> {
         child: const Icon(Icons.delete_rounded, color: Colors.white),
       ),
       onDismissed: (_) {
-        context.read<DailyNutritionBloc>().add(DailyNutritionEntryDeleted(entry.id!));
+        context
+            .read<DailyNutritionBloc>()
+            .add(DailyNutritionEntryDeleted(entry.id!));
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 24),
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppTheme.surfaceVariant, width: 1.5)),
+          border: Border(
+              bottom: BorderSide(color: AppTheme.surfaceVariant, width: 1.5)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -274,14 +288,20 @@ class _ProteinScreenState extends State<ProteinScreen> {
                   width: 8,
                   height: 8,
                   decoration: BoxDecoration(
-                      color: isWater ? const Color(0xFF00A9DD) : const Color(0xFFBD4BE5),
+                      color: isWater
+                          ? const Color(0xFF00A9DD)
+                          : const Color(0xFFBD4BE5),
                       shape: BoxShape.circle),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  isWater ? 'Air' : '${entry.proteinGrams.toStringAsFixed(0)}g Pro',
+                  isWater
+                      ? 'Air'
+                      : '${entry.proteinGrams.toStringAsFixed(0)}g Pro',
                   style: TextStyle(
-                    color: isWater ? const Color(0xFF00A9DD) : const Color(0xFFBD4BE5),
+                    color: isWater
+                        ? const Color(0xFF00A9DD)
+                        : const Color(0xFFBD4BE5),
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
@@ -296,23 +316,26 @@ class _ProteinScreenState extends State<ProteinScreen> {
 
   Widget _buildStickyBottomActions(BuildContext context) {
     return Container(
-      color: AppTheme.background,
+      color: AppTheme.surface,
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton(
           onPressed: () async {
-            final result = await Navigator.push(
-                context, MaterialPageRoute(builder: (_) => const AiNutritionScreen()));
+            final result = await Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const AiNutritionScreen()));
             if (result == true && context.mounted) {
-              context.read<DailyNutritionBloc>().add(DailyNutritionLoadRequested());
+              context
+                  .read<DailyNutritionBloc>()
+                  .add(DailyNutritionLoadRequested());
             }
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: AppTheme.accent,
             elevation: 0,
             padding: const EdgeInsets.symmetric(vertical: 18),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -325,9 +348,13 @@ class _ProteinScreenState extends State<ProteinScreen> {
               ),
               const SizedBox(width: 10),
               const Text('Catat Makanan',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16)),
               const SizedBox(width: 8),
-              const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
+              const Icon(Icons.arrow_forward_rounded,
+                  color: Colors.white, size: 20),
             ],
           ),
         ),
@@ -372,7 +399,10 @@ class _ProteinScreenState extends State<ProteinScreen> {
     return InkWell(
       onTap: () {
         Navigator.pop(context);
-        this.context.read<DailyNutritionBloc>().add(DailyNutritionWaterAdded(ml, label));
+        this
+            .context
+            .read<DailyNutritionBloc>()
+            .add(DailyNutritionWaterAdded(ml, label));
       },
       borderRadius: BorderRadius.circular(26),
       child: Container(
@@ -387,7 +417,9 @@ class _ProteinScreenState extends State<ProteinScreen> {
             const SizedBox(height: 12),
             Text('+$ml ml',
                 style: const TextStyle(
-                    color: Color(0xFF00A9DD), fontWeight: FontWeight.bold, fontSize: 16)),
+                    color: Color(0xFF00A9DD),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16)),
           ],
         ),
       ),

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
+  static final ValueNotifier<ThemeMode> themeNotifier =
+      ValueNotifier(ThemeMode.light);
 
   static bool get isDarkMode => themeNotifier.value == ThemeMode.dark;
 
@@ -10,20 +11,29 @@ class AppTheme {
   }
 
   // ---- COLORS (New Palette) ----
-  static Color get background => isDarkMode ? const Color(0xFF0D0D0D) : const Color(0xFFFFFFFF);
-  static Color get surface => isDarkMode ? const Color(0xFF1A1A1A) : const Color(0xFFF5F5F5); // Card
-  static Color get surfaceVariant => isDarkMode ? const Color(0xFF252525) : const Color(0xFFEDEDED); // Raised
-  
-  static Color get textPrimary => isDarkMode ? const Color(0xFFFFFFFF) : const Color(0xFF0D0D0D);
-  static Color get textSecondary => isDarkMode ? const Color(0xFFC0C0C0) : const Color(0xFF6B6B6B);
-  static Color get textMuted => isDarkMode ? const Color(0xFF6B6B6B) : const Color(0xFFA0A0A0);
-  
+  static Color get background =>
+      isDarkMode ? const Color(0xFF0D0D0D) : const Color(0xFFFFFFFF);
+  static Color get surface =>
+      isDarkMode ? const Color(0xFF1A1A1A) : const Color(0xFFF5F5F5); // Card
+  static Color get surfaceVariant =>
+      isDarkMode ? const Color(0xFF252525) : const Color(0xFFEDEDED); // Raised
+
+  static Color get textPrimary =>
+      isDarkMode ? const Color(0xFFFFFFFF) : const Color(0xFF0D0D0D);
+  static Color get textSecondary =>
+      isDarkMode ? const Color(0xFFC0C0C0) : const Color(0xFF6B6B6B);
+  static Color get textMuted =>
+      isDarkMode ? const Color(0xFF6B6B6B) : const Color(0xFFA0A0A0);
+
   static Color get accent => const Color(0xFFFC5003);
-  static Color get accentWash => isDarkMode ? const Color(0xFF3D1800) : const Color(0xFFFFF0E9);
-  
-  static Color get border => isDarkMode ? const Color(0xFF2C2C2C) : const Color(0xFFE0E0E0);
-  
-  static Color get inputFill => isDarkMode ? const Color(0xFF252525) : const Color(0xFFEDEDED);
+  static Color get accentWash =>
+      isDarkMode ? const Color(0xFF3D1800) : const Color(0xFFFFF0E9);
+
+  static Color get border =>
+      isDarkMode ? const Color(0xFF2C2C2C) : const Color(0xFFE0E0E0);
+
+  static Color get inputFill =>
+      isDarkMode ? const Color(0xFF252525) : const Color(0xFFEDEDED);
   static Color get divider => border;
 
   // Keeping variables for compatibility if used elsewhere, but mapping to accent
@@ -105,13 +115,15 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFFFC5003),
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
           elevation: 0,
         ),
       ),
-      dividerTheme: const DividerThemeData(color: Color(0xFF2C2C2C), thickness: 1),
+      dividerTheme:
+          const DividerThemeData(color: Color(0xFF2C2C2C), thickness: 1),
     );
   }
 
@@ -180,13 +192,15 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFFFC5003),
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
           elevation: 0,
         ),
       ),
-      dividerTheme: const DividerThemeData(color: Color(0xFFE0E0E0), thickness: 1),
+      dividerTheme:
+          const DividerThemeData(color: Color(0xFFE0E0E0), thickness: 1),
     );
   }
 }

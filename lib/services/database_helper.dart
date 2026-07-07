@@ -358,6 +358,41 @@ class DatabaseHelper {
     }
     return stats;
   }
+  Future<List<Map<String, dynamic>>> getThreeMonthWorkoutAggregation(String type) async {
+    final db = await database;
+    final now = DateTime.now();
+    
+    int targetMonth = now.month - 2;
+    int targetYear = now.year;
+    if (targetMonth <= 0) {
+      targetMonth += 12;
+      targetYear -= 1;
+    }
+    
+    final startDate = DateTime(targetYear, targetMonth, 1);
+    final startStr = startDate.toIso8601String();
+
+    final result = await db.rawQuery('''
+      SELECT 
+        CAST(strftime('%m', date) AS INTEGER) as month_int,
+        SUM(distance) as totalDistance,
+        SUM(duration) as totalDuration,
+        SUM(caloriesBurned) as totalCalories
+      FROM workouts 
+      WHERE type = ? AND date >= ?
+      GROUP BY strftime('%Y-%m', date)
+    ''', [type, startStr]);
+
+    return result.map((row) {
+      return {
+        'month': row['month_int'].toString(),
+        'totalDistance': row['totalDistance'] ?? 0.0,
+        'totalDuration': row['totalDuration'] ?? 0.0,
+        'totalCalories': row['totalCalories'] ?? 0.0,
+      };
+    }).toList();
+  }
+
   Future<int> insertWorkout(Workout workout) async {
     final db = await database;
     return await db.insert('workouts', workout.toMap());
