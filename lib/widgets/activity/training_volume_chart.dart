@@ -119,11 +119,17 @@ class _TrainingVolumeChartState extends State<TrainingVolumeChart> {
                   reservedSize: 45,
                   interval: widget.maxY != null ? widget.maxY! / 2 : (maxVolume * 1.2).clamp(1.0, double.infinity) / 2,
                   getTitlesWidget: (value, meta) {
-                    if (value == meta.max || value == meta.min || value == meta.max / 2) {
+                    if (value == meta.max || value == 0 || value == (meta.max / 2)) {
+                        String text = '';
+                        if (widget.unit == 'kg') {
+                          text = value >= 1000 ? '${(value / 1000).toStringAsFixed(1)}k kg' : '${value.round()} kg';
+                        } else {
+                          text = '${value.toStringAsFixed(value == value.truncate() ? 0 : 1)} ${widget.unit}';
+                        }
                         return SideTitleWidget(
                           axisSide: meta.axisSide,
                           space: 4,
-                          child: Text(' ', 
+                          child: Text(text, 
                             style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.w500)),
                         );
                     }
@@ -137,7 +143,7 @@ class _TrainingVolumeChartState extends State<TrainingVolumeChart> {
                 sideTitles: SideTitles(
                   showTitles: true,
                   reservedSize: 30,
-                  interval: 4, // 1 label per bulan (4 minggu)
+                  interval: 1, // 1 label per minggu, agar bulan yang berubah terdeteksi
                   getTitlesWidget: (value, meta) {
                     const style = TextStyle(
                       fontWeight: FontWeight.bold, 
@@ -174,7 +180,7 @@ class _TrainingVolumeChartState extends State<TrainingVolumeChart> {
             ),
             minX: 0,
             maxX: 11,
-            minY: widget.minY < 0 ? widget.minY : -(widget.maxY ?? ((maxVolume < 10) ? 10 : maxVolume * 1.35)) * 0.08,
+            minY: 0,
             maxY: widget.maxY ?? ((maxVolume < 10) ? 10 : (maxVolume * 1.35).ceilToDouble()),
             lineBarsData: [
               LineChartBarData(

@@ -119,22 +119,22 @@ class ScheduleView extends StatelessWidget {
         backgroundColor: AppTheme.surface,
         elevation: 0,
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.only(bottom: 16.0, right: 8.0),
         child: SizedBox(
-          width: double.infinity,
-          child: FloatingActionButton.extended(
+          width: 64,
+          height: 64,
+          child: FloatingActionButton(
             heroTag: 'scheduleFab',
             onPressed: () {
               HapticFeedback.lightImpact();
               _showAddEditEventSheet(context);
             },
             backgroundColor: AppTheme.accent,
-            elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-            icon: Icon(Icons.add_rounded, color: Colors.white),
-            label: Text('Buat Jadwal', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16)),
+            elevation: 4,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            child: Icon(Icons.edit_calendar_rounded, color: AppTheme.background, size: 32),
           ),
         ),
       ),

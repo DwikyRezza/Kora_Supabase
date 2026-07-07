@@ -101,7 +101,7 @@ class _ProteinScreenState extends State<ProteinScreen> {
             },
           ),
         ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         floatingActionButton: _buildStickyBottomActions(context),
       ),
     );
@@ -315,12 +315,13 @@ class _ProteinScreenState extends State<ProteinScreen> {
   }
 
   Widget _buildStickyBottomActions(BuildContext context) {
-    return Container(
-      color: AppTheme.surface,
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0, right: 8.0),
       child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
+        width: 64,
+        height: 64,
+        child: FloatingActionButton(
+          heroTag: 'proteinFab',
           onPressed: () async {
             final result = await Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const AiNutritionScreen()));
@@ -330,33 +331,10 @@ class _ProteinScreenState extends State<ProteinScreen> {
                   .add(DailyNutritionLoadRequested());
             }
           },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.accent,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(vertical: 18),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                'assets/icons/logoNObg.png',
-                width: 36,
-                height: 36,
-                color: Colors.white,
-              ),
-              const SizedBox(width: 10),
-              const Text('Catat Makanan',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16)),
-              const SizedBox(width: 8),
-              const Icon(Icons.arrow_forward_rounded,
-                  color: Colors.white, size: 20),
-            ],
-          ),
+          backgroundColor: AppTheme.accent,
+          elevation: 4,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Icon(Icons.restaurant_rounded, color: AppTheme.background, size: 32),
         ),
       ),
     );

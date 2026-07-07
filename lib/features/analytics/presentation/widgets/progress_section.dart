@@ -46,7 +46,7 @@ class _ProgressSectionState extends State<ProgressSection> {
       final workouts = allWorkouts.where((w) {
         return w.date.isAfter(weekStart.subtract(const Duration(seconds: 1))) && 
                w.date.isBefore(weekEnd.add(const Duration(seconds: 1))) &&
-               w.type == _progressFilter;
+               w.type.toLowerCase() == _progressFilter.toLowerCase();
       }).toList();
 
       double distance = 0, duration = 0, elevation = 0, volume = 0, sets = 0;
@@ -261,38 +261,19 @@ class _ProgressSectionState extends State<ProgressSection> {
       padding: const EdgeInsets.only(top: 12, bottom: 8),
       child: SizedBox(
         height: 220,
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: TrainingVolumeChart(
-                unit: _progressFilter == "weightlifting" ? "kg" : "km",
-                weeklyVolumes: chartValues,
-                bottomLabels: xLabels,
-                maxY: yMax,
-                onIndexChanged: (idx) {
-                  if (mounted) {
-                    setState(() => _selectedChartIndex = idx);
-                  }
-                },
-              ),
-            ),
-            Positioned(
-              right: 0,
-              top: 0,
-              bottom: 24,
-              width: 52,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(formatVal(yMax), style: TextStyle(color: AppTheme.textMuted, fontSize: 10, fontWeight: FontWeight.w500)),
-                  Text(formatVal(yMid), style: TextStyle(color: AppTheme.textMuted, fontSize: 10, fontWeight: FontWeight.w500)),
-                  Text(formatVal(0), style: TextStyle(color: AppTheme.textMuted, fontSize: 10, fontWeight: FontWeight.w500)),
-                ],
-              ),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: TrainingVolumeChart(
+            unit: _progressFilter == "weightlifting" ? "kg" : "km",
+            weeklyVolumes: chartValues,
+            bottomLabels: xLabels,
+            maxY: yMax,
+            onIndexChanged: (idx) {
+              if (mounted) {
+                setState(() => _selectedChartIndex = idx);
+              }
+            },
+          ),
         ),
       ),
     );
