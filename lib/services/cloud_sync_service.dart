@@ -89,25 +89,31 @@ class CloudSyncService {
     if (!AuthService.isLoggedIn) return;
     try {
       final db = await _db.database;
-      final entries = await db.query('protein_entries', orderBy: 'date ASC');
-      if (entries.isEmpty) return;
+      
+      // Get dates that have unsynced entries
+      final unsynced = await db.query('protein_entries', columns: ['date'], where: 'is_synced = 0 OR is_synced IS NULL');
+      if (unsynced.isEmpty) return;
 
-      // Kelompokkan per tanggal untuk query yang efisien
-      final Map<String, List<Map<String, dynamic>>> byDate = {};
-      for (final e in entries) {
-        final dateKey = (e['date'] as String).substring(0, 10); // YYYY-MM-DD
-        byDate.putIfAbsent(dateKey, () => []).add(Map.from(e));
-      }
+      final Set<String> datesToSync = unsynced.map((e) => (e['date'] as String).substring(0, 10)).toSet();
 
       final batch = _firestore.batch();
-      for (final entry in byDate.entries) {
+      for (final dateKey in datesToSync) {
+        // Query ALL entries for this date
+        final entriesForDate = await db.query('protein_entries', where: 'date LIKE ?', whereArgs: ['$dateKey%'], orderBy: 'date ASC');
+        final entriesList = entriesForDate.map((e) => Map<String, dynamic>.from(e)..remove('is_synced')).toList();
+        
         batch.set(
-          _userDoc.collection('nutrition').doc(entry.key),
-          {'date': entry.key, 'entries': entry.value},
+          _userDoc.collection('nutrition').doc(dateKey),
+          {'date': dateKey, 'entries': entriesList},
         );
       }
       await batch.commit();
-      print('[CloudSync] ✅ Nutrition synced: ${entries.length} entries');
+      
+      // Mark as synced
+      for (final dateKey in datesToSync) {
+         await db.update('protein_entries', {'is_synced': 1}, where: 'date LIKE ?', whereArgs: ['$dateKey%']);
+      }
+      print('[CloudSync] ✅ Nutrition synced for dates: $datesToSync');
     } catch (e) {
       print('[CloudSync] ⚠️ Nutrition sync failed: $e');
     }
@@ -117,39 +123,51 @@ class CloudSyncService {
   static Future<void> syncWorkoutsToCloud() async {
     if (!AuthService.isLoggedIn) return;
     try {
-      final workouts = await _db.getAllWorkouts();
+      final db = await _db.database;
+      
+      final deleted = await db.query('deleted_records', where: 'table_name = ?', whereArgs: ['workouts']);
+      if (deleted.isNotEmpty) {
+        final deleteBatch = _firestore.batch();
+        for (final row in deleted) {
+          deleteBatch.delete(_userDoc.collection('workouts').doc(row['record_id'].toString()));
+        }
+        await deleteBatch.commit();
+        final deletedIds = deleted.map((e) => e['id'] as int).toList();
+        final placeholders = deletedIds.map((_) => '?').join(',');
+        await db.delete('deleted_records', where: 'id IN ($placeholders)', whereArgs: deletedIds);
+      }
+
+      final workouts = await db.query('workouts', where: 'is_synced = 0 OR is_synced IS NULL');
       if (workouts.isEmpty) return;
 
       final batch = _firestore.batch();
       for (final w in workouts) {
         batch.set(
-          _userDoc.collection('workouts').doc(w.id.toString()),
-          w.toMap(),
+          _userDoc.collection('workouts').doc(w['id'].toString()),
+          Map<String, dynamic>.from(w)..remove('is_synced'),
         );
       }
       await batch.commit();
-      print('[CloudSync] ✅ Workouts synced: ${workouts.length}');
 
-      // Sync workout_photos (subcollection per workout)
-      final db = await _db.database;
+      // Sync workout_photos
       for (final w in workouts) {
-        if (w.id == null) continue;
-        final photos = await db.query(
-          'workout_photos',
-          where: 'workout_id = ?',
-          whereArgs: [w.id],
-        );
-        if (photos.isEmpty) continue;
-        final photoBatch = _firestore.batch();
-        for (final p in photos) {
-          photoBatch.set(
-            _userDoc.collection('workouts').doc(w.id.toString()).collection('photos').doc(p['id'].toString()),
-            Map<String, dynamic>.from(p)..remove('id'),
-          );
+        if (w['id'] == null) continue;
+        final photos = await db.query('workout_photos', where: 'workout_id = ?', whereArgs: [w['id']]);
+        if (photos.isNotEmpty) {
+          final photoBatch = _firestore.batch();
+          for (final p in photos) {
+            photoBatch.set(
+              _userDoc.collection('workouts').doc(w['id'].toString()).collection('photos').doc(p['id'].toString()),
+              Map<String, dynamic>.from(p)..remove('id')..remove('is_synced'),
+            );
+          }
+          await photoBatch.commit();
         }
-        await photoBatch.commit();
       }
-      print('[CloudSync] ✅ Workout photos synced');
+      
+      final ids = workouts.map((e) => e['id'] as int).toList();
+      await _db.markAsSynced('workouts', ids);
+      print('[CloudSync] ✅ Workouts synced: ${workouts.length}');
     } catch (e) {
       print('[CloudSync] ⚠️ Workout sync failed: $e');
     }
@@ -181,31 +199,33 @@ class CloudSyncService {
     if (!AuthService.isLoggedIn) return;
     try {
       final db = await _db.database;
-      final events = await db.query('schedule_events');
+      
+      final deleted = await db.query('deleted_records', where: 'table_name = ?', whereArgs: ['schedule_events']);
+      if (deleted.isNotEmpty) {
+        final deleteBatch = _firestore.batch();
+        for (final row in deleted) {
+          deleteBatch.delete(_userDoc.collection('schedule_events').doc(row['record_id'].toString()));
+        }
+        await deleteBatch.commit();
+        final deletedIds = deleted.map((e) => e['id'] as int).toList();
+        final placeholders = deletedIds.map((_) => '?').join(',');
+        await db.delete('deleted_records', where: 'id IN ($placeholders)', whereArgs: deletedIds);
+      }
 
-      // Ambil semua doc yang ada di Firestore untuk deteksi yang dihapus
-      final snapshot = await _userDoc.collection('schedule_events').get();
-      final cloudIds = snapshot.docs.map((d) => d.id).toSet();
-      final localIds = events.map((e) => e['id'].toString()).toSet();
+      final events = await db.query('schedule_events', where: 'is_synced = 0 OR is_synced IS NULL');
+      if (events.isEmpty) return;
 
       final batch = _firestore.batch();
-
-      // Upsert semua event lokal
       for (final e in events) {
         batch.set(
           _userDoc.collection('schedule_events').doc(e['id'].toString()),
-          Map.from(e),
+          Map<String, dynamic>.from(e)..remove('is_synced'),
         );
       }
-
-      // Hapus dari Firestore yang sudah tidak ada di lokal
-      for (final cloudId in cloudIds) {
-        if (!localIds.contains(cloudId)) {
-          batch.delete(_userDoc.collection('schedule_events').doc(cloudId));
-        }
-      }
-
       await batch.commit();
+      
+      final ids = events.map((e) => e['id'] as int).toList();
+      await _db.markAsSynced('schedule_events', ids);
       print('[CloudSync] ✅ Schedule synced: ${events.length} events');
     } catch (e) {
       print('[CloudSync] ⚠️ Schedule sync failed: $e');
@@ -227,17 +247,34 @@ class CloudSyncService {
   static Future<void> syncBodyMeasurementsToCloud() async {
     if (!AuthService.isLoggedIn) return;
     try {
-      final measurements = await _db.getAllBodyMeasurements();
+      final db = await _db.database;
+      
+      final deleted = await db.query('deleted_records', where: 'table_name = ?', whereArgs: ['body_measurements']);
+      if (deleted.isNotEmpty) {
+        final deleteBatch = _firestore.batch();
+        for (final row in deleted) {
+          deleteBatch.delete(_userDoc.collection('body_measurements').doc(row['record_id'].toString()));
+        }
+        await deleteBatch.commit();
+        final deletedIds = deleted.map((e) => e['id'] as int).toList();
+        final placeholders = deletedIds.map((_) => '?').join(',');
+        await db.delete('deleted_records', where: 'id IN ($placeholders)', whereArgs: deletedIds);
+      }
+
+      final measurements = await db.query('body_measurements', where: 'is_synced = 0 OR is_synced IS NULL');
       if (measurements.isEmpty) return;
 
       final batch = _firestore.batch();
       for (final m in measurements) {
         batch.set(
-          _userDoc.collection('body_measurements').doc(m.id.toString()),
-          m.toMap(),
+          _userDoc.collection('body_measurements').doc(m['id'].toString()),
+          Map<String, dynamic>.from(m)..remove('is_synced'),
         );
       }
       await batch.commit();
+      
+      final ids = measurements.map((e) => e['id'] as int).toList();
+      await _db.markAsSynced('body_measurements', ids);
       print('[CloudSync] ✅ Body measurements synced: ${measurements.length}');
     } catch (e) {
       print('[CloudSync] ⚠️ Body measurement sync failed: $e');
