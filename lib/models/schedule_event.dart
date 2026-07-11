@@ -1,7 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import '../utils/id_generator.dart';
 
 class ScheduleEvent {
-  final int? id;
+  final String? id;
   final String title;
   final String type; // 'workout', 'meal', 'rest', 'reminder'
   final DateTime dateTime;
@@ -39,7 +40,7 @@ class ScheduleEvent {
 
   factory ScheduleEvent.fromMap(Map<String, dynamic> map) {
     return ScheduleEvent(
-      id: map['id'],
+      id: IdGenerator.parseId(map['id']),
       title: map['title'],
       type: map['type'],
       dateTime: DateTime.parse(map['dateTime']),
@@ -51,9 +52,9 @@ class ScheduleEvent {
     );
   }
 
-  ScheduleEvent copyWith({bool? isCompleted, String? status}) {
+  ScheduleEvent copyWith({String? id, bool? isCompleted, String? status}) {
     return ScheduleEvent(
-      id: id,
+      id: id ?? this.id,
       title: title,
       type: type,
       dateTime: dateTime,

@@ -72,7 +72,7 @@ class NotificationService {
         : '$advanceMinutes menit';
 
     await flutterLocalNotificationsPlugin.zonedSchedule(
-      event.id!,
+      event.id.hashCode,
       event.title,
       'Jadwalmu dimulai $advLabel lagi. Semangat! ',
       tz.TZDateTime.from(notifTime, tz.local),
@@ -96,7 +96,7 @@ class NotificationService {
   }) async {
     for (final event in events) {
       if (event.id != null) {
-        await flutterLocalNotificationsPlugin.cancel(event.id!);
+        await flutterLocalNotificationsPlugin.cancel(event.id.hashCode);
       }
     }
     for (final event in events) {
@@ -104,8 +104,8 @@ class NotificationService {
     }
   }
 
-  Future<void> cancelEventReminder(int eventId) async {
-    await flutterLocalNotificationsPlugin.cancel(eventId);
+  Future<void> cancelEventReminder(String eventId) async {
+    await flutterLocalNotificationsPlugin.cancel(eventId.hashCode);
   }
 
   // ── Notifikasi protein (Lokal) ─────────────────────────────────────────────
@@ -154,8 +154,8 @@ class NotificationService {
     await flutterLocalNotificationsPlugin.cancel(1000);
   }
 
-  Future<void> cancelWorkoutReminder(int id) async {
-    await flutterLocalNotificationsPlugin.cancel(id);
+  Future<void> cancelWorkoutReminder(String id) async {
+    await flutterLocalNotificationsPlugin.cancel(id.hashCode);
   }
 
   // ── Laporan mingguan ───────────────────────────────────────────────────────

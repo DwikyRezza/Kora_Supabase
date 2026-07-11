@@ -41,7 +41,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       final allWorkouts = await _db.getAllWorkouts();
       
       // Batch check: workout mana saja yang punya foto
-      final workoutIds = allWorkouts.map((w) => w.id).where((id) => id != null).cast<int>().toList();
+      final workoutIds = allWorkouts.map((w) => w.id).where((id) => id != null).cast<String>().toList();
       final idsWithPhotos = await _db.getWorkoutIdsWithPhotos(workoutIds);
 
       emit(state.copyWith(

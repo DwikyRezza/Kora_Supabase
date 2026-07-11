@@ -9,7 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../models/workout.dart';
 import '../../../../models/exercise_definition.dart';
-import '../../../../services/database_helper.dart';
+import '../../../../repositories/workout_repository.dart';
 import '../../../../theme/app_theme.dart';
 import '../../bloc/workout_detail/workout_detail_bloc.dart';
 import '../../bloc/workout_detail/workout_detail_event.dart';
@@ -295,7 +295,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                                   padding: const EdgeInsets.symmetric(horizontal: 16),
                                   child: FutureBuilder<List<String>>(
                                     key: ValueKey('photos_${state.photoRefreshKey}'),
-                                    future: DatabaseHelper().getWorkoutPhotos(_workout.id!),
+                                    future: context.read<WorkoutRepository>().getWorkoutPhotos(_workout.id!),
                                     builder: (context, snapshot) {
                                       if (snapshot.connectionState == ConnectionState.waiting) {
                                         return const SizedBox(

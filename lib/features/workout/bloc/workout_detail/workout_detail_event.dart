@@ -18,7 +18,7 @@ class WorkoutDetailLoadRequested extends WorkoutDetailEvent {
 }
 
 class WorkoutDetailPhotoAdded extends WorkoutDetailEvent {
-  final int workoutId;
+  final String workoutId;
   final String imagePath;
 
   const WorkoutDetailPhotoAdded(this.workoutId, this.imagePath);
@@ -28,7 +28,7 @@ class WorkoutDetailPhotoAdded extends WorkoutDetailEvent {
 }
 
 class WorkoutDetailDeleted extends WorkoutDetailEvent {
-  final int workoutId;
+  final String workoutId;
 
   const WorkoutDetailDeleted(this.workoutId);
 

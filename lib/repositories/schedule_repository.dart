@@ -1,5 +1,7 @@
 import '../models/schedule_event.dart';
 import '../services/database_helper.dart';
+import '../services/cloud_sync_service.dart';
+import '../utils/id_generator.dart';
 
 class ScheduleRepository {
   final DatabaseHelper _db;
@@ -7,8 +9,11 @@ class ScheduleRepository {
   ScheduleRepository({DatabaseHelper? dbHelper}) 
       : _db = dbHelper ?? DatabaseHelper();
 
-  Future<int> insertScheduleEvent(ScheduleEvent event) async {
-    return await _db.insertScheduleEvent(event);
+  Future<String> insertScheduleEvent(ScheduleEvent event) async {
+    final newEvent = event.copyWith(id: IdGenerator.generate());
+    await _db.insertScheduleEvent(newEvent);
+    CloudSyncService.backupToCloud().catchError((_) {});
+    return newEvent.id!;
   }
 
   Future<List<ScheduleEvent>> getScheduleEventsByDate(DateTime date) async {
@@ -23,15 +28,18 @@ class ScheduleRepository {
     return await _db.getAllScheduleEvents();
   }
 
-  Future<int> updateScheduleEventCompletion(int id, bool isCompleted) async {
-    return await _db.updateScheduleEventCompletion(id, isCompleted);
+  Future<void> updateScheduleEventCompletion(String id, bool isCompleted) async {
+    await _db.updateScheduleEventCompletion(id, isCompleted);
+    CloudSyncService.backupToCloud().catchError((_) {});
   }
 
-  Future<int> updateScheduleEvent(ScheduleEvent event) async {
-    return await _db.updateScheduleEvent(event);
+  Future<void> updateScheduleEvent(ScheduleEvent event) async {
+    await _db.updateScheduleEvent(event);
+    CloudSyncService.backupToCloud().catchError((_) {});
   }
 
-  Future<int> deleteScheduleEvent(int id) async {
-    return await _db.deleteScheduleEvent(id);
+  Future<void> deleteScheduleEvent(String id) async {
+    await _db.deleteScheduleEvent(id);
+    CloudSyncService.backupToCloud().catchError((_) {});
   }
 }

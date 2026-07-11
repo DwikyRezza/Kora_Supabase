@@ -7,6 +7,8 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import '../../../../services/auth_service.dart';
 import '../../../../services/profile_service.dart';
+import '../../../../models/workout.dart';
+import '../../../../models/schedule_event.dart';
 import '../../../../services/fcm_service.dart';
 import '../../../../services/location_service.dart';
 import '../../../../services/notification_service.dart';
@@ -126,19 +128,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         pm.limitedActivityFeed = v['posts'] as List<Map<String, dynamic>>?;
       }).catchError((e) {
         debugPrint('[Prefetch Error] getActivityFeed gagal: $e');
-        return <String, dynamic>{};
+        return null;
       }),
       db.getWorkoutsByDate(today)
           .then((v) => pm.todayWorkouts = v)
           .catchError((e) {
         debugPrint('[Prefetch Error] getWorkoutsByDate gagal: $e');
-        return [];
+        return <Workout>[];
       }),
       db.getScheduleEventsByDate(today)
           .then((v) => pm.upcomingEvents = v)
           .catchError((e) {
         debugPrint('[Prefetch Error] getScheduleEventsByDate gagal: $e');
-        return [];
+        return <ScheduleEvent>[];
       }),
     ]);
   }

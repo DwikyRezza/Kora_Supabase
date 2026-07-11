@@ -44,7 +44,7 @@ class ScheduleView extends StatelessWidget {
           final repo = context.read<ScheduleRepository>();
 
           if (event == null) {
-            int id = await repo.insertScheduleEvent(newEvent);
+            String id = await repo.insertScheduleEvent(newEvent);
             if (isReminderOn && masterNotifOn) {
               final savedEvent = newEvent.copyWith(isCompleted: false);
               final eventWithId = ScheduleEvent(

@@ -20,7 +20,7 @@ class ScheduleDateChanged extends ScheduleEventBloc {
 }
 
 class ScheduleToggleEventCompletion extends ScheduleEventBloc {
-  final int eventId;
+  final String eventId;
   final bool isCompleted;
 
   const ScheduleToggleEventCompletion(this.eventId, this.isCompleted);
@@ -30,7 +30,7 @@ class ScheduleToggleEventCompletion extends ScheduleEventBloc {
 }
 
 class ScheduleDeleteEvent extends ScheduleEventBloc {
-  final int eventId;
+  final String eventId;
 
   const ScheduleDeleteEvent(this.eventId);
 

@@ -12,7 +12,7 @@ class DailyNutritionLoadRequested extends DailyNutritionEvent {}
 class DailyNutritionRefreshRequested extends DailyNutritionEvent {}
 
 class DailyNutritionEntryDeleted extends DailyNutritionEvent {
-  final int id;
+  final String id;
   const DailyNutritionEntryDeleted(this.id);
 
   @override

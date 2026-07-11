@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import '../utils/id_generator.dart';
+import '../core/enums/workout_type.dart';
+
 class Workout {
-  final int? id;
-  final String type; // 'running', 'basketball', 'weightlifting'
+  final String? id;
+  final String type; // e.g. WorkoutType.running
   final double duration; // in minutes
   final double? distance; // km, for running
   final int? sets; // for weightlifting
@@ -47,14 +50,14 @@ class Workout {
   // Protein requirement based on workout type and intensity
   static double calculateProteinNeeded(String type, double duration, {double? weight}) {
     switch (type) {
-      case 'weightlifting':
+      case WorkoutType.weightlifting:
         // 1.6 - 2.2g per kg body weight, scaled to session
         double bw = weight ?? 70.0;
         return (bw * 0.04 * (duration / 60)).clamp(15, 60);
-      case 'running':
+      case WorkoutType.running:
         // Moderate: ~0.1g per minute
         return (duration * 0.12).clamp(10, 40);
-      case 'basketball':
+      case WorkoutType.basketball:
         // High intensity: ~0.14g per minute
         return (duration * 0.14).clamp(12, 45);
       default:
@@ -64,11 +67,11 @@ class Workout {
 
   static int calculateCalories(String type, double duration) {
     switch (type) {
-      case 'weightlifting':
+      case WorkoutType.weightlifting:
         return (duration * 6).round();
-      case 'running':
+      case WorkoutType.running:
         return (duration * 10).round();
-      case 'basketball':
+      case WorkoutType.basketball:
         return (duration * 8).round();
       default:
         return (duration * 7).round();
@@ -101,7 +104,7 @@ class Workout {
 
   factory Workout.fromMap(Map<String, dynamic> map) {
     return Workout(
-      id: map['id'],
+      id: IdGenerator.parseId(map['id']),
       type: map['type'],
       duration: map['duration'],
       distance: map['distance'],
@@ -128,11 +131,11 @@ class Workout {
 
   String get typeLabel {
     switch (type) {
-      case 'running':
+      case WorkoutType.running:
         return 'Lari';
-      case 'basketball':
+      case WorkoutType.basketball:
         return 'Basket';
-      case 'weightlifting':
+      case WorkoutType.weightlifting:
         return 'Workout';
       default:
         return type;
@@ -141,11 +144,11 @@ class Workout {
 
   IconData get typeIcon {
     switch (type) {
-      case 'running':
+      case WorkoutType.running:
         return Icons.directions_run;
-      case 'basketball':
+      case WorkoutType.basketball:
         return Icons.sports_basketball;
-      case 'weightlifting':
+      case WorkoutType.weightlifting:
         return Icons.fitness_center;
       default:
         return Icons.sports_gymnastics;

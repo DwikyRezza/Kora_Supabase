@@ -9,7 +9,7 @@ class ProfileState extends Equatable {
   final int activitiesCount;
   final List<Workout> activitiesList;
   final List<Map<String, dynamic>> userPosts;
-  final Set<int> workoutsWithPhotos;
+  final Set<String> workoutsWithPhotos;
 
   const ProfileState({
     this.isLoading = true,
@@ -30,7 +30,7 @@ class ProfileState extends Equatable {
     int? activitiesCount,
     List<Workout>? activitiesList,
     List<Map<String, dynamic>>? userPosts,
-    Set<int>? workoutsWithPhotos,
+    Set<String>? workoutsWithPhotos,
   }) {
     return ProfileState(
       isLoading: isLoading ?? this.isLoading,

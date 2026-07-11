@@ -1,5 +1,7 @@
-﻿class BodyMeasurement {
-  final int? id;
+import '../utils/id_generator.dart';
+
+class BodyMeasurement {
+  final String? id;
   final double weight; // in kg
   final double height; // in cm
   final double? bodyFatPercentage;
@@ -37,7 +39,7 @@
 
   factory BodyMeasurement.fromMap(Map<String, dynamic> map) {
     return BodyMeasurement(
-      id: map['id'],
+      id: IdGenerator.parseId(map['id']),
       weight: map['weight'],
       height: map['height'],
       bodyFatPercentage: map['bodyFatPercentage'],

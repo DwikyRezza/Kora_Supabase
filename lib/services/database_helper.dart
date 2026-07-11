@@ -5,6 +5,7 @@ import 'package:path/path.dart';
 import '../models/workout.dart';
 import '../models/schedule_event.dart';
 import '../models/body_measurement.dart';
+import '../utils/id_generator.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -33,7 +34,7 @@ class DatabaseHelper {
   Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE workouts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id TEXT PRIMARY KEY,
         type TEXT NOT NULL,
         duration REAL NOT NULL,
         distance REAL,
@@ -60,7 +61,7 @@ class DatabaseHelper {
 
     await db.execute('''
       CREATE TABLE schedule_events (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id TEXT PRIMARY KEY,
         title TEXT NOT NULL,
         type TEXT NOT NULL,
         dateTime TEXT NOT NULL,
@@ -75,7 +76,7 @@ class DatabaseHelper {
 
     await db.execute('''
       CREATE TABLE body_measurements (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id TEXT PRIMARY KEY,
         weight REAL NOT NULL,
         height REAL NOT NULL,
         bodyFatPercentage REAL,
@@ -107,8 +108,8 @@ class DatabaseHelper {
 
     await db.execute('''
       CREATE TABLE workout_sets (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        workout_id INTEGER NOT NULL,
+        id TEXT PRIMARY KEY,
+        workout_id TEXT NOT NULL,
         exercise_name TEXT NOT NULL,
         weight REAL NOT NULL,
         reps INTEGER NOT NULL,
@@ -128,13 +129,31 @@ class DatabaseHelper {
 
     await db.execute('''
       CREATE TABLE workout_photos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        workout_id INTEGER NOT NULL,
+        id TEXT PRIMARY KEY,
+        workout_id TEXT NOT NULL,
         file_path TEXT NOT NULL,
         sort_order INTEGER DEFAULT 0,
         created_at TEXT NOT NULL,
         is_synced INTEGER DEFAULT 0,
         FOREIGN KEY (workout_id) REFERENCES workouts (id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE protein_entries (
+        id TEXT PRIMARY KEY,
+        date TEXT NOT NULL,
+        foodName TEXT NOT NULL,
+        proteinGrams REAL NOT NULL,
+        calories REAL DEFAULT 0.0,
+        carbsGrams REAL DEFAULT 0.0,
+        fatGrams REAL DEFAULT 0.0,
+        fiberGrams REAL DEFAULT 0.0,
+        sugarGrams REAL DEFAULT 0.0,
+        saltGrams REAL DEFAULT 0.0,
+        waterMl INTEGER DEFAULT 0,
+        emojiStr TEXT,
+        is_synced INTEGER DEFAULT 0
       )
     ''');
 
@@ -426,11 +445,11 @@ class DatabaseHelper {
     }).toList();
   }
 
-  Future<int> insertWorkout(Workout workout) async {
+  Future<void> insertWorkout(Workout workout) async {
     final db = await database;
     final map = workout.toMap();
     map['is_synced'] = 0;
-    return await db.insert('workouts', map);
+    await db.insert('workouts', map);
   }
 
   Future<List<Workout>> getWorkoutsByDate(DateTime date) async {
@@ -553,19 +572,26 @@ class DatabaseHelper {
     return {'current': currentStreak, 'best': bestStreak};
   }
 
-  Future<int> deleteWorkout(int id) async {
+  Future<void> deleteWorkout(String id) async {
     final db = await database;
-    await db.insert('deleted_records', {'table_name': 'workouts', 'record_id': id.toString()});
+    await db.delete(
+      'workouts',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    await db.insert('deleted_records', {
+      'table_name': 'workouts',
+      'record_id': id,
+    });
     // Hapus foto terkait dulu (FK cascade tidak aktif by default di SQLite)
     await db.delete('workout_photos', where: 'workout_id = ?', whereArgs: [id]);
-    return await db.delete('workouts', where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<int> updateWorkout(Workout workout) async {
+  Future<void> updateWorkout(Workout workout) async {
     final db = await database;
     final map = workout.toMap();
     map['is_synced'] = 0;
-    return await db.update(
+    await db.update(
       'workouts',
       map,
       where: 'id = ?',
@@ -577,7 +603,7 @@ class DatabaseHelper {
 
   /// Ambil semua foto workout berdasarkan workout_id.
   /// Hanya dipanggil saat UI benar-benar butuh menampilkan foto (lazy).
-  Future<List<String>> getWorkoutPhotos(int workoutId) async {
+  Future<List<String>> getWorkoutPhotos(String workoutId) async {
     final db = await database;
     final maps = await db.query(
       'workout_photos',
@@ -590,7 +616,7 @@ class DatabaseHelper {
 
   /// Cek apakah workout memiliki foto (ringan — tanpa load data foto).
   /// Berguna untuk thumbnail indicator di list view.
-  Future<bool> workoutHasPhotos(int workoutId) async {
+  Future<bool> workoutHasPhotos(String workoutId) async {
     final db = await database;
     final result = await db.rawQuery(
       'SELECT COUNT(*) as cnt FROM workout_photos WHERE workout_id = ?',
@@ -601,7 +627,7 @@ class DatabaseHelper {
 
   /// Batch check: dari daftar workoutId, kembalikan Set ID yang punya foto.
   /// Lebih efisien daripada N kali workoutHasPhotos() untuk list view.
-  Future<Set<int>> getWorkoutIdsWithPhotos(List<int> workoutIds) async {
+  Future<Set<String>> getWorkoutIdsWithPhotos(List<String> workoutIds) async {
     if (workoutIds.isEmpty) return {};
     final db = await database;
     final placeholders = workoutIds.map((_) => '?').join(',');
@@ -609,11 +635,11 @@ class DatabaseHelper {
       'SELECT DISTINCT workout_id FROM workout_photos WHERE workout_id IN ($placeholders)',
       workoutIds,
     );
-    return result.map((r) => r['workout_id'] as int).toSet();
+    return result.map((r) => r['workout_id'] as String).toSet();
   }
 
   /// Ambil file_path foto pertama (sort_order terendah) untuk thumbnail.
-  Future<String?> getFirstWorkoutPhoto(int workoutId) async {
+  Future<String?> getFirstWorkoutPhoto(String workoutId) async {
     final db = await database;
     final result = await db.query(
       'workout_photos',
@@ -628,11 +654,12 @@ class DatabaseHelper {
   }
 
   /// Tambah foto ke workout tertentu.
-  Future<int> addWorkoutPhoto(int workoutId, String filePath, {int? sortOrder}) async {
+  Future<String> addWorkoutPhoto(String workoutId, String filePath, {int? sortOrder}) async {
     final db = await database;
     // Auto-assign sort_order jika tidak diberikan
     final order = sortOrder ?? await _getNextPhotoOrder(workoutId);
-    final id = await db.insert('workout_photos', {
+    await db.insert('workout_photos', {
+      'id': IdGenerator.generate(),
       'workout_id': workoutId,
       'file_path': filePath,
       'sort_order': order,
@@ -640,11 +667,11 @@ class DatabaseHelper {
       'is_synced': 0
     });
     await db.update('workouts', {'is_synced': 0}, where: 'id = ?', whereArgs: [workoutId]);
-    return id;
+    return IdGenerator.generate(); // Assuming returning new ID is fine
   }
 
   /// Hapus satu foto berdasarkan ID.
-  Future<int> deleteWorkoutPhoto(int photoId) async {
+  Future<int> deleteWorkoutPhoto(String photoId) async {
     final db = await database;
     final photo = await db.query('workout_photos', columns: ['workout_id'], where: 'id = ?', whereArgs: [photoId]);
     if (photo.isNotEmpty) {
@@ -654,7 +681,7 @@ class DatabaseHelper {
   }
 
   /// Hapus semua foto milik workout tertentu.
-  Future<int> deleteAllWorkoutPhotos(int workoutId) async {
+  Future<int> deleteAllWorkoutPhotos(String workoutId) async {
     final db = await database;
     await db.update('workouts', {'is_synced': 0}, where: 'id = ?', whereArgs: [workoutId]);
     return await db.delete(
@@ -665,7 +692,7 @@ class DatabaseHelper {
   }
 
   /// Helper: dapatkan sort_order berikutnya untuk workout tertentu.
-  Future<int> _getNextPhotoOrder(int workoutId) async {
+  Future<int> _getNextPhotoOrder(String workoutId) async {
     final db = await database;
     final result = await db.rawQuery(
       'SELECT MAX(sort_order) as max_order FROM workout_photos WHERE workout_id = ?',
@@ -733,11 +760,11 @@ class DatabaseHelper {
 
 
   // ---- SCHEDULE METHODS ----
-  Future<int> insertScheduleEvent(ScheduleEvent event) async {
+  Future<void> insertScheduleEvent(ScheduleEvent event) async {
     final db = await database;
     final map = event.toMap();
     map['is_synced'] = 0;
-    return await db.insert('schedule_events', map);
+    await db.insert('schedule_events', map);
   }
 
   Future<List<ScheduleEvent>> getScheduleEventsByDate(DateTime date) async {
@@ -790,9 +817,9 @@ class DatabaseHelper {
     );
   }
 
-  Future<int> updateScheduleEventCompletion(int id, bool isCompleted) async {
+  Future<void> updateScheduleEventCompletion(String id, bool isCompleted) async {
     final db = await database;
-    return await db.update(
+    await db.update(
       'schedule_events',
       {
         'isCompleted': isCompleted ? 1 : 0,
@@ -804,11 +831,11 @@ class DatabaseHelper {
     );
   }
 
-  Future<int> updateScheduleEvent(ScheduleEvent event) async {
+  Future<void> updateScheduleEvent(ScheduleEvent event) async {
     final db = await database;
     final map = event.toMap();
     map['is_synced'] = 0;
-    return await db.update(
+    await db.update(
       'schedule_events',
       map,
       where: 'id = ?',
@@ -816,18 +843,21 @@ class DatabaseHelper {
     );
   }
 
-  Future<int> deleteScheduleEvent(int id) async {
+  Future<void> deleteScheduleEvent(String id) async {
     final db = await database;
-    await db.insert('deleted_records', {'table_name': 'schedule_events', 'record_id': id.toString()});
-    return await db.delete('schedule_events', where: 'id = ?', whereArgs: [id]);
+    await db.insert('deleted_records', {'table_name': 'schedule_events', 'record_id': id});
+    await db.delete('schedule_events', where: 'id = ?', whereArgs: [id]);
   }
 
   // ---- BODY MEASUREMENTS METHODS ----
-  Future<int> insertBodyMeasurement(BodyMeasurement measurement) async {
+  Future<void> insertBodyMeasurement(BodyMeasurement measurement) async {
     final db = await database;
     final map = measurement.toMap();
+    if (map['id'] == null) {
+      map['id'] = IdGenerator.generate();
+    }
     map['is_synced'] = 0;
-    return await db.insert('body_measurements', map);
+    await db.insert('body_measurements', map);
   }
 
   Future<List<BodyMeasurement>> getAllBodyMeasurements() async {
@@ -847,10 +877,10 @@ class DatabaseHelper {
     return BodyMeasurement.fromMap(maps.first);
   }
 
-  Future<int> deleteBodyMeasurement(int id) async {
+  Future<void> deleteBodyMeasurement(String id) async {
     final db = await database;
-    await db.insert('deleted_records', {'table_name': 'body_measurements', 'record_id': id.toString()});
-    return await db.delete('body_measurements', where: 'id = ?', whereArgs: [id]);
+    await db.insert('deleted_records', {'table_name': 'body_measurements', 'record_id': id});
+    await db.delete('body_measurements', where: 'id = ?', whereArgs: [id]);
   }
 
   // ---- USER PROFILE METHODS ----
@@ -905,6 +935,7 @@ class DatabaseHelper {
     await db.insert(
       'protein_entries',
       {
+        'id': IdGenerator.generate(),
         'date': DateTime.now().toIso8601String(),
         'foodName': foodName,
         'proteinGrams': protein,
@@ -947,7 +978,7 @@ class DatabaseHelper {
     return maps.map((e) => ProteinEntry.fromMap(e)).toList();
   }
 
-  Future<void> deleteProteinEntry(int id) async {
+  Future<void> deleteProteinEntry(String id) async {
     final db = await database;
     // For protein_entries, we don't need deleted_records because sync just overrides the whole day.
     // Setting is_synced=0 is done by deleting? Wait, if we delete, the date is modified, so we should sync it.
@@ -964,15 +995,18 @@ class DatabaseHelper {
     );
   }
 
-  Future<int> insertProteinEntry(ProteinEntry entry) async {
+  Future<void> insertProteinEntry(ProteinEntry entry) async {
     final db = await database;
     final map = entry.toMap();
+    if (map['id'] == null) {
+      map['id'] = IdGenerator.generate();
+    }
     map['is_synced'] = 0;
-    return await db.insert('protein_entries', map);
+    await db.insert('protein_entries', map);
   }
 
   // ---- SYNC METHODS ----
-  Future<void> markAsSynced(String tableName, List<int> ids) async {
+  Future<void> markAsSynced(String tableName, List<String> ids) async {
     if (ids.isEmpty) return;
     final db = await database;
     final placeholders = ids.map((_) => '?').join(',');

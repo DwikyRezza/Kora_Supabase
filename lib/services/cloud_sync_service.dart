@@ -165,7 +165,7 @@ class CloudSyncService {
         }
       }
       
-      final ids = workouts.map((e) => e['id'] as int).toList();
+      final ids = workouts.map((e) => e['id'] as String).toList();
       await _db.markAsSynced('workouts', ids);
       print('[CloudSync] ✅ Workouts synced: ${workouts.length}');
     } catch (e) {
@@ -174,7 +174,7 @@ class CloudSyncService {
   }
 
   /// Hapus satu workout dari Firestore
-  static Future<void> deleteWorkout(int workoutId) async {
+  static Future<void> deleteWorkout(String workoutId) async {
     if (!AuthService.isLoggedIn) return;
     try {
       final workoutRef = _userDoc.collection('workouts').doc(workoutId.toString());
@@ -224,7 +224,7 @@ class CloudSyncService {
       }
       await batch.commit();
       
-      final ids = events.map((e) => e['id'] as int).toList();
+      final ids = events.map((e) => e['id'] as String).toList();
       await _db.markAsSynced('schedule_events', ids);
       print('[CloudSync] ✅ Schedule synced: ${events.length} events');
     } catch (e) {
@@ -233,7 +233,7 @@ class CloudSyncService {
   }
 
   /// Hapus satu schedule event dari Firestore
-  static Future<void> deleteScheduleEvent(int eventId) async {
+  static Future<void> deleteScheduleEvent(String eventId) async {
     if (!AuthService.isLoggedIn) return;
     try {
       await _userDoc.collection('schedule_events').doc(eventId.toString()).delete();
@@ -273,7 +273,7 @@ class CloudSyncService {
       }
       await batch.commit();
       
-      final ids = measurements.map((e) => e['id'] as int).toList();
+      final ids = measurements.map((e) => e['id'] as String).toList();
       await _db.markAsSynced('body_measurements', ids);
       print('[CloudSync] ✅ Body measurements synced: ${measurements.length}');
     } catch (e) {

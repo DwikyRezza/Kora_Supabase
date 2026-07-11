@@ -1,6 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import '../utils/id_generator.dart';
+
 class ProteinEntry {
-  final int? id;
+  final String? id;
   final String foodName;
   final double proteinGrams;
   final double calories;
@@ -50,7 +52,7 @@ class ProteinEntry {
 
   factory ProteinEntry.fromMap(Map<String, dynamic> map) {
     return ProteinEntry(
-      id: map['id'],
+      id: IdGenerator.parseId(map['id']),
       foodName: map['foodName'],
       proteinGrams: map['proteinGrams'] ?? 0.0,
       calories: map['calories'] ?? 0.0,

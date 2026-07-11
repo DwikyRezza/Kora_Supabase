@@ -22,7 +22,7 @@ class AddBodyMeasurement extends BodyStatsEvent {
 }
 
 class DeleteBodyMeasurement extends BodyStatsEvent {
-  final int id;
+  final String id;
 
   const DeleteBodyMeasurement(this.id);
 
