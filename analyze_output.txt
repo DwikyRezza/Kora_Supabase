@@ -1,0 +1,320 @@
+﻿Analyzing Kora...                                               
+
+warning - The value of the local variable 'y' isn't used - lib\features\activity_analytics\data\datasources\sqlite_activity_analytics_datasource.dart:20:11 - unused_local_variable
+   info - Statements in an if should be enclosed in a block - lib\features\activity_analytics\data\datasources\sqlite_activity_analytics_datasource.dart:39:46 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\activity_analytics\data\datasources\sqlite_activity_analytics_datasource.dart:40:51 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\activity_analytics\data\datasources\sqlite_activity_analytics_datasource.dart:41:51 - curly_braces_in_flow_control_structures
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\activity_analytics\presentation\widgets\activity_analytics_card.dart:41:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\activity_analytics\presentation\widgets\activity_chart_widget.dart:48:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\activity_analytics\presentation\widgets\activity_chart_widget.dart:98:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\activity_analytics\presentation\widgets\activity_chart_widget.dart:99:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\activity_analytics\presentation\widgets\activity_chart_widget.dart:128:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\activity_analytics\presentation\widgets\empty_state_widget.dart:23:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\activity_analytics\presentation\widgets\header_widget.dart:104:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\activity_analytics\presentation\widgets\hero_metric_widget.dart:79:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\activity_analytics\presentation\widgets\insight_section_widget.dart:28:32 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\activity_analytics\presentation\widgets\insight_section_widget.dart:42:65 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\activity_analytics\presentation\widgets\metric_selector_widget.dart:101:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\activity_analytics\presentation\widgets\summary_section_widget.dart:30:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\ainutrition\presentation\screens\ai_nutrition_screen.dart:224:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\ainutrition\presentation\screens\ai_nutrition_screen.dart:246:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\ainutrition\presentation\screens\ai_nutrition_screen.dart:334:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\ainutrition\presentation\screens\ai_nutrition_screen.dart:437:62 - deprecated_member_use
+   info - Use 'const' with the constructor to improve performance - lib\features\analytics\bloc\analytics_bloc.dart:100:38 - prefer_const_constructors
+warning - Unused import: 'package:share_plus/share_plus.dart' - lib\features\analytics\presentation\screens\weekly_report_screen.dart:4:8 - unused_import
+warning - The declaration 'formatVal' isn't referenced - lib\features\analytics\presentation\widgets\progress_section.dart:230:12 - unused_element
+warning - The value of the local variable 'yMid' isn't used - lib\features\analytics\presentation\widgets\progress_section.dart:245:11 - unused_local_variable
+   info - Don't invoke 'print' in production code - lib\features\analytics\presentation\widgets\progress_section.dart:250:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\analytics\presentation\widgets\progress_section.dart:251:5 - avoid_print
+warning - Unused import: '../../bloc/analytics_event.dart' - lib\features\analytics\presentation\widgets\summary_section.dart:5:8 - unused_import
+warning - Unused import: 'package:lottie/lottie.dart' - lib\features\analytics\presentation\widgets\summary_section.dart:7:8 - unused_import
+   info - Use 'const' with the constructor to improve performance - lib\features\analytics\presentation\widgets\summary_section.dart:64:15 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\analytics\presentation\widgets\summary_section.dart:64:55 - prefer_const_constructors
+warning - The declaration '_buildSummaryCard' isn't referenced - lib\features\analytics\presentation\widgets\summary_section.dart:81:10 - unused_element
+warning - A value of type 'Map<String, dynamic>' can't be returned by the 'onError' handler because it must be assignable to 'FutureOr<Null>' - lib\features\auth\bloc\auth\auth_bloc.dart:129:16 - invalid_return_type_for_catch_error
+warning - A value of type 'List<dynamic>' can't be returned by the 'onError' handler because it must be assignable to 'FutureOr<List<Workout>>' - lib\features\auth\bloc\auth\auth_bloc.dart:135:16 - invalid_return_type_for_catch_error
+warning - A value of type 'List<dynamic>' can't be returned by the 'onError' handler because it must be assignable to 'FutureOr<List<ScheduleEvent>>' - lib\features\auth\bloc\auth\auth_bloc.dart:141:16 - invalid_return_type_for_catch_error
+   info - Don't invoke 'print' in production code - lib\features\auth\bloc\landing\landing_bloc.dart:27:11 - avoid_print
+warning - The left operand can't be null, so the right operand is never executed - lib\features\auth\bloc\onboarding\onboarding_bloc.dart:26:80 - dead_null_aware_expression
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\auth\presentation\screens\landing_screen.dart:132:68 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\auth\presentation\screens\landing_screen.dart:310:30 - deprecated_member_use
+warning - The left operand can't be null, so the right operand is never executed - lib\features\auth\presentation\screens\onboarding_screen.dart:58:41 - dead_null_aware_expression
+warning - Unnecessary cast - lib\features\home\bloc\home_bloc.dart:119:31 - unnecessary_cast
+warning - Unnecessary cast - lib\features\home\bloc\home_bloc.dart:120:32 - unnecessary_cast
+warning - Unnecessary cast - lib\features\home\bloc\home_bloc.dart:121:32 - unnecessary_cast
+warning - Unnecessary cast - lib\features\home\bloc\home_bloc.dart:164:31 - unnecessary_cast
+warning - Unnecessary cast - lib\features\home\bloc\home_bloc.dart:165:32 - unnecessary_cast
+warning - Unnecessary cast - lib\features\home\bloc\home_bloc.dart:166:32 - unnecessary_cast
+warning - Unused import: '../../../models/workout.dart' - lib\features\home\bloc\home_event.dart:2:8 - unused_import
+warning - Unused import: '../../../models/protein_entry.dart' - lib\features\home\bloc\home_event.dart:3:8 - unused_import
+warning - Unused import: '../../../models/schedule_event.dart' - lib\features\home\bloc\home_event.dart:4:8 - unused_import
+warning - Unused import: 'package:cloud_firestore/cloud_firestore.dart' - lib\features\home\presentation\screens\home_screen.dart:1:8 - unused_import
+   info - The import of 'package:flutter/services.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' - lib\features\home\presentation\screens\home_screen.dart:4:8 - unnecessary_import
+warning - Unused import: 'package:lottie/lottie.dart' - lib\features\home\presentation\screens\home_screen.dart:5:8 - unused_import
+warning - Unused import: '../../../../services/database_helper.dart' - lib\features\home\presentation\screens\home_screen.dart:8:8 - unused_import
+warning - Unused import: '../../../../services/profile_service.dart' - lib\features\home\presentation\screens\home_screen.dart:9:8 - unused_import
+warning - Unused import: '../../../../services/cloud_sync_service.dart' - lib\features\home\presentation\screens\home_screen.dart:10:8 - unused_import
+warning - Unused import: '../../../../services/whistleblower_service.dart' - lib\features\home\presentation\screens\home_screen.dart:11:8 - unused_import
+warning - Unused import: '../../../../services/notification_service.dart' - lib\features\home\presentation\screens\home_screen.dart:12:8 - unused_import
+warning - Unused import: '../../../../services/social_service.dart' - lib\features\home\presentation\screens\home_screen.dart:13:8 - unused_import
+warning - Unused import: '../../../../services/auth_service.dart' - lib\features\home\presentation\screens\home_screen.dart:14:8 - unused_import
+warning - Unused import: '../../../../utils/prefetch_manager.dart' - lib\features\home\presentation\screens\home_screen.dart:16:8 - unused_import
+warning - Unused import: '../../../../features/running/presentation/screens/running_screen.dart' - lib\features\home\presentation\screens\home_screen.dart:25:8 - unused_import
+warning - Unused import: '../../../workout/presentation/screens/workout_setup_screen.dart' - lib\features\home\presentation\screens\home_screen.dart:26:8 - unused_import
+warning - The declaration '_userName' isn't referenced - lib\features\home\presentation\screens\home_screen.dart:59:14 - unused_element
+warning - The declaration '_userPhotoUrl' isn't referenced - lib\features\home\presentation\screens\home_screen.dart:60:15 - unused_element
+warning - The declaration '_baseTargetProtein' isn't referenced - lib\features\home\presentation\screens\home_screen.dart:61:14 - unused_element
+warning - The declaration '_todayWorkouts' isn't referenced - lib\features\home\presentation\screens\home_screen.dart:64:21 - unused_element
+warning - The declaration '_upcomingEvents' isn't referenced - lib\features\home\presentation\screens\home_screen.dart:65:27 - unused_element
+warning - The declaration '_currentWorkoutStreak' isn't referenced - lib\features\home\presentation\screens\home_screen.dart:70:11 - unused_element
+   info - Don't use 'BuildContext's across async gaps - lib\features\home\presentation\screens\home_screen.dart:233:21 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\home\presentation\screens\home_screen.dart:591:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\home\presentation\screens\home_screen.dart:596:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\home\presentation\screens\home_screen.dart:603:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\home\presentation\screens\home_screen.dart:608:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\home\presentation\screens\home_screen.dart:632:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\home\presentation\screens\home_screen.dart:632:80 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\profile\presentation\screens\body_stats_screen.dart:236:46 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\profile\presentation\screens\edit_profile_screen.dart:163:29 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\profile\presentation\screens\edit_profile_screen.dart:180:35 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\profile\presentation\screens\edit_profile_screen.dart:215:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\profile\presentation\screens\edit_profile_screen.dart:314:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\profile\presentation\screens\edit_profile_screen.dart:386:60 - deprecated_member_use
+warning - Unused import: 'dart:convert' - lib\features\profile\presentation\screens\profile_screen.dart:3:8 - unused_import
+warning - Unused import: 'package:google_maps_flutter/google_maps_flutter.dart' - lib\features\profile\presentation\screens\profile_screen.dart:4:8 - unused_import
+warning - Unused import: '../../../../models/workout.dart' - lib\features\profile\presentation\screens\profile_screen.dart:5:8 - unused_import
+warning - Unused import: '../../bloc/edit_profile/edit_profile_bloc.dart' - lib\features\profile\presentation\screens\profile_screen.dart:13:8 - unused_import
+   info - Don't use 'BuildContext's across async gaps - lib\features\profile\presentation\screens\profile_screen.dart:209:43 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\profile\presentation\screens\profile_screen.dart:224:43 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\profile\presentation\screens\profile_screen.dart:274:56 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\profile\presentation\screens\profile_screen.dart:276:75 - deprecated_member_use
+warning - Unused import: '../../../../main.dart' - lib\features\profile\presentation\screens\setting_screen.dart:5:8 - unused_import
+   info - Don't use 'BuildContext's across async gaps - lib\features\profile\presentation\screens\setting_screen.dart:49:9 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\profile\presentation\screens\setting_screen.dart:169:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\profile\presentation\screens\setting_screen.dart:182:53 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\profile\presentation\screens\setting_screen.dart:211:54 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\profile\presentation\screens\setting_screen.dart:265:43 - deprecated_member_use
+warning - Unused import: 'dart:convert' - lib\features\running\bloc\running_bloc.dart:1:8 - unused_import
+warning - Unused import: '../../../models/workout.dart' - lib\features\running\bloc\running_bloc.dart:6:8 - unused_import
+warning - Unused import: '../../../services/database_helper.dart' - lib\features\running\bloc\running_bloc.dart:7:8 - unused_import
+warning - Unused import: '../../../services/cloud_sync_service.dart' - lib\features\running\bloc\running_bloc.dart:8:8 - unused_import
+warning - The value of the local variable 'userProfile' isn't used - lib\features\running\bloc\running_bloc.dart:79:15 - unused_local_variable
+warning - Unused import: '../../../../services/database_helper.dart' - lib\features\running\presentation\screens\running_screen.dart:11:8 - unused_import
+warning - Unused import: '../../../../services/cloud_sync_service.dart' - lib\features\running\presentation\screens\running_screen.dart:14:8 - unused_import
+warning - Unused import: '../../../../services/social_service.dart' - lib\features\running\presentation\screens\running_screen.dart:15:8 - unused_import
+warning - Unused import: '../../bloc/running_state.dart' - lib\features\running\presentation\screens\running_screen.dart:24:8 - unused_import
+warning - The value of the field '_lastSplitKm' isn't used - lib\features\running\presentation\screens\running_screen.dart:102:7 - unused_field
+warning - The value of the field '_lastSplitTimeSeconds' isn't used - lib\features\running\presentation\screens\running_screen.dart:103:7 - unused_field
+   info - 'setMapStyle' is deprecated and shouldn't be used. Use GoogleMap.style instead - lib\features\running\presentation\screens\running_screen.dart:172:20 - deprecated_member_use
+   info - 'setMapStyle' is deprecated and shouldn't be used. Use GoogleMap.style instead - lib\features\running\presentation\screens\running_screen.dart:174:20 - deprecated_member_use
+warning - The value of the local variable 'accuracy' isn't used - lib\features\running\presentation\screens\running_screen.dart:260:13 - unused_local_variable
+   info - Don't use 'BuildContext's across async gaps - lib\features\running\presentation\screens\running_screen.dart:868:5 - use_build_context_synchronously
+   info - 'setMapStyle' is deprecated and shouldn't be used. Use GoogleMap.style instead - lib\features\running\presentation\screens\running_screen.dart:1122:28 - deprecated_member_use
+   info - 'setMapStyle' is deprecated and shouldn't be used. Use GoogleMap.style instead - lib\features\running\presentation\screens\running_screen.dart:1124:28 - deprecated_member_use
+warning - Unused import: '../../../../models/schedule_event.dart' - lib\features\schedule\bloc\schedule_event.dart:2:8 - unused_import
+   info - Don't use 'BuildContext's across async gaps - lib\features\schedule\presentation\screens\schedule_screen.dart:44:24 - use_build_context_synchronously
+   info - The import of 'package:flutter/services.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' - lib\features\schedule\presentation\widgets\add_edit_event_form.dart:2:8 - unnecessary_import
+   info - Use 'const' with the constructor to improve performance - lib\features\schedule\presentation\widgets\add_edit_event_form.dart:392:28 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\schedule\presentation\widgets\add_edit_event_form.dart:393:32 - prefer_const_constructors
+   info - Don't invoke 'print' in production code - lib\features\social\bloc\search\search_bloc.dart:46:7 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\social\presentation\screens\notification_screen.dart:52:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\social\presentation\screens\notification_screen.dart:56:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\social\presentation\screens\notification_screen.dart:60:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\social\presentation\screens\notification_screen.dart:64:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\social\presentation\screens\notification_screen.dart:113:98 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\social\presentation\screens\notification_screen.dart:148:72 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\social\presentation\screens\notification_screen.dart:171:78 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\social\presentation\screens\search_screen.dart:109:96 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\social\presentation\screens\social_screen.dart:232:55 - deprecated_member_use
+warning - The value of the field '_db' isn't used - lib\features\workout\bloc\workout_main\workout_main_bloc.dart:11:24 - unused_field
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\screens\active_workout_screen.dart:105:26 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\screens\active_workout_screen.dart:106:30 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\screens\active_workout_screen.dart:124:26 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\screens\active_workout_screen.dart:125:30 - prefer_const_constructors
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\workout\presentation\screens\weightlifting_screen.dart:145:65 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\workout\presentation\screens\weightlifting_screen.dart:317:60 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\workout\presentation\screens\weightlifting_screen.dart:319:79 - deprecated_member_use
+   info - 'Share' is deprecated and shouldn't be used. Use SharePlus instead - lib\features\workout\presentation\screens\workout_detail_screen.dart:102:13 - deprecated_member_use
+   info - 'shareXFiles' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead - lib\features\workout\presentation\screens\workout_detail_screen.dart:102:19 - deprecated_member_use
+warning - The declaration '_showDeleteDialog' isn't referenced - lib\features\workout\presentation\screens\workout_detail_screen.dart:106:8 - unused_element
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\workout\presentation\screens\workout_detail_screen.dart:164:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\workout\presentation\screens\workout_detail_screen.dart:175:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\workout\presentation\screens\workout_detail_screen.dart:199:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\workout\presentation\screens\workout_detail_screen.dart:218:67 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\workout\presentation\screens\workout_detail_screen.dart:465:78 - deprecated_member_use
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\screens\workout_setup_screen.dart:184:20 - prefer_const_constructors
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\workout\presentation\screens\workout_summary_screen.dart:196:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\workout\presentation\screens\workout_summary_screen.dart:198:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\workout\presentation\screens\workout_summary_screen.dart:215:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\workout\presentation\screens\workout_summary_screen.dart:217:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\workout\presentation\screens\workout_summary_screen.dart:270:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\workout\presentation\screens\workout_summary_screen.dart:297:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\workout\presentation\screens\workout_summary_screen.dart:297:93 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\workout\presentation\screens\workout_summary_screen.dart:299:51 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\workout\presentation\screens\workout_summary_screen.dart:446:78 - deprecated_member_use
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\features\workout\presentation\widgets\active_workout\workout_header.dart:69:43 - prefer_const_literals_to_create_immutables
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\widgets\active_workout\workout_header.dart:69:44 - prefer_const_constructors
+   info - The import of 'package:flutter/services.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' - lib\features\workout\presentation\widgets\active_workout\workout_hero_section.dart:2:8 - unnecessary_import
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\features\workout\presentation\widgets\active_workout\workout_log_card.dart:91:47 - prefer_const_literals_to_create_immutables
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\widgets\active_workout\workout_log_card.dart:91:48 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\widgets\active_workout\workout_log_card.dart:183:32 - prefer_const_constructors
+   info - The import of 'dart:ui' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' - lib\features\workout\presentation\widgets\active_workout\workout_rest_overlay.dart:1:8 - unnecessary_import
+   info - The import of 'package:flutter/services.dart' is unnecessary because all of the used elements are also provided by the import of 'dart:ui' - lib\features\workout\presentation\widgets\active_workout\workout_rest_overlay.dart:3:8 - unnecessary_import
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\widgets\active_workout\workout_rest_overlay.dart:119:31 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\widgets\active_workout\workout_rest_overlay.dart:120:32 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\widgets\active_workout\workout_rest_overlay.dart:121:36 - prefer_const_constructors
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\workout\presentation\widgets\workout_main\workout_activities_tab.dart:58:69 - deprecated_member_use
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\widgets\workout_setup\setup_step_summary.dart:234:31 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\widgets\workout_setup\setup_step_summary.dart:265:31 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\widgets\workout_setup\setup_step_summary.dart:277:30 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\widgets\workout_setup\setup_step_summary.dart:297:13 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\widgets\workout_setup\setup_step_summary.dart:297:44 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\widgets\workout_setup\setup_step_summary.dart:301:18 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\widgets\workout_setup\setup_step_summary.dart:307:28 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\widgets\workout_setup\setup_step_summary.dart:308:29 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\widgets\workout_setup\setup_step_summary.dart:315:22 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\workout\presentation\widgets\workout_setup\setup_step_summary.dart:316:26 - prefer_const_constructors
+warning - Unused import: 'features/ainutrition/presentation/screens/ai_nutrition_screen.dart' - lib\main.dart:11:8 - unused_import
+warning - Unused import: 'features/auth/presentation/screens/onboarding_screen.dart' - lib\main.dart:17:8 - unused_import
+warning - Unused import: 'features/auth/presentation/screens/landing_screen.dart' - lib\main.dart:18:8 - unused_import
+warning - Unused import: 'features/auth/bloc/auth/auth_event.dart' - lib\main.dart:27:8 - unused_import
+   info - Don't use 'BuildContext's across async gaps - lib\main.dart:174:32 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\main.dart:190:32 - use_build_context_synchronously
+   info - Use 'const' with the constructor to improve performance - lib\main.dart:327:15 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\main.dart:328:15 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\main.dart:329:15 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\main.dart:330:15 - prefer_const_constructors
+   info - Don't invoke 'print' in production code - lib\repositories\workout_repository.dart:48:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\repositories\workout_repository.dart:64:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\repositories\workout_repository.dart:118:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:38:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:52:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:62:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:67:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:72:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:116:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:118:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:170:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:172:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:191:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:193:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:229:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:231:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:240:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:242:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:278:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:280:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:312:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:321:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:342:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:344:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:376:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:378:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:396:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:398:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:416:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloud_sync_service.dart:418:7 - avoid_print
+   info - Don't use 'BuildContext's across async gaps - lib\services\location_service.dart:53:66 - use_build_context_synchronously
+   info - Don't invoke 'print' in production code - lib\services\notification_service.dart:260:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\notification_service.dart:287:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\notification_service.dart:310:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\profile_service.dart:47:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\profile_service.dart:66:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\profile_service.dart:137:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\profile_service.dart:169:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\profile_service.dart:207:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\running_task_handler.dart:48:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\running_task_handler.dart:50:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\running_task_handler.dart:57:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\running_task_handler.dart:64:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\running_task_handler.dart:110:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\running_task_handler.dart:131:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\running_task_handler.dart:169:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\running_task_handler.dart:179:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\running_task_handler.dart:199:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\running_task_handler.dart:214:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\running_task_handler.dart:234:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\running_task_handler.dart:261:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\running_task_handler.dart:270:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\running_task_handler.dart:290:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\running_task_handler.dart:331:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\running_task_handler.dart:345:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\running_task_handler.dart:362:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\running_task_handler.dart:370:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\running_task_handler.dart:379:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:30:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:45:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:61:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:84:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:113:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:132:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:134:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:154:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:175:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:195:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:197:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:240:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:242:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:292:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:343:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:404:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:419:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:441:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:458:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\social_service.dart:482:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\storage_service.dart:14:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\storage_service.dart:20:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\storage_service.dart:25:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\storage_service.dart:42:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\storage_service.dart:69:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\storage_service.dart:72:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\storage_service.dart:88:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\whistleblower_service.dart:18:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\whistleblower_service.dart:27:7 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\theme\app_theme.dart:218:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\activity\training_volume_chart.dart:105:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\activity\training_volume_chart.dart:108:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\activity\training_volume_chart.dart:207:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\activity\training_volume_chart.dart:208:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\common_widgets.dart:40:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\common_widgets.dart:154:44 - deprecated_member_use
+warning - The value of the field '_commentsCount' isn't used - lib\widgets\feed_post_card.dart:36:12 - unused_field
+warning - The value of the local variable 'sets' isn't used - lib\widgets\feed_post_card.dart:396:11 - unused_local_variable
+warning - The value of the local variable 'reps' isn't used - lib\widgets\feed_post_card.dart:397:11 - unused_local_variable
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\feed_post_card.dart:517:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\feed_post_card.dart:520:34 - deprecated_member_use
+warning - The declaration '_buildCustomPaintRoute' isn't referenced - lib\widgets\feed_post_card.dart:542:10 - unused_element
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\shimmer_feed_card.dart:18:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_analysis_splits.dart:56:36 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_analysis_splits.dart:108:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_container.dart:238:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_container.dart:277:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_container.dart:286:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_container.dart:297:66 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_container.dart:297:101 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_container.dart:302:68 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_container.dart:302:103 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_container.dart:318:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_container.dart:319:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_container.dart:342:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_container.dart:380:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_container.dart:390:73 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_container.dart:397:74 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_container.dart:398:74 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_section.dart:86:51 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_section.dart:98:51 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_section.dart:117:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_section.dart:118:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_section.dart:163:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_section.dart:182:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_section.dart:183:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_section.dart:220:51 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_section.dart:241:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_section.dart:242:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_section.dart:287:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_section.dart:308:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_charts_section.dart:309:47 - deprecated_member_use
+   info - 'fromBytes' is deprecated and shouldn't be used. Use BitmapDescriptor.bytes method instead - lib\widgets\workout_detail\workout_detail_map.dart:71:42 - deprecated_member_use
+   info - 'zIndex' is deprecated and shouldn't be used. Use zIndexInt instead. On some platforms zIndex is truncated to an int, which can lead to incorrect/unstable ordering - lib\widgets\workout_detail\workout_detail_map.dart:159:19 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\workout_detail\workout_detail_results.dart:103:53 - deprecated_member_use
+
